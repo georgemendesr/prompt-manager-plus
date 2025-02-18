@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { PromptCard } from "@/components/PromptCard";
 import { BulkImport } from "@/components/BulkImport";
@@ -11,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/AuthProvider";
 import { LogOut } from "lucide-react";
 import type { Category } from "@/types/prompt";
+import { StructureList } from "@/components/structures/StructureList";
 
 const Prompts = () => {
   const { signOut } = useAuth();
@@ -40,7 +40,6 @@ const Prompts = () => {
     );
   }
 
-  // Renderiza uma categoria e suas subcategorias
   const renderCategoryContent = (category: Category, level = 0) => (
     <div key={category.id} className={`space-y-4 ${level > 0 ? 'ml-6' : ''}`}>
       {level > 0 && (
@@ -80,7 +79,6 @@ const Prompts = () => {
         />
       ))}
 
-      {/* Renderiza subcategorias apenas se houverem */}
       {category.subcategories?.map((subCategory) => 
         renderCategoryContent(subCategory, level + 1)
       )}
@@ -109,9 +107,8 @@ const Prompts = () => {
       ) : (
         <Tabs defaultValue={categories[0]?.name} className="w-full">
           <TabsList className="w-full justify-start mb-6 bg-gray-100/80 p-1 rounded-lg">
-            {/* Mostrar apenas categorias principais nas abas */}
             {categories
-              .filter(category => !category.parentId) // Filtra apenas categorias principais
+              .filter(category => !category.parentId)
               .map((category) => (
                 <TabsTrigger
                   key={category.id}
@@ -123,7 +120,6 @@ const Prompts = () => {
               ))}
           </TabsList>
 
-          {/* Renderizar conteúdo apenas das categorias principais */}
           {categories
             .filter(category => !category.parentId)
             .map((category) => (
@@ -176,8 +172,13 @@ const Prompts = () => {
           </TabsContent>
 
           <TabsContent value="estrutura" className="mt-6">
-            <div className="text-center py-12 text-gray-500 bg-white/80 backdrop-blur-sm rounded-lg">
-              Seção de Estrutura em desenvolvimento
+            <div className="bg-white/80 backdrop-blur-sm rounded-lg p-6">
+              <StructureList 
+                structures={[]} 
+                onAddStructure={() => {}} 
+                onEditStructure={() => {}} 
+                onDeleteStructure={() => {}} 
+              />
             </div>
           </TabsContent>
 
