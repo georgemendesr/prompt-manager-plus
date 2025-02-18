@@ -24,9 +24,9 @@ export const BulkImport = ({ categories, onImport }: BulkImportProps) => {
 
   const handleImport = () => {
     const prompts = text
-      .split("\n")
-      .filter((t) => t.trim())
-      .map((t) => t.trim());
+      .split("```")
+      .map(t => t.trim())
+      .filter(t => t && !t.includes("```")); // Remove empty strings and backticks
 
     if (prompts.length && category) {
       onImport(prompts, category);
@@ -64,8 +64,8 @@ export const BulkImport = ({ categories, onImport }: BulkImportProps) => {
           <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Cole seus prompts aqui, um por linha"
-            className="min-h-[200px]"
+            placeholder="Cole seus prompts aqui, separados por ```"
+            className="min-h-[200px] font-mono"
           />
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setOpen(false)}>
