@@ -6,7 +6,7 @@ const Index = () => {
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-r from-purple-900/70 to-pink-900/70 mix-blend-multiply" />
         <img 
-          src="https://images.unsplash.com/photo-1482938289607-e9573fc25ebb?auto=format&fit=crop&w=2000&q=80" 
+          src="https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?auto=format&fit=crop&w=2000&q=80" 
           alt="Background" 
           className="w-full h-full object-cover object-center filter blur-sm scale-105"
         />
@@ -27,14 +27,14 @@ const Index = () => {
 
           {/* Hero Text */}
           <div className="space-y-8 animate-fade-in">
-            <h1 className="text-5xl md:text-7xl font-bold text-white drop-shadow-lg">
+            <h1 className="text-5xl md:text-7xl font-bold text-white drop-shadow-lg font-display">
               Você sente. Você vê.
             </h1>
             
             <div className="grid md:grid-cols-2 gap-6 text-white">
               <div className="bg-white/10 backdrop-blur-sm p-6 rounded-2xl hover:bg-white/20 transition-all duration-300">
                 <span className="text-3xl mb-4 block">🎯</span>
-                <h3 className="text-xl font-semibold mb-2">Comunicação Pública</h3>
+                <h3 className="text-xl font-semibold mb-2 font-display">Comunicação Pública</h3>
                 <p className="text-gray-200">
                   Especialistas em Marketing Político
                 </p>
@@ -42,7 +42,7 @@ const Index = () => {
 
               <div className="bg-white/10 backdrop-blur-sm p-6 rounded-2xl hover:bg-white/20 transition-all duration-300">
                 <span className="text-3xl mb-4 block">💫</span>
-                <h3 className="text-xl font-semibold mb-2">Experiência</h3>
+                <h3 className="text-xl font-semibold mb-2 font-display">Experiência</h3>
                 <p className="text-gray-200">
                   +100 marcas atendidas
                 </p>
@@ -50,7 +50,7 @@ const Index = () => {
 
               <div className="bg-white/10 backdrop-blur-sm p-6 rounded-2xl hover:bg-white/20 transition-all duration-300 md:col-span-2">
                 <span className="text-3xl mb-4 block">🏆</span>
-                <h3 className="text-xl font-semibold mb-2">Resultados</h3>
+                <h3 className="text-xl font-semibold mb-2 font-display">Resultados</h3>
                 <p className="text-gray-200">
                   Diversas campanhas eleitorais de sucesso
                 </p>
