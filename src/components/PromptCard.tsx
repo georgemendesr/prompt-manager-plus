@@ -37,7 +37,10 @@ export const PromptCard = ({ prompt, onRate, onAddComment, onSelect, selected }:
   const [comment, setComment] = useState("");
   const [bgColor, setBgColor] = useState("bg-white/80");
   const [hashtag, setHashtag] = useState("");
-  const [hashtags, setHashtags] = useState<string[]>(prompt.hashtags || []);
+
+  // Filtra as hashtags dos comentários
+  const hashtags = prompt.comments.filter(comment => comment.startsWith('#'));
+  const regularComments = prompt.comments.filter(comment => !comment.startsWith('#'));
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(prompt.text);
@@ -57,15 +60,11 @@ export const PromptCard = ({ prompt, onRate, onAddComment, onSelect, selected }:
     if (e.key === 'Enter' && hashtag.trim()) {
       const newHashtag = hashtag.trim().startsWith('#') ? hashtag.trim() : `#${hashtag.trim()}`;
       if (!hashtags.includes(newHashtag)) {
-        setHashtags([...hashtags, newHashtag]);
+        onAddComment(prompt.id, newHashtag);
         setHashtag("");
         toast.success("Hashtag adicionada!");
       }
     }
-  };
-
-  const removeHashtag = (tagToRemove: string) => {
-    setHashtags(hashtags.filter(tag => tag !== tagToRemove));
   };
 
   return (
@@ -84,13 +83,12 @@ export const PromptCard = ({ prompt, onRate, onAddComment, onSelect, selected }:
           {hashtags.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-2">
               {hashtags.map((tag, index) => (
-                <button
+                <span
                   key={index}
-                  onClick={() => removeHashtag(tag)}
-                  className="inline-flex items-center px-2 py-1 rounded-full bg-gray-100 text-xs text-gray-600 hover:bg-gray-200 transition-colors"
+                  className="inline-flex items-center px-2 py-1 rounded-full bg-gray-100 text-xs text-gray-600"
                 >
                   {tag}
-                </button>
+                </span>
               ))}
             </div>
           )}
@@ -189,9 +187,9 @@ export const PromptCard = ({ prompt, onRate, onAddComment, onSelect, selected }:
         </div>
       )}
 
-      {prompt.comments.length > 0 && (
+      {regularComments.length > 0 && (
         <div className="mt-4 space-y-2">
-          {prompt.comments.map((comment, index) => (
+          {regularComments.map((comment, index) => (
             <div
               key={index}
               className="text-sm text-gray-600 bg-gray-50/80 p-2 rounded-md"

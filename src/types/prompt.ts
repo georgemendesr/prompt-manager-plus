@@ -7,7 +7,6 @@ export type Prompt = {
   comments: string[];
   createdAt: Date;
   selected?: boolean;
-  hashtags?: string[];
 };
 
 export type Category = {
