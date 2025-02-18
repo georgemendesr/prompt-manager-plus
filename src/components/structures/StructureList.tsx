@@ -1,16 +1,13 @@
 
 import { useState } from "react";
-import { Plus, Edit, Trash, Check, X, MessageSquare, Tag, Star, ChevronRight, ChevronDown } from "lucide-react";
+import { Plus, MessageSquare, Tag, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import type { MusicStructure } from "@/types/prompt";
-
-interface SubStructure extends MusicStructure {
-  subcategories?: SubStructure[];
-}
+import { StructureItem } from "./StructureItem";
 
 interface StructureListProps {
   structures: MusicStructure[];
@@ -18,127 +15,6 @@ interface StructureListProps {
   onEditStructure: (id: string, structure: MusicStructure) => void;
   onDeleteStructure: (id: string) => void;
 }
-
-const StructureItem = ({ 
-  structure, 
-  level = 0,
-  onEdit,
-  onDelete,
-  editingId,
-  setEditingId,
-}: { 
-  structure: SubStructure;
-  level?: number;
-  onEdit: (id: string, structure: MusicStructure) => void; // Corrigido aqui
-  onDelete: (id: string) => void;
-  editingId: string | null;
-  setEditingId: (id: string | null) => void;
-}) => {
-  const [isExpanded, setIsExpanded] = useState(true);
-  const [editedStructure, setEditedStructure] = useState(structure);
-
-  const handleEdit = () => {
-    onEdit(structure.id, editedStructure); // Corrigido aqui
-    setEditingId(null);
-  };
-
-  return (
-    <div className={`space-y-4 ${level > 0 ? 'ml-6 border-l-2 border-gray-100 pl-4' : ''}`}>
-      <Card className="p-4">
-        {editingId === structure.id ? (
-          <div className="space-y-4">
-            <Input
-              value={editedStructure.name}
-              onChange={(e) => setEditedStructure(prev => ({ ...prev, name: e.target.value }))}
-            />
-            <Input
-              value={editedStructure.tags.join(", ")}
-              onChange={(e) => setEditedStructure(prev => ({ 
-                ...prev, 
-                tags: e.target.value.split(",").map(t => t.trim()) 
-              }))}
-            />
-            <Textarea
-              value={editedStructure.effect}
-              onChange={(e) => setEditedStructure(prev => ({ ...prev, effect: e.target.value }))}
-            />
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" size="icon" onClick={() => setEditingId(null)}>
-                <X className="h-4 w-4" />
-              </Button>
-              <Button size="icon" onClick={handleEdit}>
-                <Check className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-3 gap-6">
-            <div>
-              <div className="flex items-center gap-2">
-                {structure.subcategories?.length ? (
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-6 w-6" 
-                    onClick={() => setIsExpanded(!isExpanded)}
-                  >
-                    {isExpanded ? (
-                      <ChevronDown className="h-4 w-4" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4" />
-                    )}
-                  </Button>
-                ) : (
-                  <div className="w-6" />
-                )}
-                <h3 className="text-base font-semibold text-gray-900">{structure.name}</h3>
-              </div>
-              <div className="flex gap-2 mt-2 ml-6">
-                <Button variant="ghost" size="icon" onClick={() => setEditingId(structure.id)}>
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={() => {
-                    onDelete(structure.id);
-                    toast.success("Estrutura removida com sucesso!");
-                  }}
-                >
-                  <Trash className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            <div>
-              <div className="flex flex-wrap gap-2">
-                {structure.tags.map((tag, i) => (
-                  <span key={i} className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">{structure.effect}</p>
-            </div>
-          </div>
-        )}
-      </Card>
-      
-      {isExpanded && structure.subcategories?.map((subStructure) => (
-        <StructureItem
-          key={subStructure.id}
-          structure={subStructure}
-          level={level + 1}
-          onEdit={onEdit}
-          onDelete={onDelete}
-          editingId={editingId}
-          setEditingId={setEditingId}
-        />
-      ))}
-    </div>
-  );
-};
 
 export const StructureList = ({ 
   structures, 
@@ -228,7 +104,7 @@ export const StructureList = ({
         {structures.map((structure) => (
           <StructureItem
             key={structure.id}
-            structure={structure as SubStructure}
+            structure={structure}
             onEdit={onEditStructure}
             onDelete={onDeleteStructure}
             editingId={editingId}
