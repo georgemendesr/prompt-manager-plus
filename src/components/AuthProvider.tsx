@@ -18,33 +18,56 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const location = useLocation();
 
   useEffect(() => {
-    // Verificar sessão atual
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
+    // Inicializar o estado do usuário com a sessão atual
+    const initializeAuth = async () => {
+      try {
+        // Recuperar sessão atual
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          setUser(session.user);
+          if (location.pathname === '/auth') {
+            navigate('/prompts');
+          }
+        } else if (location.pathname !== '/auth') {
+          navigate('/auth');
+        }
+      } catch (error) {
+        console.error('Erro ao recuperar sessão:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
+
+    // Configurar listener para mudanças na autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session?.user?.email);
       
-      // Se o usuário está autenticado e está na rota /auth, redirecionar para /prompts
-      if (session?.user && location.pathname === '/auth') {
-        navigate('/prompts');
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        if (location.pathname === '/auth') {
+          navigate('/prompts');
+        }
+      } else {
+        navigate('/auth');
       }
     });
 
-    // Escutar mudanças na autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      
-      // Redirecionar para /prompts após autenticação bem-sucedida
-      if (session?.user && location.pathname === '/auth') {
-        navigate('/prompts');
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate, location.pathname]);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    navigate("/auth");
+    try {
+      await supabase.auth.signOut();
+      navigate("/auth");
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+    }
   };
 
   if (loading) {
