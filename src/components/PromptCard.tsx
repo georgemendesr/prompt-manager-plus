@@ -5,7 +5,6 @@ import { Copy, MessageSquare, Plus, Minus } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Textarea } from "./ui/textarea";
-import { Checkbox } from "./ui/checkbox";
 import type { Prompt } from "@/types/prompt";
 
 interface PromptCardProps {
@@ -37,8 +36,16 @@ export const PromptCard = ({ prompt, onRate, onAddComment, onSelect, selected }:
   return (
     <Card className="p-4 space-y-4 bg-white/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
       <div className="flex items-start justify-between gap-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleCopy}
+          className="hover:text-blue-600 transition-colors shrink-0"
+        >
+          <Copy className="h-4 w-4" />
+        </Button>
         <p className="text-gray-800 flex-grow">{prompt.text}</p>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <Button
             variant="ghost"
             size="icon"
@@ -63,14 +70,6 @@ export const PromptCard = ({ prompt, onRate, onAddComment, onSelect, selected }:
             className="hover:text-purple-600 transition-colors"
           >
             <MessageSquare className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleCopy}
-            className="hover:text-blue-600 transition-colors"
-          >
-            <Copy className="h-4 w-4" />
           </Button>
         </div>
       </div>
