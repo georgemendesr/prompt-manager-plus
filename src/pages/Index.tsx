@@ -41,6 +41,12 @@ const Index = () => {
         prompts={category.prompts}
         onSelectAll={(checked) => toggleSelectAll(category.name, checked)}
         onDelete={() => deleteSelectedPrompts(category.name)}
+        onMove={(targetCategoryId) => {
+          const selectedPrompts = category.prompts.filter(p => p.selected);
+          selectedPrompts.forEach(prompt => movePrompt(prompt.id, targetCategoryId));
+        }}
+        categories={categories}
+        currentCategoryId={category.id}
       />
       
       {category.prompts.length === 0 ? (
@@ -55,7 +61,6 @@ const Index = () => {
             onRate={ratePrompt}
             onAddComment={addComment}
             onSelect={togglePromptSelection}
-            onMove={movePrompt}
             selected={prompt.selected || false}
             categories={categories}
           />

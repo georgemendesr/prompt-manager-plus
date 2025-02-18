@@ -1,16 +1,10 @@
+
 import { useState } from "react";
 import { toast } from "sonner";
-import { Copy, Move } from "lucide-react";
+import { Copy } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Checkbox } from "./ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
 import type { Prompt, MusicStructure, Category } from "@/types/prompt";
 import { RatingButtons } from "./prompt/RatingButtons";
 import { CommentSection } from "./prompt/CommentSection";
@@ -22,7 +16,6 @@ interface PromptCardProps {
   onAddComment: (id: string, comment: string) => void;
   onEditPrompt?: (id: string, newText: string) => void;
   onSelect: (id: string, selected: boolean) => void;
-  onMove?: (id: string, targetCategoryId: string) => void;
   selected: boolean;
   structures?: MusicStructure[];
   categories?: Category[];
@@ -34,7 +27,6 @@ export const PromptCard = ({
   onAddComment, 
   onEditPrompt,
   onSelect,
-  onMove,
   selected,
   structures = [],
   categories = []
@@ -50,62 +42,20 @@ export const PromptCard = ({
     toast.success("Prompt copiado!");
   };
 
-  const getAllCategories = (categories: Category[]): Category[] => {
-    return categories.reduce((acc: Category[], category) => {
-      acc.push(category);
-      if (category.subcategories) {
-        acc.push(...getAllCategories(category.subcategories));
-      }
-      return acc;
-    }, []);
-  };
-
-  const handleMove = (categoryId: string) => {
-    if (onMove) {
-      onMove(prompt.id, categoryId);
-      toast.success("Prompt movido com sucesso!");
-    }
-  };
-
   return (
     <Card className={`p-4 ${bgColor} backdrop-blur-sm hover:shadow-lg transition-all duration-300 relative sm:text-base text-sm`}>
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <Checkbox
-            checked={selected}
-            onCheckedChange={(checked) => onSelect(prompt.id, checked as boolean)}
-          />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleCopy}
-            className="hover:text-blue-600 transition-colors"
-          >
-            <Copy className="h-4 w-4" />
-          </Button>
-        </div>
-        
-        {onMove && (
-          <Select onValueChange={handleMove}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Mover para..." />
-            </SelectTrigger>
-            <SelectContent>
-              {getAllCategories(categories).map((category) => (
-                <SelectItem 
-                  key={category.id} 
-                  value={category.id}
-                  disabled={category.id === prompt.category}
-                >
-                  {category.parentId ? `↳ ${category.name}` : category.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleCopy}
+          className="hover:text-blue-600 transition-colors"
+        >
+          <Copy className="h-4 w-4" />
+        </Button>
       </div>
 
-      <div className="mt-4">
+      <div className="mt-2">
         <p className="text-gray-800 break-words">{prompt.text}</p>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2">
           <HashtagList hashtags={hashtags} />
@@ -132,30 +82,36 @@ export const PromptCard = ({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 mt-4">
-        <RatingButtons 
-          rating={prompt.rating}
-          onRate={(increment) => onRate(prompt.id, increment)}
-        />
-        <CommentSection
-          comments={[]}
-          hashtags={hashtags}
-          onAddComment={(comment) => {
-            onAddComment(prompt.id, comment);
-            toast.success("Comentário adicionado!");
-          }}
-          onColorSelect={setBgColor}
-          onHashtagAdd={(hashtag) => {
-            onAddComment(prompt.id, hashtag);
-            toast.success("Hashtag adicionada!");
-          }}
-          onStructureAdd={(structureName) => {
-            onAddComment(prompt.id, `[${structureName}]`);
-            toast.success("Estrutura adicionada!");
-          }}
-          onEditPrompt={onEditPrompt ? (newText) => onEditPrompt(prompt.id, newText) : undefined}
-          promptText={prompt.text}
-          structures={structures}
+      <div className="flex items-center justify-between mt-4">
+        <div className="flex items-center gap-2">
+          <RatingButtons 
+            rating={prompt.rating}
+            onRate={(increment) => onRate(prompt.id, increment)}
+          />
+          <CommentSection
+            comments={[]}
+            hashtags={hashtags}
+            onAddComment={(comment) => {
+              onAddComment(prompt.id, comment);
+              toast.success("Comentário adicionado!");
+            }}
+            onColorSelect={setBgColor}
+            onHashtagAdd={(hashtag) => {
+              onAddComment(prompt.id, hashtag);
+              toast.success("Hashtag adicionada!");
+            }}
+            onStructureAdd={(structureName) => {
+              onAddComment(prompt.id, `[${structureName}]`);
+              toast.success("Estrutura adicionada!");
+            }}
+            onEditPrompt={onEditPrompt ? (newText) => onEditPrompt(prompt.id, newText) : undefined}
+            promptText={prompt.text}
+            structures={structures}
+          />
+        </div>
+        <Checkbox
+          checked={selected}
+          onCheckedChange={(checked) => onSelect(prompt.id, checked as boolean)}
         />
       </div>
     </Card>
