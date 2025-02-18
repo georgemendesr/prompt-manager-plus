@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { PromptCard } from "@/components/PromptCard";
 import { BulkImport } from "@/components/BulkImport";
@@ -25,7 +24,7 @@ const Index = () => {
 
   useEffect(() => {
     loadCategories();
-  }, [loadCategories]);
+  }, []); // Remover loadCategories das dependências
 
   if (loading) {
     return (

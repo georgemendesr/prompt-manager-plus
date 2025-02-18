@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Category } from "@/types/prompt";
 import { toast } from "sonner";
@@ -7,8 +6,12 @@ import { toast } from "sonner";
 export const useCategories = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
 
-  const loadCategories = async () => {
+  const loadCategories = useCallback(async () => {
+    // Evitar múltiplas chamadas se já estiver carregando
+    if (loading && initialized) return;
+    
     try {
       setLoading(true);
       console.log('Iniciando carregamento de dados...');
@@ -71,7 +74,12 @@ export const useCategories = () => {
       }));
 
       setCategories(formattedCategories);
-      toast.success('Dados carregados com sucesso!');
+      
+      // Mostrar toast apenas na primeira carga
+      if (!initialized) {
+        toast.success('Dados carregados com sucesso!');
+        setInitialized(true);
+      }
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
       toast.error('Erro ao conectar com o banco de dados. Por favor, tente novamente mais tarde.');
@@ -79,7 +87,7 @@ export const useCategories = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [loading, initialized]);
 
   const addCategory = async (name: string) => {
     try {
