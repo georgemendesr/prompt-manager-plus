@@ -30,7 +30,7 @@ export const PromptCard = ({ prompt, onRate, onAddComment, onSelect, selected }:
   };
 
   return (
-    <Card className={`p-4 space-y-4 ${bgColor} backdrop-blur-sm hover:shadow-lg transition-all duration-300 relative sm:text-base text-sm`}>
+    <Card className={`p-4 space-y-2 ${bgColor} backdrop-blur-sm hover:shadow-lg transition-all duration-300 relative sm:text-base text-sm`}>
       <div className="flex items-start justify-between gap-2 sm:gap-4">
         <Button
           variant="ghost"
@@ -43,7 +43,21 @@ export const PromptCard = ({ prompt, onRate, onAddComment, onSelect, selected }:
         
         <div className="flex-grow">
           <p className="text-gray-800 break-words">{prompt.text}</p>
-          <HashtagList hashtags={hashtags} />
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2">
+            <HashtagList hashtags={hashtags} />
+            {regularComments.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2">
+                {regularComments.map((comment, index) => (
+                  <div
+                    key={index}
+                    className="text-xs text-gray-600 bg-soft-gray px-2 py-0.5 rounded-full"
+                  >
+                    {comment}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center gap-1 sm:gap-2 shrink-0">
@@ -52,7 +66,7 @@ export const PromptCard = ({ prompt, onRate, onAddComment, onSelect, selected }:
             onRate={(increment) => onRate(prompt.id, increment)}
           />
           <CommentSection
-            comments={regularComments}
+            comments={[]}
             hashtags={hashtags}
             onAddComment={(comment) => {
               onAddComment(prompt.id, comment);

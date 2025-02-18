@@ -76,11 +76,11 @@ export const CommentSection = ({
       )}
 
       {comments.length > 0 && (
-        <div className="mt-4 space-y-2">
+        <div className="flex flex-wrap items-center gap-2 mt-2">
           {comments.map((comment, index) => (
             <div
               key={index}
-              className="text-sm text-gray-600 bg-gray-50/80 p-2 rounded-md"
+              className="text-xs text-gray-600 bg-soft-gray px-2 py-0.5 rounded-full"
             >
               {comment}
             </div>
