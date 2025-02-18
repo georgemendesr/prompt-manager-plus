@@ -21,18 +21,6 @@ const Index = () => {
 
         {/* Main Content */}
         <div className="max-w-4xl mx-auto text-center space-y-8">
-          <p className="text-xl text-gray-600 mb-8">
-            Somos especialistas em criar soluções criativas que conectam sua marca ao seu público-alvo.
-          </p>
-
-          <div className="mt-12">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6">
-              Entre em contato
-            </h3>
-            <p className="text-lg text-gray-600">
-              Vamos criar juntos a melhor estratégia para sua marca!
-            </p>
-          </div>
         </div>
       </div>
     </div>
