@@ -9,43 +9,45 @@ export const useCategories = () => {
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
 
+  const buildCategoryTree = (categories: any[], parentId: string | null = null): Category[] => {
+    return categories
+      .filter(category => category.parent_id === parentId)
+      .map(category => ({
+        id: category.id,
+        name: category.name,
+        parentId: category.parent_id,
+        prompts: [],
+        subcategories: buildCategoryTree(categories, category.id)
+      }));
+  };
+
   const loadCategories = useCallback(async () => {
-    // Evitar múltiplas chamadas se já estiver inicializado
     if (initialized) return;
     
     try {
       setLoading(true);
       console.log('Iniciando carregamento de dados...');
       
-      // Fazer todas as chamadas em paralelo
       const [categoriesResult, promptsResult, commentsResult] = await Promise.all([
-        supabase.from('categories').select('id, name, created_at'),
+        supabase.from('categories').select('id, name, parent_id, created_at'),
         supabase.from('prompts').select('id, text, category_id, rating, created_at'),
         supabase.from('comments').select('id, prompt_id, text, created_at')
       ]);
 
       if (categoriesResult.error) {
         console.error('Erro ao carregar categorias:', categoriesResult.error);
-        toast.error('Erro ao carregar categorias. Por favor, verifique sua conexão.');
+        toast.error('Erro ao carregar categorias');
         setCategories([]);
         return;
       }
 
-      if (promptsResult.error) {
-        console.error('Erro ao carregar prompts:', promptsResult.error);
-        toast.error('Erro ao carregar prompts. Por favor, verifique sua conexão.');
+      if (promptsResult.error || commentsResult.error) {
+        console.error('Erro ao carregar dados:', promptsResult.error || commentsResult.error);
+        toast.error('Erro ao carregar dados');
         setCategories([]);
         return;
       }
 
-      if (commentsResult.error) {
-        console.error('Erro ao carregar comentários:', commentsResult.error);
-        toast.error('Erro ao carregar comentários. Por favor, verifique sua conexão.');
-        setCategories([]);
-        return;
-      }
-
-      // Usar os dados retornados ou arrays vazios se null
       const categoriesData = categoriesResult.data || [];
       const promptsData = promptsResult.data || [];
       const commentsData = commentsResult.data || [];
@@ -56,63 +58,103 @@ export const useCategories = () => {
         comments: commentsData.length
       });
 
-      const formattedCategories = categoriesData.map(category => ({
-        id: category.id,
-        name: category.name,
-        prompts: promptsData
-          ?.filter(prompt => prompt.category_id === category.id)
-          .map(prompt => ({
-            id: prompt.id,
-            text: prompt.text,
-            category: category.name,
-            rating: prompt.rating,
-            comments: commentsData
-              ?.filter(comment => comment.prompt_id === prompt.id)
-              .map(comment => comment.text) || [],
-            createdAt: new Date(prompt.created_at),
-            selected: false
-          })) || []
-      }));
+      // Construir árvore de categorias
+      const categoryTree = buildCategoryTree(categoriesData);
 
-      setCategories(formattedCategories);
+      // Função recursiva para adicionar prompts às categorias
+      const addPromptsToCategories = (categories: Category[]) => {
+        return categories.map(category => ({
+          ...category,
+          prompts: promptsData
+            .filter(prompt => prompt.category_id === category.id)
+            .map(prompt => ({
+              id: prompt.id,
+              text: prompt.text,
+              category: category.name,
+              rating: prompt.rating,
+              comments: commentsData
+                .filter(comment => comment.prompt_id === prompt.id)
+                .map(comment => comment.text) || [],
+              createdAt: new Date(prompt.created_at),
+              selected: false
+            })),
+          subcategories: addPromptsToCategories(category.subcategories || [])
+        }));
+      };
+
+      const categoriesWithPrompts = addPromptsToCategories(categoryTree);
+      setCategories(categoriesWithPrompts);
       
-      // Mostrar toast apenas na primeira carga
       if (!initialized) {
         toast.success('Dados carregados com sucesso!');
         setInitialized(true);
       }
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
-      toast.error('Erro ao conectar com o banco de dados. Por favor, tente novamente mais tarde.');
+      toast.error('Erro ao conectar com o banco de dados');
       setCategories([]);
     } finally {
       setLoading(false);
     }
-  }, [initialized]); // Remover loading das dependências
+  }, [initialized]);
 
-  const addCategory = async (name: string) => {
+  const addCategory = async (name: string, parentId?: string) => {
     try {
-      console.log('Adicionando nova categoria:', name);
+      console.log('Adicionando nova categoria:', { name, parentId });
       const { data, error } = await supabase
         .from('categories')
-        .insert([{ name: name.trim() }])
+        .insert([{ 
+          name: name.trim(),
+          parent_id: parentId
+        }])
         .select()
         .single();
 
       if (error) throw error;
 
       console.log('Categoria adicionada com sucesso:', data);
-      setCategories(prev => [...prev, {
-        id: data.id,
-        name: data.name,
-        prompts: []
-      }]);
+      
+      // Atualizar estado de forma recursiva
+      const updateCategoriesTree = (categories: Category[]): Category[] => {
+        if (parentId) {
+          return categories.map(category => {
+            if (category.id === parentId) {
+              return {
+                ...category,
+                subcategories: [...(category.subcategories || []), {
+                  id: data.id,
+                  name: data.name,
+                  parentId: data.parent_id,
+                  prompts: [],
+                  subcategories: []
+                }]
+              };
+            }
+            if (category.subcategories?.length) {
+              return {
+                ...category,
+                subcategories: updateCategoriesTree(category.subcategories)
+              };
+            }
+            return category;
+          });
+        }
+        
+        return [...categories, {
+          id: data.id,
+          name: data.name,
+          parentId: data.parent_id,
+          prompts: [],
+          subcategories: []
+        }];
+      };
 
+      setCategories(prev => updateCategoriesTree(prev));
       toast.success('Categoria adicionada com sucesso!');
       return true;
     } catch (error) {
       console.error('Erro ao adicionar categoria:', error);
-      toast.error('Erro ao adicionar categoria. Por favor, tente novamente.');
+      toast.error('Erro ao adicionar categoria');
       return false;
     }
   };
