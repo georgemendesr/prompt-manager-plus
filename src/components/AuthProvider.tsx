@@ -25,10 +25,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (session?.user) {
           setUser(session.user);
-          if (location.pathname === '/auth' || location.pathname === '/') {
+          // Só redireciona para /prompts se estiver na página de auth
+          if (location.pathname === '/auth') {
             navigate('/prompts');
           }
-        } else if (location.pathname !== '/auth') {
+        } else if (location.pathname === '/prompts') {
+          // Só redireciona para /auth se tentar acessar /prompts sem estar autenticado
           navigate('/auth');
         }
       } catch (error) {
@@ -47,10 +49,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        if (location.pathname === '/auth' || location.pathname === '/') {
+        // Só redireciona para /prompts se estiver na página de auth
+        if (location.pathname === '/auth') {
           navigate('/prompts');
         }
-      } else {
+      } else if (location.pathname === '/prompts') {
+        // Só redireciona para /auth se tentar acessar /prompts sem estar autenticado
         navigate('/auth');
       }
     });
@@ -59,15 +63,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       subscription.unsubscribe();
     };
   }, [navigate, location.pathname]);
-
-  const signOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      navigate("/auth");
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
 
   if (loading) {
     return (
