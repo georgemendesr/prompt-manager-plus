@@ -5,17 +5,30 @@ import { PromptCard } from "@/components/PromptCard";
 import { BulkImport } from "@/components/BulkImport";
 import type { Category, Prompt } from "@/types/prompt";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-const DEFAULT_CATEGORIES = ["Música", "Imagem", "Texto", "Áudio"];
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const Index = () => {
-  const [categories, setCategories] = useState<Category[]>(
-    DEFAULT_CATEGORIES.map((name) => ({
-      id: uuidv4(),
-      name,
-      prompts: [],
-    }))
-  );
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [newCategory, setNewCategory] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const handleAddCategory = () => {
+    if (newCategory.trim()) {
+      setCategories((prev) => [
+        ...prev,
+        {
+          id: uuidv4(),
+          name: newCategory.trim(),
+          prompts: [],
+        },
+      ]);
+      setNewCategory("");
+      setDialogOpen(false);
+    }
+  };
 
   const handleRate = (promptId: string, increment: boolean) => {
     setCategories((prev) =>
@@ -73,48 +86,84 @@ const Index = () => {
       <div className="max-w-5xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-gray-800">Gestor de Prompts</h1>
-          <BulkImport
-            categories={categories.map((c) => c.name)}
-            onImport={handleBulkImport}
-          />
+          <div className="flex gap-2">
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Nova Categoria
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Nova Categoria</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 pt-4">
+                  <Input
+                    value={newCategory}
+                    onChange={(e) => setNewCategory(e.target.value)}
+                    placeholder="Nome da categoria"
+                  />
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button onClick={handleAddCategory}>Adicionar</Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+            {categories.length > 0 && (
+              <BulkImport
+                categories={categories.map((c) => c.name)}
+                onImport={handleBulkImport}
+              />
+            )}
+          </div>
         </div>
 
-        <Tabs defaultValue={categories[0]?.name} className="w-full">
-          <TabsList className="w-full justify-start">
+        {categories.length === 0 ? (
+          <div className="text-center py-12 text-gray-500">
+            Crie uma categoria para começar a adicionar prompts
+          </div>
+        ) : (
+          <Tabs defaultValue={categories[0]?.name} className="w-full">
+            <TabsList className="w-full justify-start">
+              {categories.map((category) => (
+                <TabsTrigger
+                  key={category.id}
+                  value={category.name}
+                  className="min-w-[100px]"
+                >
+                  {category.name}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
             {categories.map((category) => (
-              <TabsTrigger
+              <TabsContent
                 key={category.id}
                 value={category.name}
-                className="min-w-[100px]"
+                className="mt-6 space-y-4"
               >
-                {category.name}
-              </TabsTrigger>
+                {category.prompts.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500">
+                    Nenhum prompt nesta categoria ainda
+                  </div>
+                ) : (
+                  category.prompts.map((prompt) => (
+                    <PromptCard
+                      key={prompt.id}
+                      prompt={prompt}
+                      onRate={handleRate}
+                      onAddComment={handleAddComment}
+                    />
+                  ))
+                )}
+              </TabsContent>
             ))}
-          </TabsList>
-
-          {categories.map((category) => (
-            <TabsContent
-              key={category.id}
-              value={category.name}
-              className="mt-6 space-y-4"
-            >
-              {category.prompts.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  Nenhum prompt nesta categoria ainda
-                </div>
-              ) : (
-                category.prompts.map((prompt) => (
-                  <PromptCard
-                    key={prompt.id}
-                    prompt={prompt}
-                    onRate={handleRate}
-                    onAddComment={handleAddComment}
-                  />
-                ))
-              )}
-            </TabsContent>
-          ))}
-        </Tabs>
+          </Tabs>
+        )}
       </div>
     </div>
   );
