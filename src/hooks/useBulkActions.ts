@@ -72,21 +72,34 @@ export const useBulkActions = (categories: Category[], setCategories: (categorie
 
   const deleteSelectedPrompts = async (categoryId: string) => {
     try {
+      console.log('Tentando excluir prompts da categoria:', categoryId);
+      
       const category = findCategoryById(categories, categoryId);
-      if (!category) return;
+      if (!category) {
+        console.error('Categoria não encontrada:', categoryId);
+        return;
+      }
 
       const selectedPromptIds = category.prompts
         .filter(p => p.selected)
         .map(p => p.id);
 
-      if (selectedPromptIds.length === 0) return;
+      if (selectedPromptIds.length === 0) {
+        console.log('Nenhum prompt selecionado para exclusão');
+        return;
+      }
+
+      console.log('Prompts selecionados para exclusão:', selectedPromptIds);
 
       const { error } = await supabase
         .from('prompts')
         .delete()
         .in('id', selectedPromptIds);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao excluir no Supabase:', error);
+        throw error;
+      }
 
       const updateCategoriesRecursively = (cats: Category[]): Category[] => {
         return cats.map(c => {
