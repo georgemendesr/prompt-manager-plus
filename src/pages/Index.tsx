@@ -4,11 +4,11 @@ const Index = () => {
     <div className="min-h-screen relative overflow-hidden">
       {/* Background Image with Blur and Overlay */}
       <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-900/60 to-pink-900/60 mix-blend-multiply" />
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-900/90 to-black/95 mix-blend-multiply" />
         <img 
           src="https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?auto=format&fit=crop&w=2000&q=80" 
           alt="Background" 
-          className="w-full h-full object-cover object-center filter blur-[2px] scale-105"
+          className="w-full h-full object-cover object-center filter blur-[2px] brightness-50 scale-105"
         />
       </div>
 
