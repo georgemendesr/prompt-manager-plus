@@ -24,7 +24,7 @@ export const BulkImport = ({ categories, onImport }: BulkImportProps) => {
 
   const handleImport = () => {
     const prompts = text
-      .split("```")
+      .split("\n")
       .filter((t) => t.trim())
       .map((t) => t.trim());
 
@@ -64,7 +64,7 @@ export const BulkImport = ({ categories, onImport }: BulkImportProps) => {
           <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Cole seus prompts aqui, separados por ```"
+            placeholder="Cole seus prompts aqui, um por linha"
             className="min-h-[200px]"
           />
           <div className="flex justify-end gap-2">
