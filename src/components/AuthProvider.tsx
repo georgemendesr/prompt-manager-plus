@@ -34,12 +34,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (session?.user) {
           setUser(session.user);
-          // Só redireciona para /prompts se estiver na página de auth
           if (location.pathname === '/auth') {
             navigate('/prompts');
           }
-        } else if (location.pathname === '/prompts') {
-          // Só redireciona para /auth se tentar acessar /prompts sem estar autenticado
+        } else if (location.pathname !== '/auth') {
           navigate('/auth');
         }
       } catch (error) {
@@ -58,12 +56,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        // Só redireciona para /prompts se estiver na página de auth
-        if (location.pathname === '/auth') {
-          navigate('/prompts');
-        }
-      } else if (location.pathname === '/prompts') {
-        // Só redireciona para /auth se tentar acessar /prompts sem estar autenticado
+        navigate('/prompts');
+      } else {
         navigate('/auth');
       }
     });
