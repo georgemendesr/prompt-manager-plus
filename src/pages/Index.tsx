@@ -4,9 +4,9 @@ import { useAuth } from "@/components/AuthProvider";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { session } = useAuth();
+  const { user } = useAuth();
 
-  if (session) {
+  if (user) {
     navigate("/prompts");
     return null;
   }
