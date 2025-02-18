@@ -9,97 +9,239 @@ import { Plus, Trash } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-
-const STORAGE_KEY = 'prompt-manager-data';
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Index = () => {
-  const [categories, setCategories] = useState<Category[]>(() => {
-    const savedData = localStorage.getItem(STORAGE_KEY);
-    if (savedData) {
-      const parsedData = JSON.parse(savedData);
-      return parsedData.map((category: Category) => ({
-        ...category,
-        prompts: category.prompts.map(prompt => ({
-          ...prompt,
-          createdAt: new Date(prompt.createdAt)
-        }))
-      }));
-    }
-    return [];
-  });
+  const [categories, setCategories] = useState<Category[]>([]);
   const [newCategory, setNewCategory] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(categories));
-  }, [categories]);
+    loadCategories();
+  }, []);
 
-  const handleAddCategory = () => {
-    if (newCategory.trim()) {
-      setCategories((prev) => [
-        ...prev,
-        {
-          id: uuidv4(),
-          name: newCategory.trim(),
-          prompts: [],
-        },
-      ]);
-      setNewCategory("");
-      setDialogOpen(false);
+  const loadCategories = async () => {
+    try {
+      setLoading(true);
+      const { data: categoriesData, error: categoriesError } = await supabase
+        .from('categories')
+        .select('id, name, created_at');
+
+      if (categoriesError) throw categoriesError;
+
+      const { data: promptsData, error: promptsError } = await supabase
+        .from('prompts')
+        .select('id, text, category_id, rating, created_at');
+
+      if (promptsError) throw promptsError;
+
+      const { data: commentsData, error: commentsError } = await supabase
+        .from('comments')
+        .select('id, prompt_id, text, created_at');
+
+      if (commentsError) throw commentsError;
+
+      const formattedCategories = categoriesData.map(category => ({
+        id: category.id,
+        name: category.name,
+        prompts: promptsData
+          ?.filter(prompt => prompt.category_id === category.id)
+          .map(prompt => ({
+            id: prompt.id,
+            text: prompt.text,
+            category: category.name,
+            rating: prompt.rating,
+            comments: commentsData
+              ?.filter(comment => comment.prompt_id === prompt.id)
+              .map(comment => comment.text) || [],
+            createdAt: new Date(prompt.created_at),
+            selected: false
+          })) || []
+      }));
+
+      setCategories(formattedCategories);
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+      toast.error('Erro ao carregar dados');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleRate = (promptId: string, increment: boolean) => {
-    setCategories((prev) =>
-      prev.map((category) => ({
-        ...category,
-        prompts: category.prompts
-          .map((prompt) =>
+  const handleAddCategory = async () => {
+    if (newCategory.trim()) {
+      try {
+        const { data, error } = await supabase
+          .from('categories')
+          .insert([{ name: newCategory.trim() }])
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        setCategories(prev => [...prev, {
+          id: data.id,
+          name: data.name,
+          prompts: []
+        }]);
+        
+        setNewCategory("");
+        setDialogOpen(false);
+        toast.success('Categoria adicionada com sucesso!');
+      } catch (error) {
+        console.error('Erro ao adicionar categoria:', error);
+        toast.error('Erro ao adicionar categoria');
+      }
+    }
+  };
+
+  const handleRate = async (promptId: string, increment: boolean) => {
+    try {
+      const prompt = categories
+        .flatMap(c => c.prompts)
+        .find(p => p.id === promptId);
+
+      if (!prompt) return;
+
+      const newRating = prompt.rating + (increment ? 1 : -1);
+
+      const { error } = await supabase
+        .from('prompts')
+        .update({ rating: newRating })
+        .eq('id', promptId);
+
+      if (error) throw error;
+
+      setCategories(prev =>
+        prev.map((category) => ({
+          ...category,
+          prompts: category.prompts
+            .map((p) =>
+              p.id === promptId
+                ? { ...p, rating: newRating }
+                : p
+            )
+            .sort((a, b) => b.rating - a.rating),
+        }))
+      );
+    } catch (error) {
+      console.error('Erro ao atualizar avaliação:', error);
+      toast.error('Erro ao atualizar avaliação');
+    }
+  };
+
+  const handleAddComment = async (promptId: string, comment: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('comments')
+        .insert([{ prompt_id: promptId, text: comment }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setCategories(prev =>
+        prev.map((category) => ({
+          ...category,
+          prompts: category.prompts.map((prompt) =>
             prompt.id === promptId
-              ? { ...prompt, rating: prompt.rating + (increment ? 1 : -1) }
+              ? { ...prompt, comments: [...prompt.comments, comment] }
               : prompt
-          )
-          .sort((a, b) => b.rating - a.rating),
-      }))
-    );
+          ),
+        }))
+      );
+
+      toast.success('Comentário adicionado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao adicionar comentário:', error);
+      toast.error('Erro ao adicionar comentário');
+    }
   };
 
-  const handleAddComment = (promptId: string, comment: string) => {
-    setCategories((prev) =>
-      prev.map((category) => ({
-        ...category,
-        prompts: category.prompts.map((prompt) =>
-          prompt.id === promptId
-            ? { ...prompt, comments: [...prompt.comments, comment] }
-            : prompt
-        ),
-      }))
-    );
+  const handleBulkImport = async (prompts: string[], categoryName: string) => {
+    try {
+      const category = categories.find(c => c.name === categoryName);
+      if (!category) return;
+
+      const newPrompts = prompts.map(text => ({
+        text,
+        category_id: category.id,
+        rating: 0
+      }));
+
+      const { data, error } = await supabase
+        .from('prompts')
+        .insert(newPrompts)
+        .select();
+
+      if (error) throw error;
+
+      setCategories(prev =>
+        prev.map((c) =>
+          c.name === categoryName
+            ? {
+                ...c,
+                prompts: [
+                  ...c.prompts,
+                  ...data.map((p) => ({
+                    id: p.id,
+                    text: p.text,
+                    category: categoryName,
+                    rating: 0,
+                    comments: [],
+                    createdAt: new Date(p.created_at),
+                    selected: false,
+                  })),
+                ],
+              }
+            : c
+        )
+      );
+
+      toast.success('Prompts importados com sucesso!');
+    } catch (error) {
+      console.error('Erro ao importar prompts:', error);
+      toast.error('Erro ao importar prompts');
+    }
   };
 
-  const handleBulkImport = (prompts: string[], categoryName: string) => {
-    setCategories((prev) =>
-      prev.map((category) =>
-        category.name === categoryName
-          ? {
-              ...category,
-              prompts: [
-                ...category.prompts,
-                ...prompts.map((text) => ({
-                  id: uuidv4(),
-                  text,
-                  category: categoryName,
-                  rating: 0,
-                  comments: [],
-                  createdAt: new Date(),
-                  selected: false,
-                })),
-              ],
-            }
-          : category
-      )
-    );
+  const handleDeleteSelected = async (categoryName: string) => {
+    try {
+      const category = categories.find(c => c.name === categoryName);
+      if (!category) return;
+
+      const selectedPromptIds = category.prompts
+        .filter(p => p.selected)
+        .map(p => p.id);
+
+      if (selectedPromptIds.length === 0) return;
+
+      const { error } = await supabase
+        .from('prompts')
+        .delete()
+        .in('id', selectedPromptIds);
+
+      if (error) throw error;
+
+      setCategories(prev =>
+        prev.map((c) =>
+          c.name === categoryName
+            ? {
+                ...c,
+                prompts: c.prompts.filter((prompt) => !prompt.selected),
+              }
+            : c
+        )
+      );
+
+      toast.success('Prompts excluídos com sucesso!');
+    } catch (error) {
+      console.error('Erro ao excluir prompts:', error);
+      toast.error('Erro ao excluir prompts');
+    }
   };
 
   const handleSelectPrompt = (promptId: string, selected: boolean) => {
@@ -129,18 +271,13 @@ const Index = () => {
     );
   };
 
-  const handleDeleteSelected = (categoryName: string) => {
-    setCategories((prev) =>
-      prev.map((category) =>
-        category.name === categoryName
-          ? {
-              ...category,
-              prompts: category.prompts.filter((prompt) => !prompt.selected),
-            }
-          : category
-      )
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-500">Carregando...</p>
+      </div>
     );
-  };
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">

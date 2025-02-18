@@ -9,6 +9,53 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      categories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      comments: {
+        Row: {
+          created_at: string
+          id: string
+          prompt_id: string
+          text: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          prompt_id: string
+          text: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          prompt_id?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_prompt_id_fkey"
+            columns: ["prompt_id"]
+            isOneToOne: false
+            referencedRelation: "prompts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       downloads: {
         Row: {
           artist: string | null
@@ -41,6 +88,38 @@ export type Database = {
           video_url?: string
         }
         Relationships: []
+      }
+      prompts: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          rating: number
+          text: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          rating?: number
+          text: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          rating?: number
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prompts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
