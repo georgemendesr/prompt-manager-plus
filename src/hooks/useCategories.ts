@@ -11,51 +11,46 @@ export const useCategories = () => {
   const loadCategories = async () => {
     try {
       setLoading(true);
-      console.log('Iniciando carregamento de categorias...');
+      console.log('Iniciando carregamento de dados...');
       
-      let { data: categoriesData, error: categoriesError } = await supabase
-        .from('categories')
-        .select('id, name, created_at');
+      // Fazer todas as chamadas em paralelo
+      const [categoriesResult, promptsResult, commentsResult] = await Promise.all([
+        supabase.from('categories').select('id, name, created_at'),
+        supabase.from('prompts').select('id, text, category_id, rating, created_at'),
+        supabase.from('comments').select('id, prompt_id, text, created_at')
+      ]);
 
-      if (categoriesError) {
-        console.error('Erro ao carregar categorias:', categoriesError);
+      if (categoriesResult.error) {
+        console.error('Erro ao carregar categorias:', categoriesResult.error);
         toast.error('Erro ao carregar categorias. Por favor, verifique sua conexão.');
         setCategories([]);
         return;
       }
 
-      console.log('Categorias carregadas:', categoriesData);
-
-      let { data: promptsData, error: promptsError } = await supabase
-        .from('prompts')
-        .select('id, text, category_id, rating, created_at');
-
-      if (promptsError) {
-        console.error('Erro ao carregar prompts:', promptsError);
+      if (promptsResult.error) {
+        console.error('Erro ao carregar prompts:', promptsResult.error);
         toast.error('Erro ao carregar prompts. Por favor, verifique sua conexão.');
         setCategories([]);
         return;
       }
 
-      console.log('Prompts carregados:', promptsData);
-
-      let { data: commentsData, error: commentsError } = await supabase
-        .from('comments')
-        .select('id, prompt_id, text, created_at');
-
-      if (commentsError) {
-        console.error('Erro ao carregar comentários:', commentsError);
+      if (commentsResult.error) {
+        console.error('Erro ao carregar comentários:', commentsResult.error);
         toast.error('Erro ao carregar comentários. Por favor, verifique sua conexão.');
         setCategories([]);
         return;
       }
 
-      console.log('Comentários carregados:', commentsData);
+      // Usar os dados retornados ou arrays vazios se null
+      const categoriesData = categoriesResult.data || [];
+      const promptsData = promptsResult.data || [];
+      const commentsData = commentsResult.data || [];
 
-      // Initialize with empty arrays if data is null
-      categoriesData = categoriesData || [];
-      promptsData = promptsData || [];
-      commentsData = commentsData || [];
+      console.log('Dados carregados com sucesso:', {
+        categories: categoriesData.length,
+        prompts: promptsData.length,
+        comments: commentsData.length
+      });
 
       const formattedCategories = categoriesData.map(category => ({
         id: category.id,
@@ -75,7 +70,6 @@ export const useCategories = () => {
           })) || []
       }));
 
-      console.log('Categorias formatadas:', formattedCategories);
       setCategories(formattedCategories);
       toast.success('Dados carregados com sucesso!');
     } catch (error) {
