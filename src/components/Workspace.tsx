@@ -37,7 +37,7 @@ export const Workspace = () => {
           value={newText}
           onChange={(e) => setNewText(e.target.value)}
           placeholder="Cole seu texto aqui..."
-          className="min-h-[100px] mb-4"
+          className="min-h-[200px] md:min-h-[300px] mb-4"
         />
         <Button onClick={addItem} className="w-full">
           <Plus className="h-4 w-4 mr-2" />
