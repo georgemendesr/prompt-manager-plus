@@ -53,11 +53,20 @@ export const usePrompts = (categories: Category[], setCategories: (categories: C
       setCategories(
         categories.map((category) => ({
           ...category,
-          prompts: category.prompts.map((prompt) =>
-            prompt.id === promptId
-              ? { ...prompt, comments: [...prompt.comments, comment] }
-              : prompt
-          ),
+          prompts: category.prompts.map((prompt) => {
+            if (prompt.id === promptId) {
+              // Se o comentário é uma cor, atualizar o backgroundColor
+              if (comment.startsWith('[color:')) {
+                return {
+                  ...prompt,
+                  comments: [...prompt.comments, comment],
+                  backgroundColor: comment.replace('[color:', '').replace(']', '')
+                };
+              }
+              return { ...prompt, comments: [...prompt.comments, comment] };
+            }
+            return prompt;
+          }),
         }))
       );
 
@@ -70,12 +79,6 @@ export const usePrompts = (categories: Category[], setCategories: (categories: C
 
   const movePrompt = async (promptId: string, targetCategoryId: string) => {
     try {
-      const prompt = categories
-        .flatMap(c => c.prompts)
-        .find(p => p.id === promptId);
-
-      if (!prompt) return;
-
       const { error } = await supabase
         .from('prompts')
         .update({ category_id: targetCategoryId })
@@ -89,6 +92,10 @@ export const usePrompts = (categories: Category[], setCategories: (categories: C
       setCategories(
         categories.map((category) => {
           if (category.id === targetCategoryId) {
+            const prompt = categories
+              .flatMap(c => c.prompts)
+              .find(p => p.id === promptId);
+            if (!prompt) return category;
             return {
               ...category,
               prompts: [...category.prompts, { ...prompt, category: category.name }]

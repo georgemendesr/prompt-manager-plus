@@ -1,4 +1,3 @@
-
 export type Prompt = {
   id: string;
   text: string;
@@ -8,6 +7,7 @@ export type Prompt = {
   createdAt: Date;
   selected?: boolean;
   isEditing?: boolean;
+  backgroundColor?: string;
 };
 
 export type Category = {
