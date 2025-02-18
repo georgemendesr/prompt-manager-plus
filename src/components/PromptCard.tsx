@@ -44,9 +44,12 @@ export const PromptCard = ({
 
   return (
     <Card className={`${bgColor} backdrop-blur-sm hover:shadow-lg transition-all duration-300 relative sm:text-base text-sm`}>
-      <div className="flex flex-col p-4 space-y-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+      <div className="flex flex-col p-4 space-y-3">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-grow">
+            <p className="text-gray-800 break-words">{prompt.text}</p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
             <Button
               variant="ghost"
               size="icon"
@@ -55,6 +58,15 @@ export const PromptCard = ({
             >
               <Copy className="h-4 w-4" />
             </Button>
+            <Checkbox
+              checked={selected}
+              onCheckedChange={(checked) => onSelect(prompt.id, checked as boolean)}
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
             <RatingButtons 
               rating={prompt.rating}
               onRate={(increment) => onRate(prompt.id, increment)}
@@ -68,7 +80,6 @@ export const PromptCard = ({
               }}
               onColorSelect={(color) => {
                 setBgColor(color);
-                // Atualizar a cor no banco de dados
                 onAddComment(prompt.id, `[color:${color}]`);
               }}
               onHashtagAdd={(hashtag) => {
@@ -84,13 +95,7 @@ export const PromptCard = ({
               structures={structures}
             />
           </div>
-          <Checkbox
-            checked={selected}
-            onCheckedChange={(checked) => onSelect(prompt.id, checked as boolean)}
-          />
         </div>
-
-        <p className="text-gray-800 break-words">{prompt.text}</p>
 
         {(hashtags.length > 0 || regularComments.length > 0 || structureRefs.length > 0) && (
           <div className="flex flex-wrap items-center gap-2">
