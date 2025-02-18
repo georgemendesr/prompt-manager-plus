@@ -29,43 +29,54 @@ export const CategoryTree = ({
   onToggleSelectAll,
   onDeleteSelectedPrompts,
 }: CategoryTreeProps) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const hasSubcategories = category.subcategories && category.subcategories.length > 0;
+  const [expanded, setExpanded] = useState(false);
+  const hasSubcategories = category.subcategories?.length > 0;
 
-  const handleToggle = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (hasSubcategories) {
-      setIsExpanded(!isExpanded);
-    }
+  const handleToggle = () => {
+    console.log('Toggling category:', category.name, 'Current expanded:', expanded);
+    setExpanded(prev => !prev);
   };
 
+  // Conteúdo comum para todas as categorias
+  const categoryContent = (
+    <div className="space-y-4">
+      <CategoryActions
+        prompts={category.prompts}
+        onSelectAll={(checked) => onToggleSelectAll(category.name, checked)}
+        onDelete={() => onDeleteSelectedPrompts(category.name)}
+        onMove={(targetCategoryId) => {
+          const selectedPrompts = category.prompts.filter(p => p.selected);
+          selectedPrompts.forEach(prompt => onMovePrompt(prompt.id, targetCategoryId));
+        }}
+        categories={categories}
+        currentCategoryId={category.id}
+      />
+
+      {category.prompts.map((prompt) => (
+        <PromptCard
+          key={prompt.id}
+          prompt={prompt}
+          onRate={onRatePrompt}
+          onAddComment={onAddComment}
+          onSelect={onTogglePromptSelection}
+          selected={prompt.selected || false}
+          categories={categories}
+        />
+      ))}
+
+      {category.prompts.length === 0 && (!category.subcategories || category.subcategories.length === 0) && (
+        <div className="text-center py-6 text-gray-500 bg-gray-50 rounded-lg">
+          Nenhum prompt nesta categoria ainda
+        </div>
+      )}
+    </div>
+  );
+
+  // Para categorias de nível 0 (principais)
   if (level === 0) {
     return (
       <div className="space-y-4">
-        <CategoryActions
-          prompts={category.prompts}
-          onSelectAll={(checked) => onToggleSelectAll(category.name, checked)}
-          onDelete={() => onDeleteSelectedPrompts(category.name)}
-          onMove={(targetCategoryId) => {
-            const selectedPrompts = category.prompts.filter(p => p.selected);
-            selectedPrompts.forEach(prompt => onMovePrompt(prompt.id, targetCategoryId));
-          }}
-          categories={categories}
-          currentCategoryId={category.id}
-        />
-
-        {category.prompts.map((prompt) => (
-          <PromptCard
-            key={prompt.id}
-            prompt={prompt}
-            onRate={onRatePrompt}
-            onAddComment={onAddComment}
-            onSelect={onTogglePromptSelection}
-            selected={prompt.selected || false}
-            categories={categories}
-          />
-        ))}
-
+        {categoryContent}
         {category.subcategories?.map((subCategory) => (
           <CategoryTree
             key={subCategory.id}
@@ -84,12 +95,10 @@ export const CategoryTree = ({
     );
   }
 
+  // Para subcategorias (nível > 0)
   return (
-    <div className={`space-y-4 ${level > 0 ? 'ml-6' : ''}`}>
-      <div
-        className="flex items-center gap-2 cursor-pointer group"
-        onClick={handleToggle}
-      >
+    <div className="ml-6 space-y-4">
+      <div className="flex items-center gap-2">
         {hasSubcategories && (
           <Button
             variant="ghost"
@@ -97,50 +106,24 @@ export const CategoryTree = ({
             className="h-6 w-6 p-0 hover:bg-gray-100"
             onClick={handleToggle}
           >
-            {isExpanded ? (
+            {expanded ? (
               <ChevronDown className="h-4 w-4" />
             ) : (
               <ChevronRight className="h-4 w-4" />
             )}
           </Button>
         )}
-        <h3 className="text-lg font-semibold text-gray-700 group-hover:text-gray-900">
+        <h3 
+          className="text-lg font-semibold text-gray-700 hover:text-gray-900 cursor-pointer"
+          onClick={handleToggle}
+        >
           {category.name}
         </h3>
       </div>
 
-      {isExpanded && (
-        <div className="space-y-4">
-          <CategoryActions
-            prompts={category.prompts}
-            onSelectAll={(checked) => onToggleSelectAll(category.name, checked)}
-            onDelete={() => onDeleteSelectedPrompts(category.name)}
-            onMove={(targetCategoryId) => {
-              const selectedPrompts = category.prompts.filter(p => p.selected);
-              selectedPrompts.forEach(prompt => onMovePrompt(prompt.id, targetCategoryId));
-            }}
-            categories={categories}
-            currentCategoryId={category.id}
-          />
-
-          {category.prompts.length === 0 && category.subcategories?.length === 0 && (
-            <div className="text-center py-6 text-gray-500 bg-gray-50 rounded-lg">
-              Nenhum prompt nesta categoria ainda
-            </div>
-          )}
-
-          {category.prompts.map((prompt) => (
-            <PromptCard
-              key={prompt.id}
-              prompt={prompt}
-              onRate={onRatePrompt}
-              onAddComment={onAddComment}
-              onSelect={onTogglePromptSelection}
-              selected={prompt.selected || false}
-              categories={categories}
-            />
-          ))}
-
+      {expanded && (
+        <>
+          {categoryContent}
           {category.subcategories?.map((subCategory) => (
             <CategoryTree
               key={subCategory.id}
@@ -155,7 +138,7 @@ export const CategoryTree = ({
               onDeleteSelectedPrompts={onDeleteSelectedPrompts}
             />
           ))}
-        </div>
+        </>
       )}
     </div>
   );
