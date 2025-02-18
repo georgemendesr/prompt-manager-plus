@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { PromptCard } from "@/components/PromptCard";
 import { BulkImport } from "@/components/BulkImport";
@@ -89,7 +88,7 @@ const Index = () => {
           <AddCategory onAdd={addCategory} categories={categories} />
           {categories.length > 0 && (
             <BulkImport
-              categories={categories.map((c) => c.name)}
+              categories={categories}
               onImport={bulkImportPrompts}
             />
           )}

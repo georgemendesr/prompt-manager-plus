@@ -11,15 +11,16 @@ import {
   DialogTrigger,
 } from "./ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import type { Category } from "@/types/prompt";
 
 interface BulkImportProps {
-  categories: string[];
-  onImport: (prompts: string[], category: string) => void;
+  categories: Category[];
+  onImport: (prompts: string[], categoryId: string) => void;
 }
 
 export const BulkImport = ({ categories, onImport }: BulkImportProps) => {
   const [text, setText] = useState("");
-  const [category, setCategory] = useState("");
+  const [categoryId, setCategoryId] = useState("");
   const [open, setOpen] = useState(false);
 
   const handleImport = () => {
@@ -28,13 +29,26 @@ export const BulkImport = ({ categories, onImport }: BulkImportProps) => {
       .map(t => t.trim())
       .filter(t => t && !t.includes("```")); // Remove empty strings and backticks
 
-    if (prompts.length && category) {
-      onImport(prompts, category);
+    if (prompts.length && categoryId) {
+      onImport(prompts, categoryId);
       setText("");
-      setCategory("");
+      setCategoryId("");
       setOpen(false);
     }
   };
+
+  // Função recursiva para obter todas as categorias e subcategorias
+  const getAllCategories = (categories: Category[]): Category[] => {
+    return categories.reduce((acc: Category[], category) => {
+      acc.push(category);
+      if (category.subcategories?.length) {
+        acc.push(...getAllCategories(category.subcategories));
+      }
+      return acc;
+    }, []);
+  };
+
+  const allCategories = getAllCategories(categories);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -49,14 +63,14 @@ export const BulkImport = ({ categories, onImport }: BulkImportProps) => {
           <DialogTitle>Importar Prompts</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 pt-4">
-          <Select value={category} onValueChange={setCategory}>
+          <Select value={categoryId} onValueChange={setCategoryId}>
             <SelectTrigger>
               <SelectValue placeholder="Selecione uma categoria" />
             </SelectTrigger>
             <SelectContent>
-              {categories.map((cat) => (
-                <SelectItem key={cat} value={cat}>
-                  {cat}
+              {allCategories.map((category) => (
+                <SelectItem key={category.id} value={category.id}>
+                  {category.parentId ? `↳ ${category.name}` : category.name}
                 </SelectItem>
               ))}
             </SelectContent>

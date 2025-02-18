@@ -4,14 +4,25 @@ import type { Category } from "@/types/prompt";
 import { toast } from "sonner";
 
 export const useBulkActions = (categories: Category[], setCategories: (categories: Category[]) => void) => {
-  const bulkImportPrompts = async (prompts: string[], categoryName: string) => {
+  const findCategoryById = (categories: Category[], categoryId: string): Category | undefined => {
+    for (const category of categories) {
+      if (category.id === categoryId) return category;
+      if (category.subcategories) {
+        const found = findCategoryById(category.subcategories, categoryId);
+        if (found) return found;
+      }
+    }
+    return undefined;
+  };
+
+  const bulkImportPrompts = async (prompts: string[], categoryId: string) => {
     try {
-      const category = categories.find(c => c.name === categoryName);
+      const category = findCategoryById(categories, categoryId);
       if (!category) return;
 
       const newPrompts = prompts.map(text => ({
         text,
-        category_id: category.id,
+        category_id: categoryId,
         rating: 0
       }));
 
@@ -22,28 +33,36 @@ export const useBulkActions = (categories: Category[], setCategories: (categorie
 
       if (error) throw error;
 
-      setCategories(
-        categories.map((c) =>
-          c.name === categoryName
-            ? {
-                ...c,
-                prompts: [
-                  ...c.prompts,
-                  ...data.map((p) => ({
-                    id: p.id,
-                    text: p.text,
-                    category: categoryName,
-                    rating: 0,
-                    comments: [],
-                    createdAt: new Date(p.created_at),
-                    selected: false,
-                  })),
-                ],
-              }
-            : c
-        )
-      );
+      const updateCategoriesRecursively = (cats: Category[]): Category[] => {
+        return cats.map(c => {
+          if (c.id === categoryId) {
+            return {
+              ...c,
+              prompts: [
+                ...c.prompts,
+                ...data.map((p) => ({
+                  id: p.id,
+                  text: p.text,
+                  category: c.name,
+                  rating: 0,
+                  comments: [],
+                  createdAt: new Date(p.created_at),
+                  selected: false,
+                })),
+              ],
+            };
+          }
+          if (c.subcategories?.length) {
+            return {
+              ...c,
+              subcategories: updateCategoriesRecursively(c.subcategories)
+            };
+          }
+          return c;
+        });
+      };
 
+      setCategories(updateCategoriesRecursively(categories));
       toast.success('Prompts importados com sucesso!');
     } catch (error) {
       console.error('Erro ao importar prompts:', error);
@@ -51,9 +70,9 @@ export const useBulkActions = (categories: Category[], setCategories: (categorie
     }
   };
 
-  const deleteSelectedPrompts = async (categoryName: string) => {
+  const deleteSelectedPrompts = async (categoryId: string) => {
     try {
-      const category = categories.find(c => c.name === categoryName);
+      const category = findCategoryById(categories, categoryId);
       if (!category) return;
 
       const selectedPromptIds = category.prompts
@@ -69,17 +88,25 @@ export const useBulkActions = (categories: Category[], setCategories: (categorie
 
       if (error) throw error;
 
-      setCategories(
-        categories.map((c) =>
-          c.name === categoryName
-            ? {
-                ...c,
-                prompts: c.prompts.filter((prompt) => !prompt.selected),
-              }
-            : c
-        )
-      );
+      const updateCategoriesRecursively = (cats: Category[]): Category[] => {
+        return cats.map(c => {
+          if (c.id === categoryId) {
+            return {
+              ...c,
+              prompts: c.prompts.filter((prompt) => !prompt.selected),
+            };
+          }
+          if (c.subcategories?.length) {
+            return {
+              ...c,
+              subcategories: updateCategoriesRecursively(c.subcategories)
+            };
+          }
+          return c;
+        });
+      };
 
+      setCategories(updateCategoriesRecursively(categories));
       toast.success('Prompts excluídos com sucesso!');
     } catch (error) {
       console.error('Erro ao excluir prompts:', error);
