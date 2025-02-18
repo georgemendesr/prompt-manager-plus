@@ -42,6 +42,17 @@ export const usePrompts = (categories: Category[], setCategories: (categories: C
 
   const addComment = async (promptId: string, comment: string) => {
     try {
+      // Se for uma alteração de cor, atualizar também na tabela de prompts
+      if (comment.startsWith('[color:')) {
+        const backgroundColor = comment.replace('[color:', '').replace(']', '');
+        const { error: promptError } = await supabase
+          .from('prompts')
+          .update({ background_color: backgroundColor })
+          .eq('id', promptId);
+
+        if (promptError) throw promptError;
+      }
+
       const { data, error } = await supabase
         .from('comments')
         .insert([{ prompt_id: promptId, text: comment }])
@@ -55,7 +66,6 @@ export const usePrompts = (categories: Category[], setCategories: (categories: C
           ...category,
           prompts: category.prompts.map((prompt) => {
             if (prompt.id === promptId) {
-              // Se o comentário é uma cor, atualizar o backgroundColor
               if (comment.startsWith('[color:')) {
                 return {
                   ...prompt,
