@@ -14,7 +14,7 @@ interface CategoryTreeProps {
   onTogglePromptSelection: (id: string, selected: boolean) => void;
   onToggleSelectAll: (categoryName: string, selected: boolean) => void;
   onDeleteSelectedPrompts: (categoryName: string) => void;
-  onEditCategory: (id: string, newName: string) => Promise<boolean>;
+  onEditCategory: (id: string, newName: string, newParentId?: string) => Promise<boolean>;
   onDeleteCategory: (id: string) => Promise<boolean>;
 }
 
@@ -40,8 +40,8 @@ export const CategoryTree = ({
     setExpanded(prev => !prev);
   };
 
-  const handleEdit = async (newName: string) => {
-    await onEditCategory(category.id, newName);
+  const handleEdit = async (newName: string, newParentId?: string) => {
+    await onEditCategory(category.id, newName, newParentId);
   };
 
   const handleDelete = async () => {
@@ -112,6 +112,8 @@ export const CategoryTree = ({
         onToggle={handleToggle}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        categories={categories}
+        category={category}
       />
 
       {expanded && (

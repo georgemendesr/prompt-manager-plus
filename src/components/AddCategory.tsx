@@ -22,16 +22,30 @@ import type { Category } from "@/types/prompt";
 interface AddCategoryProps {
   onAdd: (name: string, parentId?: string) => Promise<boolean>;
   categories?: Category[];
+  mode?: "add" | "edit";
+  initialName?: string;
+  initialParentId?: string;
+  onEdit?: (name: string, parentId?: string) => Promise<boolean>;
 }
 
-export const AddCategory = ({ onAdd, categories = [] }: AddCategoryProps) => {
+export const AddCategory = ({ 
+  onAdd, 
+  categories = [], 
+  mode = "add",
+  initialName = "",
+  initialParentId,
+  onEdit
+}: AddCategoryProps) => {
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [parentId, setParentId] = useState<string | undefined>(undefined);
+  const [name, setName] = useState(initialName);
+  const [parentId, setParentId] = useState<string | undefined>(initialParentId);
 
-  const handleAdd = async () => {
+  const handleSave = async () => {
     if (name.trim()) {
-      const success = await onAdd(name, parentId === "root" ? undefined : parentId);
+      const success = mode === "add" 
+        ? await onAdd(name, parentId === "root" ? undefined : parentId)
+        : await onEdit?.(name, parentId === "root" ? undefined : parentId);
+
       if (success) {
         setName("");
         setParentId(undefined);
@@ -56,14 +70,20 @@ export const AddCategory = ({ onAdd, categories = [] }: AddCategoryProps) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Nova Categoria
-        </Button>
+        {mode === "add" ? (
+          <Button className="gap-2">
+            <Plus className="h-4 w-4" />
+            Nova Categoria
+          </Button>
+        ) : (
+          <Button variant="ghost" size="sm">
+            Editar
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Nova Categoria</DialogTitle>
+          <DialogTitle>{mode === "add" ? "Nova Categoria" : "Editar Categoria"}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 pt-4">
           <Input
@@ -91,7 +111,9 @@ export const AddCategory = ({ onAdd, categories = [] }: AddCategoryProps) => {
             <Button variant="outline" onClick={() => setOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleAdd}>Adicionar</Button>
+            <Button onClick={handleSave}>
+              {mode === "add" ? "Adicionar" : "Salvar"}
+            </Button>
           </div>
         </div>
       </DialogContent>
