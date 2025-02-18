@@ -14,6 +14,8 @@ export type Category = {
   id: string;
   name: string;
   prompts: Prompt[];
+  parentId?: string;
+  subcategories?: Category[];
 };
 
 export type MusicStructure = {
@@ -22,4 +24,10 @@ export type MusicStructure = {
   description: string;
   tags: string[];
   effect: string;
+};
+
+export type WorkspaceItem = {
+  id: string;
+  text: string;
+  createdAt: Date;
 };

@@ -1,10 +1,18 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Copy } from "lucide-react";
+import { Copy, Move } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
-import type { Prompt, MusicStructure } from "@/types/prompt";
+import { Checkbox } from "./ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import type { Prompt, MusicStructure, Category } from "@/types/prompt";
 import { RatingButtons } from "./prompt/RatingButtons";
 import { CommentSection } from "./prompt/CommentSection";
 import { HashtagList } from "./prompt/HashtagList";
@@ -15,8 +23,10 @@ interface PromptCardProps {
   onAddComment: (id: string, comment: string) => void;
   onEditPrompt?: (id: string, newText: string) => void;
   onSelect: (id: string, selected: boolean) => void;
+  onMove?: (id: string, targetCategoryId: string) => void;
   selected: boolean;
   structures?: MusicStructure[];
+  categories?: Category[];
 }
 
 export const PromptCard = ({ 
@@ -24,9 +34,11 @@ export const PromptCard = ({
   onRate, 
   onAddComment, 
   onEditPrompt,
-  onSelect, 
+  onSelect,
+  onMove,
   selected,
-  structures = []
+  structures = [],
+  categories = []
 }: PromptCardProps) => {
   const [bgColor, setBgColor] = useState("bg-white/80");
 
@@ -37,6 +49,23 @@ export const PromptCard = ({
   const handleCopy = async () => {
     await navigator.clipboard.writeText(prompt.text);
     toast.success("Prompt copiado!");
+  };
+
+  const getAllCategories = (categories: Category[]): Category[] => {
+    return categories.reduce((acc: Category[], category) => {
+      acc.push(category);
+      if (category.subcategories) {
+        acc.push(...getAllCategories(category.subcategories));
+      }
+      return acc;
+    }, []);
+  };
+
+  const handleMove = (categoryId: string) => {
+    if (onMove) {
+      onMove(prompt.id, categoryId);
+      toast.success("Prompt movido com sucesso!");
+    }
   };
 
   return (
@@ -104,6 +133,32 @@ export const PromptCard = ({
             structures={structures}
           />
         </div>
+      </div>
+
+      <div className="flex items-center justify-between pt-2 mt-2 border-t">
+        <Checkbox
+          checked={selected}
+          onCheckedChange={(checked) => onSelect(prompt.id, checked as boolean)}
+        />
+        
+        {onMove && (
+          <Select onValueChange={handleMove}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Mover para..." />
+            </SelectTrigger>
+            <SelectContent>
+              {getAllCategories(categories).map((category) => (
+                <SelectItem 
+                  key={category.id} 
+                  value={category.id}
+                  disabled={category.id === prompt.category}
+                >
+                  {category.parentId ? `↳ ${category.name}` : category.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
     </Card>
   );
