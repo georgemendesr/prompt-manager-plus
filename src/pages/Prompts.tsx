@@ -40,58 +40,52 @@ const Prompts = () => {
     );
   }
 
-  const renderCategory = (category: Category, currentCategoryName: string, level = 0) => {
-    // Só renderiza se for a categoria atual ou uma subcategoria dela
-    const shouldRender = category.name === currentCategoryName || 
-                        categories.find(c => c.name === currentCategoryName)?.subcategories?.some(sub => sub.id === category.id);
+  // Renderiza uma categoria e suas subcategorias
+  const renderCategoryContent = (category: Category, level = 0) => (
+    <div key={category.id} className={`space-y-4 ${level > 0 ? 'ml-6' : ''}`}>
+      {level > 0 && (
+        <h3 className="text-lg font-semibold text-gray-700 flex items-center gap-2">
+          <span className="text-gray-400">↳</span>
+          {category.name}
+        </h3>
+      )}
+      
+      <CategoryActions
+        prompts={category.prompts}
+        onSelectAll={(checked) => toggleSelectAll(category.name, checked)}
+        onDelete={() => deleteSelectedPrompts(category.name)}
+        onMove={(targetCategoryId) => {
+          const selectedPrompts = category.prompts.filter(p => p.selected);
+          selectedPrompts.forEach(prompt => movePrompt(prompt.id, targetCategoryId));
+        }}
+        categories={categories}
+        currentCategoryId={category.id}
+      />
+      
+      {category.prompts.length === 0 && category.subcategories?.length === 0 && (
+        <div className="text-center py-6 text-gray-500 bg-gray-50 rounded-lg">
+          Nenhum prompt nesta categoria ainda
+        </div>
+      )}
 
-    if (!shouldRender) return null;
-
-    return (
-      <div key={category.id} className={`space-y-4 ${level > 0 ? 'ml-6' : ''}`}>
-        {level > 0 && (
-          <h3 className="text-lg font-semibold text-gray-700 flex items-center gap-2">
-            <span className="text-gray-400">↳</span>
-            {category.name}
-          </h3>
-        )}
-        
-        <CategoryActions
-          prompts={category.prompts}
-          onSelectAll={(checked) => toggleSelectAll(category.name, checked)}
-          onDelete={() => deleteSelectedPrompts(category.name)}
-          onMove={(targetCategoryId) => {
-            const selectedPrompts = category.prompts.filter(p => p.selected);
-            selectedPrompts.forEach(prompt => movePrompt(prompt.id, targetCategoryId));
-          }}
+      {category.prompts.map((prompt) => (
+        <PromptCard
+          key={prompt.id}
+          prompt={prompt}
+          onRate={ratePrompt}
+          onAddComment={addComment}
+          onSelect={togglePromptSelection}
+          selected={prompt.selected || false}
           categories={categories}
-          currentCategoryId={category.id}
         />
-        
-        {category.prompts.length === 0 && category.subcategories?.length === 0 && (
-          <div className="text-center py-6 text-gray-500 bg-gray-50 rounded-lg">
-            Nenhum prompt nesta categoria ainda
-          </div>
-        )}
+      ))}
 
-        {category.prompts.map((prompt) => (
-          <PromptCard
-            key={prompt.id}
-            prompt={prompt}
-            onRate={ratePrompt}
-            onAddComment={addComment}
-            onSelect={togglePromptSelection}
-            selected={prompt.selected || false}
-            categories={categories}
-          />
-        ))}
-
-        {category.subcategories?.map((subCategory) => 
-          renderCategory(subCategory, currentCategoryName, level + 1)
-        )}
-      </div>
-    );
-  };
+      {/* Renderiza subcategorias apenas se houverem */}
+      {category.subcategories?.map((subCategory) => 
+        renderCategoryContent(subCategory, level + 1)
+      )}
+    </div>
+  );
 
   const renderPrompts = () => (
     <div className="space-y-6">
@@ -115,26 +109,32 @@ const Prompts = () => {
       ) : (
         <Tabs defaultValue={categories[0]?.name} className="w-full">
           <TabsList className="w-full justify-start mb-6 bg-gray-100/80 p-1 rounded-lg">
-            {categories.map((category) => (
-              <TabsTrigger
-                key={category.id}
-                value={category.name}
-                className="px-4 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm"
-              >
-                {category.name}
-              </TabsTrigger>
-            ))}
+            {/* Mostrar apenas categorias principais nas abas */}
+            {categories
+              .filter(category => !category.parentId) // Filtra apenas categorias principais
+              .map((category) => (
+                <TabsTrigger
+                  key={category.id}
+                  value={category.name}
+                  className="px-4 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                >
+                  {category.name}
+                </TabsTrigger>
+              ))}
           </TabsList>
 
-          {categories.map((category) => (
-            <TabsContent
-              key={category.id}
-              value={category.name}
-              className="mt-6 space-y-6"
-            >
-              {renderCategory(category, category.name)}
-            </TabsContent>
-          ))}
+          {/* Renderizar conteúdo apenas das categorias principais */}
+          {categories
+            .filter(category => !category.parentId)
+            .map((category) => (
+              <TabsContent
+                key={category.id}
+                value={category.name}
+                className="mt-6 space-y-6"
+              >
+                {renderCategoryContent(category)}
+              </TabsContent>
+            ))}
         </Tabs>
       )}
     </div>
