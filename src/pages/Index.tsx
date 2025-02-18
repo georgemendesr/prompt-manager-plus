@@ -29,29 +29,6 @@ const Index = () => {
             Somos especialistas em criar soluções criativas que conectam sua marca ao seu público-alvo.
           </p>
 
-          <div className="grid md:grid-cols-3 gap-8 mt-12">
-            <div className="p-6 bg-white rounded-xl shadow-md">
-              <h3 className="text-xl font-semibold mb-4">Marketing Digital</h3>
-              <p className="text-gray-600">
-                Estratégias personalizadas para aumentar sua presença online
-              </p>
-            </div>
-
-            <div className="p-6 bg-white rounded-xl shadow-md">
-              <h3 className="text-xl font-semibold mb-4">Design Gráfico</h3>
-              <p className="text-gray-600">
-                Identidade visual que destaca sua marca no mercado
-              </p>
-            </div>
-
-            <div className="p-6 bg-white rounded-xl shadow-md">
-              <h3 className="text-xl font-semibold mb-4">Gestão de Mídias</h3>
-              <p className="text-gray-600">
-                Gerenciamento completo das suas redes sociais
-              </p>
-            </div>
-          </div>
-
           <div className="mt-12">
             <h3 className="text-2xl font-bold text-gray-900 mb-6">
               Entre em contato
