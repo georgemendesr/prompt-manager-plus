@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Copy, MessageSquare, Plus, Minus, Palette } from "lucide-react";
+import { Copy, MessageSquare, Plus, Minus, Palette, Hash } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Textarea } from "./ui/textarea";
@@ -10,6 +10,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Input } from "./ui/input";
 import type { Prompt } from "@/types/prompt";
 
 interface PromptCardProps {
@@ -35,6 +36,8 @@ export const PromptCard = ({ prompt, onRate, onAddComment, onSelect, selected }:
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [comment, setComment] = useState("");
   const [bgColor, setBgColor] = useState("bg-white/80");
+  const [hashtag, setHashtag] = useState("");
+  const [hashtags, setHashtags] = useState<string[]>(prompt.hashtags || []);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(prompt.text);
@@ -50,6 +53,21 @@ export const PromptCard = ({ prompt, onRate, onAddComment, onSelect, selected }:
     }
   };
 
+  const handleHashtagSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && hashtag.trim()) {
+      const newHashtag = hashtag.trim().startsWith('#') ? hashtag.trim() : `#${hashtag.trim()}`;
+      if (!hashtags.includes(newHashtag)) {
+        setHashtags([...hashtags, newHashtag]);
+        setHashtag("");
+        toast.success("Hashtag adicionada!");
+      }
+    }
+  };
+
+  const removeHashtag = (tagToRemove: string) => {
+    setHashtags(hashtags.filter(tag => tag !== tagToRemove));
+  };
+
   return (
     <Card className={`p-4 space-y-4 ${bgColor} backdrop-blur-sm hover:shadow-lg transition-all duration-300 relative sm:text-base text-sm`}>
       <div className="flex items-start justify-between gap-2 sm:gap-4">
@@ -61,8 +79,43 @@ export const PromptCard = ({ prompt, onRate, onAddComment, onSelect, selected }:
         >
           <Copy className="h-4 w-4" />
         </Button>
-        <p className="text-gray-800 flex-grow break-words">{prompt.text}</p>
+        <div className="flex-grow">
+          <p className="text-gray-800 break-words">{prompt.text}</p>
+          {hashtags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {hashtags.map((tag, index) => (
+                <button
+                  key={index}
+                  onClick={() => removeHashtag(tag)}
+                  className="inline-flex items-center px-2 py-1 rounded-full bg-gray-100 text-xs text-gray-600 hover:bg-gray-200 transition-colors"
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="hover:text-purple-600 transition-colors"
+              >
+                <Hash className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64 p-2">
+              <Input
+                value={hashtag}
+                onChange={(e) => setHashtag(e.target.value)}
+                onKeyDown={handleHashtagSubmit}
+                placeholder="Digite uma hashtag e pressione Enter"
+                className="w-full"
+              />
+            </PopoverContent>
+          </Popover>
           <Popover>
             <PopoverTrigger asChild>
               <Button
