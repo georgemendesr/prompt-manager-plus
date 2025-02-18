@@ -6,14 +6,16 @@ import { BulkImport } from "@/components/BulkImport";
 import type { Category, Prompt } from "@/types/prompt";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Trash } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const Index = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [newCategory, setNewCategory] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
 
   const handleAddCategory = () => {
     if (newCategory.trim()) {
@@ -73,8 +75,49 @@ const Index = () => {
                   rating: 0,
                   comments: [],
                   createdAt: new Date(),
+                  selected: false,
                 })),
               ],
+            }
+          : category
+      )
+    );
+  };
+
+  const handleSelectPrompt = (promptId: string, selected: boolean) => {
+    setCategories((prev) =>
+      prev.map((category) => ({
+        ...category,
+        prompts: category.prompts.map((prompt) =>
+          prompt.id === promptId ? { ...prompt, selected } : prompt
+        ),
+      }))
+    );
+  };
+
+  const handleSelectAll = (categoryName: string, selected: boolean) => {
+    setCategories((prev) =>
+      prev.map((category) =>
+        category.name === categoryName
+          ? {
+              ...category,
+              prompts: category.prompts.map((prompt) => ({
+                ...prompt,
+                selected,
+              })),
+            }
+          : category
+      )
+    );
+  };
+
+  const handleDeleteSelected = (categoryName: string) => {
+    setCategories((prev) =>
+      prev.map((category) =>
+        category.name === categoryName
+          ? {
+              ...category,
+              prompts: category.prompts.filter((prompt) => !prompt.selected),
             }
           : category
       )
@@ -127,7 +170,11 @@ const Index = () => {
             Crie uma categoria para começar a adicionar prompts
           </div>
         ) : (
-          <Tabs defaultValue={categories[0]?.name} className="w-full">
+          <Tabs 
+            defaultValue={categories[0]?.name} 
+            className="w-full"
+            onValueChange={setSelectedCategory}
+          >
             <TabsList className="w-full justify-start">
               {categories.map((category) => (
                 <TabsTrigger
@@ -146,6 +193,31 @@ const Index = () => {
                 value={category.name}
                 className="mt-6 space-y-4"
               >
+                {category.prompts.length > 0 && (
+                  <div className="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        checked={category.prompts.every((p) => p.selected)}
+                        onCheckedChange={(checked) => 
+                          handleSelectAll(category.name, checked as boolean)
+                        }
+                      />
+                      <span className="text-sm text-gray-600">Selecionar todos</span>
+                    </div>
+                    {category.prompts.some((p) => p.selected) && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeleteSelected(category.name)}
+                        className="gap-2"
+                      >
+                        <Trash className="h-4 w-4" />
+                        Excluir selecionados
+                      </Button>
+                    )}
+                  </div>
+                )}
+                
                 {category.prompts.length === 0 ? (
                   <div className="text-center py-12 text-gray-500">
                     Nenhum prompt nesta categoria ainda
@@ -157,6 +229,8 @@ const Index = () => {
                       prompt={prompt}
                       onRate={handleRate}
                       onAddComment={handleAddComment}
+                      onSelect={handleSelectPrompt}
+                      selected={prompt.selected || false}
                     />
                   ))
                 )}

@@ -6,6 +6,7 @@ export type Prompt = {
   rating: number;
   comments: string[];
   createdAt: Date;
+  selected?: boolean;
 };
 
 export type Category = {

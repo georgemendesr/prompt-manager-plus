@@ -5,15 +5,18 @@ import { Copy, MessageSquare, Plus, Minus } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Textarea } from "./ui/textarea";
+import { Checkbox } from "./ui/checkbox";
 import type { Prompt } from "@/types/prompt";
 
 interface PromptCardProps {
   prompt: Prompt;
   onRate: (id: string, increment: boolean) => void;
   onAddComment: (id: string, comment: string) => void;
+  onSelect: (id: string, selected: boolean) => void;
+  selected: boolean;
 }
 
-export const PromptCard = ({ prompt, onRate, onAddComment }: PromptCardProps) => {
+export const PromptCard = ({ prompt, onRate, onAddComment, onSelect, selected }: PromptCardProps) => {
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [comment, setComment] = useState("");
 
@@ -34,7 +37,13 @@ export const PromptCard = ({ prompt, onRate, onAddComment }: PromptCardProps) =>
   return (
     <Card className="p-4 space-y-4 bg-white/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
       <div className="flex items-start justify-between gap-4">
-        <p className="text-gray-800 flex-grow">{prompt.text}</p>
+        <div className="flex items-center gap-4">
+          <Checkbox 
+            checked={selected}
+            onCheckedChange={(checked) => onSelect(prompt.id, checked as boolean)}
+          />
+          <p className="text-gray-800 flex-grow">{prompt.text}</p>
+        </div>
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
@@ -88,10 +97,7 @@ export const PromptCard = ({ prompt, onRate, onAddComment }: PromptCardProps) =>
             >
               Cancelar
             </Button>
-            <Button
-              size="sm"
-              onClick={handleCommentSubmit}
-            >
+            <Button size="sm" onClick={handleCommentSubmit}>
               Salvar
             </Button>
           </div>
