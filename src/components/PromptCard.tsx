@@ -1,10 +1,15 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Copy, MessageSquare, Plus, Minus } from "lucide-react";
+import { Copy, MessageSquare, Plus, Minus, Palette } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Textarea } from "./ui/textarea";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import type { Prompt } from "@/types/prompt";
 
 interface PromptCardProps {
@@ -15,9 +20,21 @@ interface PromptCardProps {
   selected: boolean;
 }
 
+const COLORS = [
+  "bg-soft-green",
+  "bg-soft-yellow",
+  "bg-soft-orange",
+  "bg-soft-purple",
+  "bg-soft-pink",
+  "bg-soft-peach",
+  "bg-soft-blue",
+  "bg-soft-gray",
+];
+
 export const PromptCard = ({ prompt, onRate, onAddComment, onSelect, selected }: PromptCardProps) => {
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [comment, setComment] = useState("");
+  const [bgColor, setBgColor] = useState("bg-white/80");
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(prompt.text);
@@ -34,8 +51,8 @@ export const PromptCard = ({ prompt, onRate, onAddComment, onSelect, selected }:
   };
 
   return (
-    <Card className="p-4 space-y-4 bg-white/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
-      <div className="flex items-start justify-between gap-4">
+    <Card className={`p-4 space-y-4 ${bgColor} backdrop-blur-sm hover:shadow-lg transition-all duration-300 relative sm:text-base text-sm`}>
+      <div className="flex items-start justify-between gap-2 sm:gap-4">
         <Button
           variant="ghost"
           size="icon"
@@ -44,8 +61,30 @@ export const PromptCard = ({ prompt, onRate, onAddComment, onSelect, selected }:
         >
           <Copy className="h-4 w-4" />
         </Button>
-        <p className="text-gray-800 flex-grow">{prompt.text}</p>
-        <div className="flex items-center gap-2 shrink-0">
+        <p className="text-gray-800 flex-grow break-words">{prompt.text}</p>
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="hover:text-purple-600 transition-colors"
+              >
+                <Palette className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64 p-2">
+              <div className="grid grid-cols-4 gap-2">
+                {COLORS.map((color) => (
+                  <button
+                    key={color}
+                    className={`w-12 h-12 rounded-lg ${color} hover:ring-2 ring-offset-2 ring-purple-500 transition-all`}
+                    onClick={() => setBgColor(color)}
+                  />
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
           <Button
             variant="ghost"
             size="icon"
@@ -102,7 +141,7 @@ export const PromptCard = ({ prompt, onRate, onAddComment, onSelect, selected }:
           {prompt.comments.map((comment, index) => (
             <div
               key={index}
-              className="text-sm text-gray-600 bg-gray-50 p-2 rounded-md"
+              className="text-sm text-gray-600 bg-gray-50/80 p-2 rounded-md"
             >
               {comment}
             </div>
