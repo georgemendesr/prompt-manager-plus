@@ -31,7 +31,7 @@ export const AddCategory = ({ onAdd, categories = [] }: AddCategoryProps) => {
 
   const handleAdd = async () => {
     if (name.trim()) {
-      const success = await onAdd(name, parentId);
+      const success = await onAdd(name, parentId === "root" ? undefined : parentId);
       if (success) {
         setName("");
         setParentId(undefined);
@@ -79,7 +79,7 @@ export const AddCategory = ({ onAdd, categories = [] }: AddCategoryProps) => {
               <SelectValue placeholder="Categoria pai (opcional)" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Nenhuma (categoria raiz)</SelectItem>
+              <SelectItem value="root">Nenhuma (categoria raiz)</SelectItem>
               {allCategories.map((category) => (
                 <SelectItem key={category.id} value={category.id}>
                   {category.parentId ? `↳ ${category.name}` : category.name}
