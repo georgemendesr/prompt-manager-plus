@@ -27,8 +27,9 @@ const Index = () => {
 
           {/* Hero Text */}
           <div className="space-y-8 animate-fade-in">
-            <h1 className="text-5xl md:text-7xl font-bold text-white drop-shadow-lg font-display">
-              Você sente. Você vê.
+            <h1 className="text-5xl md:text-7xl font-bold text-white drop-shadow-lg font-display space-y-2 lowercase">
+              <div>você sente.</div>
+              <div>você vê.</div>
             </h1>
             
             <div className="grid md:grid-cols-2 gap-6 text-white">
