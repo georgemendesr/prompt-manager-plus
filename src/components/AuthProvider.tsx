@@ -26,7 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (session?.user) {
           setUser(session.user);
-          if (location.pathname === '/auth') {
+          if (location.pathname === '/auth' || location.pathname === '/') {
             navigate('/prompts');
           }
         } else if (location.pathname !== '/auth') {
@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        if (location.pathname === '/auth') {
+        if (location.pathname === '/auth' || location.pathname === '/') {
           navigate('/prompts');
         }
       } else {
