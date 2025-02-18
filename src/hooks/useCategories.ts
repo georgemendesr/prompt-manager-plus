@@ -58,13 +58,10 @@ export const useCategories = () => {
         comments: commentsData.length
       });
 
-      // Construir árvore de categorias
       const categoryTree = buildCategoryTree(categoriesData);
 
-      // Função recursiva para adicionar prompts às categorias
       const addPromptsToCategories = (categories: Category[], allPrompts: any[]) => {
         return categories.map(category => {
-          // Filtrar prompts apenas para a categoria atual (não inclui subcategorias)
           const categoryPrompts = allPrompts
             .filter(prompt => prompt.category_id === category.id)
             .map(prompt => ({
@@ -119,7 +116,6 @@ export const useCategories = () => {
 
       console.log('Categoria adicionada com sucesso:', data);
       
-      // Atualizar estado de forma recursiva
       const updateCategoriesTree = (categories: Category[]): Category[] => {
         if (parentId) {
           return categories.map(category => {
@@ -164,11 +160,90 @@ export const useCategories = () => {
     }
   };
 
+  const editCategory = async (id: string, newName: string) => {
+    try {
+      const { error } = await supabase
+        .from('categories')
+        .update({ name: newName.trim() })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      const updateCategoryInTree = (categories: Category[]): Category[] => {
+        return categories.map(category => {
+          if (category.id === id) {
+            return { ...category, name: newName };
+          }
+          if (category.subcategories?.length) {
+            return {
+              ...category,
+              subcategories: updateCategoryInTree(category.subcategories)
+            };
+          }
+          return category;
+        });
+      };
+
+      setCategories(prev => updateCategoryInTree(prev));
+      toast.success('Categoria atualizada com sucesso!');
+      return true;
+    } catch (error) {
+      console.error('Erro ao editar categoria:', error);
+      toast.error('Erro ao editar categoria');
+      return false;
+    }
+  };
+
+  const deleteCategory = async (id: string) => {
+    try {
+      // Verificar se a categoria tem prompts
+      const hasPrompts = categories.some(category => {
+        const checkPrompts = (cat: Category): boolean => {
+          if (cat.id === id && cat.prompts.length > 0) return true;
+          return cat.subcategories?.some(checkPrompts) || false;
+        };
+        return checkPrompts(category);
+      });
+
+      if (hasPrompts) {
+        toast.error('Não é possível deletar uma categoria que contém prompts');
+        return false;
+      }
+
+      const { error } = await supabase
+        .from('categories')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      const removeCategoryFromTree = (categories: Category[]): Category[] => {
+        return categories.filter(category => {
+          if (category.id === id) return false;
+          if (category.subcategories?.length) {
+            category.subcategories = removeCategoryFromTree(category.subcategories);
+          }
+          return true;
+        });
+      };
+
+      setCategories(prev => removeCategoryFromTree(prev));
+      toast.success('Categoria removida com sucesso!');
+      return true;
+    } catch (error) {
+      console.error('Erro ao deletar categoria:', error);
+      toast.error('Erro ao deletar categoria');
+      return false;
+    }
+  };
+
   return {
     categories,
     setCategories,
     loading,
     loadCategories,
-    addCategory
+    addCategory,
+    editCategory,
+    deleteCategory
   };
 };

@@ -10,6 +10,8 @@ export interface PromptManager {
   loading: boolean;
   loadCategories: () => Promise<void>;
   addCategory: (name: string) => Promise<boolean>;
+  editCategory: (id: string, newName: string) => Promise<boolean>;
+  deleteCategory: (id: string) => Promise<boolean>;
   ratePrompt: (promptId: string, increment: boolean) => Promise<void>;
   addComment: (promptId: string, comment: string) => Promise<void>;
   movePrompt: (promptId: string, targetCategoryId: string) => Promise<void>;
@@ -25,7 +27,9 @@ export const usePromptManager = (): PromptManager => {
     setCategories,
     loading,
     loadCategories,
-    addCategory
+    addCategory,
+    editCategory,
+    deleteCategory
   } = useCategories();
 
   const {
@@ -49,6 +53,8 @@ export const usePromptManager = (): PromptManager => {
     loading,
     loadCategories,
     addCategory,
+    editCategory,
+    deleteCategory,
     ratePrompt,
     addComment,
     movePrompt,

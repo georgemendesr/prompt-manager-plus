@@ -1,10 +1,17 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronRight, Search } from "lucide-react";
+import { ChevronDown, ChevronRight, Search, Edit, Trash } from "lucide-react";
 import { CategoryActions } from "@/components/CategoryActions";
 import { PromptCard } from "@/components/PromptCard";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import type { Category } from "@/types/prompt";
 
 interface CategoryTreeProps {
@@ -17,6 +24,8 @@ interface CategoryTreeProps {
   onTogglePromptSelection: (id: string, selected: boolean) => void;
   onToggleSelectAll: (categoryName: string, selected: boolean) => void;
   onDeleteSelectedPrompts: (categoryName: string) => void;
+  onEditCategory: (id: string, newName: string) => Promise<boolean>;
+  onDeleteCategory: (id: string) => Promise<boolean>;
 }
 
 export const CategoryTree = ({
@@ -29,9 +38,13 @@ export const CategoryTree = ({
   onTogglePromptSelection,
   onToggleSelectAll,
   onDeleteSelectedPrompts,
+  onEditCategory,
+  onDeleteCategory,
 }: CategoryTreeProps) => {
   const [expanded, setExpanded] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState(category.name);
   const hasSubcategories = category.subcategories?.length > 0;
 
   const handleToggle = () => {
@@ -42,6 +55,20 @@ export const CategoryTree = ({
   const filteredPrompts = category.prompts.filter(prompt => 
     prompt.text.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleEdit = async () => {
+    if (await onEditCategory(category.id, editName)) {
+      setIsEditing(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (category.prompts.length > 0) {
+      alert('Não é possível deletar uma categoria que contém prompts');
+      return;
+    }
+    await onDeleteCategory(category.id);
+  };
 
   // Array of soft background colors for different levels
   const levelColors = [
@@ -121,6 +148,8 @@ export const CategoryTree = ({
             onTogglePromptSelection={onTogglePromptSelection}
             onToggleSelectAll={onToggleSelectAll}
             onDeleteSelectedPrompts={onDeleteSelectedPrompts}
+            onEditCategory={onEditCategory}
+            onDeleteCategory={onDeleteCategory}
           />
         ))}
       </div>
@@ -130,27 +159,76 @@ export const CategoryTree = ({
   // Para subcategorias (nível > 0)
   return (
     <div className={`ml-6 space-y-4 p-4 rounded-lg ${getBgColor(level)}`}>
-      <div className="flex items-center gap-2">
-        {hasSubcategories && (
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          {hasSubcategories && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 p-0 hover:bg-white/30"
+              onClick={handleToggle}
+            >
+              {expanded ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </Button>
+          )}
+          {isEditing ? (
+            <Dialog>
+              <DialogTrigger asChild>
+                <h3 className="text-lg font-semibold text-gray-700 hover:text-gray-900">
+                  {category.name}
+                </h3>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Editar Categoria</DialogTitle>
+                </DialogHeader>
+                <Input
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  placeholder="Nome da categoria"
+                  className="mb-4"
+                />
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setIsEditing(false)}>
+                    Cancelar
+                  </Button>
+                  <Button onClick={handleEdit}>
+                    Salvar
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          ) : (
+            <h3 
+              className="text-lg font-semibold text-gray-700 hover:text-gray-900 cursor-pointer"
+              onClick={handleToggle}
+            >
+              {category.name}
+            </h3>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="icon"
-            className="h-6 w-6 p-0 hover:bg-white/30"
-            onClick={handleToggle}
+            className="h-8 w-8"
+            onClick={() => setIsEditing(true)}
           >
-            {expanded ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronRight className="h-4 w-4" />
-            )}
+            <Edit className="h-4 w-4" />
           </Button>
-        )}
-        <h3 
-          className="text-lg font-semibold text-gray-700 hover:text-gray-900 cursor-pointer"
-          onClick={handleToggle}
-        >
-          {category.name}
-        </h3>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={handleDelete}
+          >
+            <Trash className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {expanded && (
@@ -168,6 +246,8 @@ export const CategoryTree = ({
               onTogglePromptSelection={onTogglePromptSelection}
               onToggleSelectAll={onToggleSelectAll}
               onDeleteSelectedPrompts={onDeleteSelectedPrompts}
+              onEditCategory={onEditCategory}
+              onDeleteCategory={onDeleteCategory}
             />
           ))}
         </>

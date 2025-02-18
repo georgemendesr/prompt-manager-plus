@@ -19,6 +19,8 @@ const Prompts = () => {
     loading,
     loadCategories,
     addCategory,
+    editCategory,
+    deleteCategory,
     ratePrompt,
     addComment,
     movePrompt,
@@ -123,6 +125,8 @@ const Prompts = () => {
                           onTogglePromptSelection={togglePromptSelection}
                           onToggleSelectAll={toggleSelectAll}
                           onDeleteSelectedPrompts={deleteSelectedPrompts}
+                          onEditCategory={editCategory}
+                          onDeleteCategory={deleteCategory}
                         />
                       </TabsContent>
                     ))}
