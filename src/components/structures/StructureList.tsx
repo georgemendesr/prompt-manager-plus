@@ -29,7 +29,7 @@ const StructureItem = ({
 }: { 
   structure: SubStructure;
   level?: number;
-  onEdit: (structure: MusicStructure) => void;
+  onEdit: (id: string, structure: MusicStructure) => void; // Corrigido aqui
   onDelete: (id: string) => void;
   editingId: string | null;
   setEditingId: (id: string | null) => void;
@@ -38,7 +38,7 @@ const StructureItem = ({
   const [editedStructure, setEditedStructure] = useState(structure);
 
   const handleEdit = () => {
-    onEdit(editedStructure);
+    onEdit(structure.id, editedStructure); // Corrigido aqui
     setEditingId(null);
   };
 
