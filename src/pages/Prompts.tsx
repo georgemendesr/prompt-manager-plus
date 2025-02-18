@@ -118,11 +118,11 @@ const Prompts = () => {
                           category={category}
                           categories={categories}
                           onRatePrompt={ratePrompt}
-                          onAddComment={onAddComment}
+                          onAddComment={addComment}
                           onMovePrompt={movePrompt}
                           onTogglePromptSelection={togglePromptSelection}
                           onToggleSelectAll={toggleSelectAll}
-                          onDeleteSelectedPrompts={deleteDeletePrompts}
+                          onDeleteSelectedPrompts={deleteSelectedPrompts}
                         />
                       </TabsContent>
                     ))}
