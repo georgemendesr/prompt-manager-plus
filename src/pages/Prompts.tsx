@@ -1,5 +1,4 @@
-
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { PromptCard } from "@/components/PromptCard";
 import { BulkImport } from "@/components/BulkImport";
 import { AddCategory } from "@/components/AddCategory";
@@ -9,7 +8,7 @@ import { usePromptManager } from "@/hooks/usePromptManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/AuthProvider";
-import { LogOut } from "lucide-react";
+import { LogOut, ChevronRight, ChevronDown } from "lucide-react";
 import type { Category } from "@/types/prompt";
 import { StructureList } from "@/components/structures/StructureList";
 
@@ -29,6 +28,20 @@ const Prompts = () => {
     toggleSelectAll
   } = usePromptManager();
 
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+
+  const toggleCategory = (categoryId: string) => {
+    setExpandedCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(categoryId)) {
+        newSet.delete(categoryId);
+      } else {
+        newSet.add(categoryId);
+      }
+      return newSet;
+    });
+  };
+
   useEffect(() => {
     loadCategories();
   }, [loadCategories]);
@@ -41,50 +54,72 @@ const Prompts = () => {
     );
   }
 
-  const renderCategoryContent = (category: Category, level = 0) => (
-    <div key={category.id} className={`space-y-4 ${level > 0 ? 'ml-6' : ''}`}>
-      {level > 0 && (
-        <h3 className="text-lg font-semibold text-gray-700 flex items-center gap-2">
-          <span className="text-gray-400">↳</span>
-          {category.name}
-        </h3>
-      )}
-      
-      <CategoryActions
-        prompts={category.prompts}
-        onSelectAll={(checked) => toggleSelectAll(category.name, checked)}
-        onDelete={() => deleteSelectedPrompts(category.name)}
-        onMove={(targetCategoryId) => {
-          const selectedPrompts = category.prompts.filter(p => p.selected);
-          selectedPrompts.forEach(prompt => movePrompt(prompt.id, targetCategoryId));
-        }}
-        categories={categories}
-        currentCategoryId={category.id}
-      />
-      
-      {category.prompts.length === 0 && category.subcategories?.length === 0 && (
-        <div className="text-center py-6 text-gray-500 bg-gray-50 rounded-lg">
-          Nenhum prompt nesta categoria ainda
-        </div>
-      )}
+  const renderCategoryContent = (category: Category, level = 0) => {
+    const hasSubcategories = category.subcategories && category.subcategories.length > 0;
+    const isExpanded = expandedCategories.has(category.id);
 
-      {category.prompts.map((prompt) => (
-        <PromptCard
-          key={prompt.id}
-          prompt={prompt}
-          onRate={ratePrompt}
-          onAddComment={addComment}
-          onSelect={togglePromptSelection}
-          selected={prompt.selected || false}
-          categories={categories}
-        />
-      ))}
+    return (
+      <div key={category.id} className={`space-y-4 ${level > 0 ? 'ml-6' : ''}`}>
+        {level > 0 && (
+          <div 
+            className="flex items-center gap-2 cursor-pointer"
+            onClick={() => hasSubcategories && toggleCategory(category.id)}
+          >
+            {hasSubcategories && (
+              <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
+                {isExpanded ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </Button>
+            )}
+            <h3 className="text-lg font-semibold text-gray-700 hover:text-gray-900">
+              {category.name}
+            </h3>
+          </div>
+        )}
+        
+        {(!level || isExpanded) && (
+          <>
+            <CategoryActions
+              prompts={category.prompts}
+              onSelectAll={(checked) => toggleSelectAll(category.name, checked)}
+              onDelete={() => deleteSelectedPrompts(category.name)}
+              onMove={(targetCategoryId) => {
+                const selectedPrompts = category.prompts.filter(p => p.selected);
+                selectedPrompts.forEach(prompt => movePrompt(prompt.id, targetCategoryId));
+              }}
+              categories={categories}
+              currentCategoryId={category.id}
+            />
+            
+            {category.prompts.length === 0 && category.subcategories?.length === 0 && (
+              <div className="text-center py-6 text-gray-500 bg-gray-50 rounded-lg">
+                Nenhum prompt nesta categoria ainda
+              </div>
+            )}
 
-      {category.subcategories?.map((subCategory) => 
-        renderCategoryContent(subCategory, level + 1)
-      )}
-    </div>
-  );
+            {category.prompts.map((prompt) => (
+              <PromptCard
+                key={prompt.id}
+                prompt={prompt}
+                onRate={ratePrompt}
+                onAddComment={addComment}
+                onSelect={togglePromptSelection}
+                selected={prompt.selected || false}
+                categories={categories}
+              />
+            ))}
+
+            {category.subcategories?.map((subCategory) => 
+              renderCategoryContent(subCategory, level + 1)
+            )}
+          </>
+        )}
+      </div>
+    );
+  };
 
   const renderPrompts = () => (
     <div className="space-y-6">
