@@ -1,17 +1,15 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Copy, MessageSquare, Plus, Minus, Palette, Hash } from "lucide-react";
+import { Copy } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
-import { Textarea } from "./ui/textarea";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Input } from "./ui/input";
 import type { Prompt } from "@/types/prompt";
+import { ColorPicker } from "./prompt/ColorPicker";
+import { HashtagInput } from "./prompt/HashtagInput";
+import { RatingButtons } from "./prompt/RatingButtons";
+import { CommentSection } from "./prompt/CommentSection";
+import { HashtagList } from "./prompt/HashtagList";
 
 interface PromptCardProps {
   prompt: Prompt;
@@ -21,22 +19,8 @@ interface PromptCardProps {
   selected: boolean;
 }
 
-const COLORS = [
-  "bg-soft-green",
-  "bg-soft-yellow",
-  "bg-soft-orange",
-  "bg-soft-purple",
-  "bg-soft-pink",
-  "bg-soft-peach",
-  "bg-soft-blue",
-  "bg-soft-gray",
-];
-
 export const PromptCard = ({ prompt, onRate, onAddComment, onSelect, selected }: PromptCardProps) => {
-  const [showCommentInput, setShowCommentInput] = useState(false);
-  const [comment, setComment] = useState("");
   const [bgColor, setBgColor] = useState("bg-white/80");
-  const [hashtag, setHashtag] = useState("");
 
   // Filtra as hashtags dos comentários
   const hashtags = prompt.comments.filter(comment => comment.startsWith('#'));
@@ -45,26 +29,6 @@ export const PromptCard = ({ prompt, onRate, onAddComment, onSelect, selected }:
   const handleCopy = async () => {
     await navigator.clipboard.writeText(prompt.text);
     toast.success("Prompt copiado!");
-  };
-
-  const handleCommentSubmit = () => {
-    if (comment.trim()) {
-      onAddComment(prompt.id, comment);
-      setComment("");
-      setShowCommentInput(false);
-      toast.success("Comentário adicionado!");
-    }
-  };
-
-  const handleHashtagSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && hashtag.trim()) {
-      const newHashtag = hashtag.trim().startsWith('#') ? hashtag.trim() : `#${hashtag.trim()}`;
-      if (!hashtags.includes(newHashtag)) {
-        onAddComment(prompt.id, newHashtag);
-        setHashtag("");
-        toast.success("Hashtag adicionada!");
-      }
-    }
   };
 
   return (
@@ -78,127 +42,34 @@ export const PromptCard = ({ prompt, onRate, onAddComment, onSelect, selected }:
         >
           <Copy className="h-4 w-4" />
         </Button>
+        
         <div className="flex-grow">
           <p className="text-gray-800 break-words">{prompt.text}</p>
-          {hashtags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-2">
-              {hashtags.map((tag, index) => (
-                <span
-                  key={index}
-                  className="inline-flex items-center px-2 py-1 rounded-full bg-gray-100 text-xs text-gray-600"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
+          <HashtagList hashtags={hashtags} />
         </div>
+
         <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="hover:text-purple-600 transition-colors"
-              >
-                <Hash className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-64 p-2">
-              <Input
-                value={hashtag}
-                onChange={(e) => setHashtag(e.target.value)}
-                onKeyDown={handleHashtagSubmit}
-                placeholder="Digite uma hashtag e pressione Enter"
-                className="w-full"
-              />
-            </PopoverContent>
-          </Popover>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="hover:text-purple-600 transition-colors"
-              >
-                <Palette className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-64 p-2">
-              <div className="grid grid-cols-4 gap-2">
-                {COLORS.map((color) => (
-                  <button
-                    key={color}
-                    className={`w-12 h-12 rounded-lg ${color} hover:ring-2 ring-offset-2 ring-purple-500 transition-all`}
-                    onClick={() => setBgColor(color)}
-                  />
-                ))}
-              </div>
-            </PopoverContent>
-          </Popover>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onRate(prompt.id, true)}
-            className="hover:text-green-600 transition-colors"
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-          <span className="min-w-[2rem] text-center">{prompt.rating}</span>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onRate(prompt.id, false)}
-            className="hover:text-red-600 transition-colors"
-          >
-            <Minus className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowCommentInput(!showCommentInput)}
-            className="hover:text-purple-600 transition-colors"
-          >
-            <MessageSquare className="h-4 w-4" />
-          </Button>
+          <HashtagInput 
+            onHashtagAdd={(hashtag) => {
+              onAddComment(prompt.id, hashtag);
+              toast.success("Hashtag adicionada!");
+            }}
+            existingHashtags={hashtags}
+          />
+          <ColorPicker onColorSelect={setBgColor} />
+          <RatingButtons 
+            rating={prompt.rating}
+            onRate={(increment) => onRate(prompt.id, increment)}
+          />
+          <CommentSection
+            comments={regularComments}
+            onAddComment={(comment) => {
+              onAddComment(prompt.id, comment);
+              toast.success("Comentário adicionado!");
+            }}
+          />
         </div>
       </div>
-
-      {showCommentInput && (
-        <div className="space-y-2">
-          <Textarea
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="Adicione um comentário..."
-            className="min-h-[80px] resize-none"
-          />
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowCommentInput(false)}
-            >
-              Cancelar
-            </Button>
-            <Button size="sm" onClick={handleCommentSubmit}>
-              Salvar
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {regularComments.length > 0 && (
-        <div className="mt-4 space-y-2">
-          {regularComments.map((comment, index) => (
-            <div
-              key={index}
-              className="text-sm text-gray-600 bg-gray-50/80 p-2 rounded-md"
-            >
-              {comment}
-            </div>
-          ))}
-        </div>
-      )}
     </Card>
   );
 };
