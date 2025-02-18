@@ -9,7 +9,6 @@ import { toast } from "sonner";
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
@@ -19,25 +18,12 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
-      if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) throw error;
-        navigate("/");
-      } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: window.location.origin,
-          },
-        });
-        if (error) throw error;
-        toast.success("Conta criada com sucesso! Verifique seu email.");
-        setIsLogin(true);
-      }
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) throw error;
+      navigate("/");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Erro ao autenticar");
     } finally {
@@ -54,13 +40,9 @@ const Auth = () => {
             alt="R10 Comunicação Criativa" 
             className="h-16 w-auto mx-auto mb-4"
           />
-          <h2 className="text-2xl font-bold">
-            {isLogin ? "Entrar" : "Criar conta"}
-          </h2>
+          <h2 className="text-2xl font-bold">Entrar</h2>
           <p className="text-gray-500 text-sm">
-            {isLogin
-              ? "Faça login para acessar o gestor de prompts"
-              : "Crie sua conta para começar"}
+            Faça login para acessar o gestor de prompts
           </p>
         </CardHeader>
         <form onSubmit={handleAuth}>
@@ -91,24 +73,13 @@ const Auth = () => {
               />
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
+          <CardFooter>
             <Button 
               type="submit" 
               className="w-full" 
               disabled={isLoading}
             >
-              {isLogin ? "Entrar" : "Criar conta"}
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              className="w-full"
-              onClick={() => setIsLogin(!isLogin)}
-              disabled={isLoading}
-            >
-              {isLogin
-                ? "Não tem uma conta? Criar conta"
-                : "Já tem uma conta? Fazer login"}
+              Entrar
             </Button>
           </CardFooter>
         </form>
