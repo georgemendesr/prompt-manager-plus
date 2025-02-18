@@ -22,7 +22,6 @@ const Index = () => {
     togglePromptSelection,
     toggleSelectAll
   } = usePromptManager();
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
 
   useEffect(() => {
     loadCategories();
@@ -67,63 +66,79 @@ const Index = () => {
     </div>
   );
 
+  const renderPrompts = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-800">Prompts</h2>
+        <div className="flex gap-2">
+          <AddCategory onAdd={addCategory} />
+          {categories.length > 0 && (
+            <BulkImport
+              categories={categories.map((c) => c.name)}
+              onImport={bulkImportPrompts}
+            />
+          )}
+        </div>
+      </div>
+
+      {categories.length === 0 ? (
+        <div className="text-center py-12 text-gray-500">
+          Crie uma categoria para começar a adicionar prompts
+        </div>
+      ) : (
+        <Tabs defaultValue={categories[0]?.name} className="w-full">
+          <TabsList className="w-full justify-start">
+            {categories.map((category) => (
+              <TabsTrigger
+                key={category.id}
+                value={category.name}
+                className="min-w-[100px]"
+              >
+                {category.name}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          {categories.map((category) => (
+            <TabsContent
+              key={category.id}
+              value={category.name}
+              className="mt-6"
+            >
+              {renderCategory(category)}
+            </TabsContent>
+          ))}
+        </Tabs>
+      )}
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="flex items-center justify-between">
-              <h1 className="text-3xl font-bold text-gray-800">Gestor de Prompts</h1>
-              <div className="flex gap-2">
-                <AddCategory onAdd={addCategory} />
-                {categories.length > 0 && (
-                  <BulkImport
-                    categories={categories.map((c) => c.name)}
-                    onImport={bulkImportPrompts}
-                  />
-                )}
-              </div>
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-3xl font-bold text-gray-800 mb-6">Gestor de Prompts</h1>
+        
+        <Tabs defaultValue="prompts" className="w-full">
+          <TabsList>
+            <TabsTrigger value="prompts">Prompts</TabsTrigger>
+            <TabsTrigger value="estrutura">Estrutura</TabsTrigger>
+            <TabsTrigger value="workspace">Área de Trabalho</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="prompts" className="mt-6">
+            {renderPrompts()}
+          </TabsContent>
+
+          <TabsContent value="estrutura" className="mt-6">
+            <div className="text-center py-12 text-gray-500">
+              Seção de Estrutura em desenvolvimento
             </div>
+          </TabsContent>
 
-            {categories.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                Crie uma categoria para começar a adicionar prompts
-              </div>
-            ) : (
-              <Tabs 
-                defaultValue={categories[0]?.name} 
-                className="w-full"
-                onValueChange={setSelectedCategory}
-              >
-                <TabsList className="w-full justify-start">
-                  {categories.map((category) => (
-                    <TabsTrigger
-                      key={category.id}
-                      value={category.name}
-                      className="min-w-[100px]"
-                    >
-                      {category.name}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-
-                {categories.map((category) => (
-                  <TabsContent
-                    key={category.id}
-                    value={category.name}
-                    className="mt-6"
-                  >
-                    {renderCategory(category)}
-                  </TabsContent>
-                ))}
-              </Tabs>
-            )}
-          </div>
-
-          <div className="space-y-6">
+          <TabsContent value="workspace" className="mt-6">
             <Workspace />
-          </div>
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

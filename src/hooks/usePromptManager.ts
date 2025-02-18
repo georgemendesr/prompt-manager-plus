@@ -3,6 +3,7 @@ import { useCategories } from "./useCategories";
 import { usePrompts } from "./usePrompts";
 import { useBulkActions } from "./useBulkActions";
 import { useSelection } from "./useSelection";
+import type { Category } from "@/types/prompt";
 
 export interface PromptManager {
   categories: Category[];
