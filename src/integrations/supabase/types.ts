@@ -123,6 +123,7 @@ export type Database = {
       }
       prompts: {
         Row: {
+          background_color: string | null
           category_id: string
           created_at: string
           id: string
@@ -130,6 +131,7 @@ export type Database = {
           text: string
         }
         Insert: {
+          background_color?: string | null
           category_id: string
           created_at?: string
           id?: string
@@ -137,6 +139,7 @@ export type Database = {
           text: string
         }
         Update: {
+          background_color?: string | null
           category_id?: string
           created_at?: string
           id?: string

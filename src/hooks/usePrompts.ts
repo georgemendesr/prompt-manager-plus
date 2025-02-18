@@ -1,10 +1,14 @@
 
 import { useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import type { Category } from "@/types/prompt";
+import type { Category, MusicStructure } from "@/types/prompt";
 import { toast } from "sonner";
 
-export const usePrompts = (categories: Category[], setCategories: (categories: Category[]) => void) => {
+export const usePrompts = (
+  categories: Category[], 
+  setCategories: (categories: Category[]) => void,
+  structures: MusicStructure[] = []
+) => {
   const ratePrompt = async (promptId: string, increment: boolean) => {
     try {
       const prompt = categories
