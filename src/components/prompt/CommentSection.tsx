@@ -2,14 +2,25 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, Hash, Palette } from "lucide-react";
+import { ColorPicker } from "./ColorPicker";
+import { HashtagInput } from "./HashtagInput";
 
 interface CommentSectionProps {
   comments: string[];
+  hashtags: string[];
   onAddComment: (comment: string) => void;
+  onColorSelect: (color: string) => void;
+  onHashtagAdd: (hashtag: string) => void;
 }
 
-export const CommentSection = ({ comments, onAddComment }: CommentSectionProps) => {
+export const CommentSection = ({ 
+  comments, 
+  hashtags, 
+  onAddComment, 
+  onColorSelect,
+  onHashtagAdd 
+}: CommentSectionProps) => {
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [comment, setComment] = useState("");
 
@@ -33,7 +44,16 @@ export const CommentSection = ({ comments, onAddComment }: CommentSectionProps) 
       </Button>
 
       {showCommentInput && (
-        <div className="space-y-2 mt-4">
+        <div className="space-y-4 mt-4">
+          <div className="flex items-center gap-2 pb-2 border-b">
+            <HashtagInput 
+              onHashtagAdd={onHashtagAdd}
+              existingHashtags={hashtags}
+            />
+            <ColorPicker onColorSelect={onColorSelect} />
+            <span className="text-sm text-gray-500">Personalize seu prompt</span>
+          </div>
+
           <Textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}

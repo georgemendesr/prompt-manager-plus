@@ -5,8 +5,6 @@ import { Copy } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import type { Prompt } from "@/types/prompt";
-import { ColorPicker } from "./prompt/ColorPicker";
-import { HashtagInput } from "./prompt/HashtagInput";
 import { RatingButtons } from "./prompt/RatingButtons";
 import { CommentSection } from "./prompt/CommentSection";
 import { HashtagList } from "./prompt/HashtagList";
@@ -49,23 +47,21 @@ export const PromptCard = ({ prompt, onRate, onAddComment, onSelect, selected }:
         </div>
 
         <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-          <HashtagInput 
-            onHashtagAdd={(hashtag) => {
-              onAddComment(prompt.id, hashtag);
-              toast.success("Hashtag adicionada!");
-            }}
-            existingHashtags={hashtags}
-          />
-          <ColorPicker onColorSelect={setBgColor} />
           <RatingButtons 
             rating={prompt.rating}
             onRate={(increment) => onRate(prompt.id, increment)}
           />
           <CommentSection
             comments={regularComments}
+            hashtags={hashtags}
             onAddComment={(comment) => {
               onAddComment(prompt.id, comment);
               toast.success("Comentário adicionado!");
+            }}
+            onColorSelect={setBgColor}
+            onHashtagAdd={(hashtag) => {
+              onAddComment(prompt.id, hashtag);
+              toast.success("Hashtag adicionada!");
             }}
           />
         </div>
