@@ -4,7 +4,21 @@ import { usePrompts } from "./usePrompts";
 import { useBulkActions } from "./useBulkActions";
 import { useSelection } from "./useSelection";
 
-export const usePromptManager = () => {
+export interface PromptManager {
+  categories: Category[];
+  loading: boolean;
+  loadCategories: () => Promise<void>;
+  addCategory: (name: string) => Promise<boolean>;
+  ratePrompt: (promptId: string, increment: boolean) => Promise<void>;
+  addComment: (promptId: string, comment: string) => Promise<void>;
+  movePrompt: (promptId: string, targetCategoryId: string) => Promise<void>;
+  bulkImportPrompts: (prompts: string[], categoryName: string) => Promise<void>;
+  deleteSelectedPrompts: (categoryName: string) => Promise<void>;
+  togglePromptSelection: (promptId: string, selected: boolean) => void;
+  toggleSelectAll: (categoryName: string, selected: boolean) => void;
+}
+
+export const usePromptManager = (): PromptManager => {
   const {
     categories,
     setCategories,

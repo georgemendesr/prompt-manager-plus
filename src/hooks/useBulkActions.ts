@@ -22,8 +22,8 @@ export const useBulkActions = (categories: Category[], setCategories: (categorie
 
       if (error) throw error;
 
-      setCategories(prev =>
-        prev.map((c) =>
+      setCategories(
+        categories.map((c) =>
           c.name === categoryName
             ? {
                 ...c,
@@ -69,8 +69,8 @@ export const useBulkActions = (categories: Category[], setCategories: (categorie
 
       if (error) throw error;
 
-      setCategories(prev =>
-        prev.map((c) =>
+      setCategories(
+        categories.map((c) =>
           c.name === categoryName
             ? {
                 ...c,

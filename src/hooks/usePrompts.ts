@@ -22,8 +22,8 @@ export const usePrompts = (categories: Category[], setCategories: (categories: C
 
       if (error) throw error;
 
-      setCategories(prev =>
-        prev.map((category) => ({
+      setCategories(
+        categories.map((category) => ({
           ...category,
           prompts: category.prompts
             .map((p) =>
@@ -50,8 +50,8 @@ export const usePrompts = (categories: Category[], setCategories: (categories: C
 
       if (error) throw error;
 
-      setCategories(prev =>
-        prev.map((category) => ({
+      setCategories(
+        categories.map((category) => ({
           ...category,
           prompts: category.prompts.map((prompt) =>
             prompt.id === promptId
@@ -86,8 +86,8 @@ export const usePrompts = (categories: Category[], setCategories: (categories: C
       const targetCategory = categories.find(c => c.id === targetCategoryId);
       if (!targetCategory) return;
 
-      setCategories(prev =>
-        prev.map((category) => {
+      setCategories(
+        categories.map((category) => {
           if (category.id === targetCategoryId) {
             return {
               ...category,
