@@ -40,50 +40,58 @@ const Prompts = () => {
     );
   }
 
-  const renderCategory = (category: Category, level = 0) => (
-    <div key={category.id} className={`space-y-4 ${level > 0 ? 'ml-6' : ''}`}>
-      {level > 0 && (
-        <h3 className="text-lg font-semibold text-gray-700 flex items-center gap-2">
-          <span className="text-gray-400">↳</span>
-          {category.name}
-        </h3>
-      )}
-      
-      <CategoryActions
-        prompts={category.prompts}
-        onSelectAll={(checked) => toggleSelectAll(category.name, checked)}
-        onDelete={() => deleteSelectedPrompts(category.name)}
-        onMove={(targetCategoryId) => {
-          const selectedPrompts = category.prompts.filter(p => p.selected);
-          selectedPrompts.forEach(prompt => movePrompt(prompt.id, targetCategoryId));
-        }}
-        categories={categories}
-        currentCategoryId={category.id}
-      />
-      
-      {category.prompts.length === 0 && category.subcategories?.length === 0 && (
-        <div className="text-center py-6 text-gray-500 bg-gray-50 rounded-lg">
-          Nenhum prompt nesta categoria ainda
-        </div>
-      )}
+  const renderCategory = (category: Category, currentCategoryName: string, level = 0) => {
+    // Só renderiza se for a categoria atual ou uma subcategoria dela
+    const shouldRender = category.name === currentCategoryName || 
+                        categories.find(c => c.name === currentCategoryName)?.subcategories?.some(sub => sub.id === category.id);
 
-      {category.prompts.map((prompt) => (
-        <PromptCard
-          key={prompt.id}
-          prompt={prompt}
-          onRate={ratePrompt}
-          onAddComment={addComment}
-          onSelect={togglePromptSelection}
-          selected={prompt.selected || false}
+    if (!shouldRender) return null;
+
+    return (
+      <div key={category.id} className={`space-y-4 ${level > 0 ? 'ml-6' : ''}`}>
+        {level > 0 && (
+          <h3 className="text-lg font-semibold text-gray-700 flex items-center gap-2">
+            <span className="text-gray-400">↳</span>
+            {category.name}
+          </h3>
+        )}
+        
+        <CategoryActions
+          prompts={category.prompts}
+          onSelectAll={(checked) => toggleSelectAll(category.name, checked)}
+          onDelete={() => deleteSelectedPrompts(category.name)}
+          onMove={(targetCategoryId) => {
+            const selectedPrompts = category.prompts.filter(p => p.selected);
+            selectedPrompts.forEach(prompt => movePrompt(prompt.id, targetCategoryId));
+          }}
           categories={categories}
+          currentCategoryId={category.id}
         />
-      ))}
+        
+        {category.prompts.length === 0 && category.subcategories?.length === 0 && (
+          <div className="text-center py-6 text-gray-500 bg-gray-50 rounded-lg">
+            Nenhum prompt nesta categoria ainda
+          </div>
+        )}
 
-      {category.subcategories?.map((subCategory) => 
-        renderCategory(subCategory, level + 1)
-      )}
-    </div>
-  );
+        {category.prompts.map((prompt) => (
+          <PromptCard
+            key={prompt.id}
+            prompt={prompt}
+            onRate={ratePrompt}
+            onAddComment={addComment}
+            onSelect={togglePromptSelection}
+            selected={prompt.selected || false}
+            categories={categories}
+          />
+        ))}
+
+        {category.subcategories?.map((subCategory) => 
+          renderCategory(subCategory, currentCategoryName, level + 1)
+        )}
+      </div>
+    );
+  };
 
   const renderPrompts = () => (
     <div className="space-y-6">
@@ -124,7 +132,7 @@ const Prompts = () => {
               value={category.name}
               className="mt-6 space-y-6"
             >
-              {renderCategory(category)}
+              {renderCategory(category, category.name)}
             </TabsContent>
           ))}
         </Tabs>
