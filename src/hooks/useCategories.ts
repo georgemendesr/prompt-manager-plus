@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Category } from "@/types/prompt";
@@ -9,8 +10,8 @@ export const useCategories = () => {
   const [initialized, setInitialized] = useState(false);
 
   const loadCategories = useCallback(async () => {
-    // Evitar múltiplas chamadas se já estiver carregando
-    if (loading && initialized) return;
+    // Evitar múltiplas chamadas se já estiver inicializado
+    if (initialized) return;
     
     try {
       setLoading(true);
@@ -87,7 +88,7 @@ export const useCategories = () => {
     } finally {
       setLoading(false);
     }
-  }, [loading, initialized]);
+  }, [initialized]); // Remover loading das dependências
 
   const addCategory = async (name: string) => {
     try {
