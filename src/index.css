@@ -92,4 +92,13 @@
   .text-gradient {
     @apply bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent;
   }
+
+  /* Remove scrollbar but keep functionality */
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+  }
 }
