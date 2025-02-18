@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { BulkImport } from "@/components/BulkImport";
 import { AddCategory } from "@/components/AddCategory";
 import { Workspace } from "@/components/Workspace";
@@ -52,21 +52,25 @@ const Prompts = () => {
     }
   };
 
-  const addStructure = async (structure: MusicStructure) => {
+  const addStructure = async (structureOrStructures: MusicStructure | MusicStructure[]) => {
     try {
+      const structuresToAdd = Array.isArray(structureOrStructures) 
+        ? structureOrStructures 
+        : [structureOrStructures];
+
       const { error } = await supabase
         .from('structures')
-        .insert([{
+        .insert(structuresToAdd.map(structure => ({
           name: structure.name,
           description: structure.description,
           tags: structure.tags,
           effect: structure.effect
-        }]);
+        })));
 
       if (error) throw error;
 
       loadStructures(); // Recarrega a lista após adicionar
-      toast.success('Estrutura adicionada com sucesso!');
+      toast.success(`${structuresToAdd.length} estrutura(s) adicionada(s) com sucesso!`);
     } catch (error) {
       console.error('Erro ao adicionar estrutura:', error);
       toast.error('Erro ao adicionar estrutura');

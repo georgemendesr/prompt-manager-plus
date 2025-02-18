@@ -12,7 +12,7 @@ import { BulkImportStructure } from "./BulkImportStructure";
 
 interface StructureListProps {
   structures: MusicStructure[];
-  onAddStructure: (structure: MusicStructure) => void;
+  onAddStructure: (structureOrStructures: MusicStructure | MusicStructure[]) => void;
   onEditStructure: (id: string, structure: MusicStructure) => void;
   onDeleteStructure: (id: string) => void;
 }
