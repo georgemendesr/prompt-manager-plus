@@ -62,10 +62,10 @@ export const useCategories = () => {
       const categoryTree = buildCategoryTree(categoriesData);
 
       // Função recursiva para adicionar prompts às categorias
-      const addPromptsToCategories = (categories: Category[]) => {
-        return categories.map(category => ({
-          ...category,
-          prompts: promptsData
+      const addPromptsToCategories = (categories: Category[], allPrompts: any[]) => {
+        return categories.map(category => {
+          // Filtrar prompts apenas para a categoria atual (não inclui subcategorias)
+          const categoryPrompts = allPrompts
             .filter(prompt => prompt.category_id === category.id)
             .map(prompt => ({
               id: prompt.id,
@@ -77,12 +77,17 @@ export const useCategories = () => {
                 .map(comment => comment.text) || [],
               createdAt: new Date(prompt.created_at),
               selected: false
-            })),
-          subcategories: addPromptsToCategories(category.subcategories || [])
-        }));
+            }));
+
+          return {
+            ...category,
+            prompts: categoryPrompts,
+            subcategories: addPromptsToCategories(category.subcategories || [], allPrompts)
+          };
+        });
       };
 
-      const categoriesWithPrompts = addPromptsToCategories(categoryTree);
+      const categoriesWithPrompts = addPromptsToCategories(categoryTree, promptsData);
       setCategories(categoriesWithPrompts);
       
       if (!initialized) {
