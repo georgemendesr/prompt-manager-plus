@@ -57,6 +57,17 @@ export const Workspace = () => {
       <h2 className="text-2xl font-bold">Área de Trabalho</h2>
       
       <Card className="p-4">
+        <div className="flex justify-end mb-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => copyToClipboard(newText)}
+            className="gap-2"
+          >
+            <Copy className="h-4 w-4" />
+            Copiar
+          </Button>
+        </div>
         <Textarea
           value={newText}
           onChange={(e) => setNewText(e.target.value)}

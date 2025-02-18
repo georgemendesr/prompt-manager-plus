@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import type { MusicStructure } from "@/types/prompt";
 import { StructureItem } from "./StructureItem";
+import { BulkImportStructure } from "./BulkImportStructure";
 
 interface StructureListProps {
   structures: MusicStructure[];
@@ -55,10 +56,13 @@ export const StructureList = ({
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Estruturas Musicais</h2>
-        <Button onClick={() => setIsAdding(!isAdding)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nova Estrutura
-        </Button>
+        <div className="flex gap-2">
+          <BulkImportStructure onImport={onAddStructure} />
+          <Button onClick={() => setIsAdding(!isAdding)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Estrutura
+          </Button>
+        </div>
       </div>
 
       {isAdding && (
