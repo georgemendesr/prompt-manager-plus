@@ -11,23 +11,44 @@ export const useCategories = () => {
   const loadCategories = async () => {
     try {
       setLoading(true);
-      const { data: categoriesData, error: categoriesError } = await supabase
+      
+      let { data: categoriesData, error: categoriesError } = await supabase
         .from('categories')
         .select('id, name, created_at');
 
-      if (categoriesError) throw categoriesError;
+      if (categoriesError) {
+        console.error('Erro ao carregar categorias:', categoriesError);
+        toast.error('Erro ao carregar categorias');
+        setCategories([]);
+        return;
+      }
 
-      const { data: promptsData, error: promptsError } = await supabase
+      let { data: promptsData, error: promptsError } = await supabase
         .from('prompts')
         .select('id, text, category_id, rating, created_at');
 
-      if (promptsError) throw promptsError;
+      if (promptsError) {
+        console.error('Erro ao carregar prompts:', promptsError);
+        toast.error('Erro ao carregar prompts');
+        setCategories([]);
+        return;
+      }
 
-      const { data: commentsData, error: commentsError } = await supabase
+      let { data: commentsData, error: commentsError } = await supabase
         .from('comments')
         .select('id, prompt_id, text, created_at');
 
-      if (commentsError) throw commentsError;
+      if (commentsError) {
+        console.error('Erro ao carregar comentários:', commentsError);
+        toast.error('Erro ao carregar comentários');
+        setCategories([]);
+        return;
+      }
+
+      // Initialize with empty arrays if data is null
+      categoriesData = categoriesData || [];
+      promptsData = promptsData || [];
+      commentsData = commentsData || [];
 
       const formattedCategories = categoriesData.map(category => ({
         id: category.id,
@@ -50,7 +71,8 @@ export const useCategories = () => {
       setCategories(formattedCategories);
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
-      toast.error('Erro ao carregar dados');
+      toast.error('Erro ao conectar com o banco de dados');
+      setCategories([]);
     } finally {
       setLoading(false);
     }
