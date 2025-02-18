@@ -26,9 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Escutar mudanças na autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-      if (!session?.user) {
-        navigate("/auth");
-      }
+      // Removemos o redirecionamento automático aqui
     });
 
     return () => subscription.unsubscribe();
