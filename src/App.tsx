@@ -15,7 +15,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/auth" replace />;
   }
 
-  return <>{children}</>;
+  return children;
 }
 
 function App() {
@@ -23,7 +23,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route path="/" element={<Index />} />
+          <Route path="/" element={<Navigate to="/prompts" replace />} />
           <Route path="/auth" element={<Auth />} />
           <Route
             path="/prompts"
