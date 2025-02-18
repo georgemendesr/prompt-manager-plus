@@ -18,10 +18,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const location = useLocation();
 
   useEffect(() => {
-    // Inicializar o estado do usuário com a sessão atual
+    // Initialize user state with current session
     const initializeAuth = async () => {
       try {
-        // Recuperar sessão atual
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
@@ -33,7 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           navigate('/auth');
         }
       } catch (error) {
-        console.error('Erro ao recuperar sessão:', error);
+        console.error('Error retrieving session:', error);
       } finally {
         setLoading(false);
       }
@@ -41,7 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     initializeAuth();
 
-    // Configurar listener para mudanças na autenticação
+    // Set up listener for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth state changed:', event, session?.user?.email);
       
@@ -66,7 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await supabase.auth.signOut();
       navigate("/auth");
     } catch (error) {
-      console.error('Erro ao fazer logout:', error);
+      console.error('Error signing out:', error);
     }
   };
 
