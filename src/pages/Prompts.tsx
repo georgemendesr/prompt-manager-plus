@@ -28,7 +28,6 @@ const Prompts = () => {
     toggleSelectAll
   } = usePromptManager();
 
-  // Iniciando com um Set vazio - todas as categorias começam recolhidas
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
   const toggleCategory = (categoryId: string) => {
@@ -81,7 +80,7 @@ const Prompts = () => {
           </div>
         )}
         
-        {(!level || isExpanded) && (
+        {(level === 0 || isExpanded) && (
           <>
             <CategoryActions
               prompts={category.prompts}
