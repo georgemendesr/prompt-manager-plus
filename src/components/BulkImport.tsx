@@ -24,10 +24,20 @@ export const BulkImport = ({ categories, onImport }: BulkImportProps) => {
   const [open, setOpen] = useState(false);
 
   const handleImport = () => {
-    const prompts = text
-      .split("```")
-      .map(t => t.trim())
-      .filter(t => t && !t.includes("```")); // Remove empty strings and backticks
+    // Divide o texto em linhas e remove linhas vazias
+    const lines = text
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line);
+
+    // Filtra apenas as linhas que começam com [
+    const prompts = lines
+      .filter(line => line.startsWith('['))
+      .map(line => {
+        // Pega apenas a parte entre colchetes
+        const match = line.match(/\[(.*?)\]/);
+        return match ? match[1] : line;
+      });
 
     if (prompts.length && categoryId) {
       onImport(prompts, categoryId);
@@ -78,7 +88,9 @@ export const BulkImport = ({ categories, onImport }: BulkImportProps) => {
           <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Cole seus prompts aqui, separados por ```"
+            placeholder={`Cole seus prompts aqui, exemplo:
+[Ascending progression]  Notas ou acordes que sobem, aumentando a energia. Tags: subida, energia, tensão, escalada, progressão.  Cria tensão e expectativa, conduzindo o ouvinte a um ponto culminante na música.
+[Anticipatory lyrics]  Letras que dão pistas do que vem a seguir. Tags: pista, previsão, engajamento, suspense, preparação.  Mantém o ouvinte engajado, preparando-o emocionalmente para as próximas partes.`}
             className="min-h-[200px] font-mono"
           />
           <div className="flex justify-end gap-2">
