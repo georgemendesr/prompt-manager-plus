@@ -57,6 +57,16 @@ const Index = () => {
                 </p>
               </div>
             </div>
+
+            {/* Login Button */}
+            <div className="mt-8">
+              <a 
+                href="/auth" 
+                className="inline-flex items-center px-6 py-3 text-lg font-semibold text-white bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-xl transition-all duration-300 shadow-xl"
+              >
+                Acessar Sistema
+              </a>
+            </div>
           </div>
         </div>
       </div>
