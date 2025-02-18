@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { PromptCard } from "@/components/PromptCard";
 import { BulkImport } from "@/components/BulkImport";
@@ -31,6 +32,7 @@ const Prompts = () => {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
   const toggleCategory = (categoryId: string) => {
+    console.log('Toggling category:', categoryId);
     setExpandedCategories(prev => {
       const newSet = new Set(prev);
       if (newSet.has(categoryId)) {
@@ -38,6 +40,7 @@ const Prompts = () => {
       } else {
         newSet.add(categoryId);
       }
+      console.log('New expanded categories:', Array.from(newSet));
       return newSet;
     });
   };
@@ -57,120 +60,88 @@ const Prompts = () => {
   const renderCategoryContent = (category: Category, level = 0) => {
     const hasSubcategories = category.subcategories && category.subcategories.length > 0;
     const isExpanded = expandedCategories.has(category.id);
+    console.log('Rendering category:', category.name, 'isExpanded:', isExpanded);
+
+    const categoryHeader = level > 0 && (
+      <div 
+        className="flex items-center gap-2 cursor-pointer group"
+        onClick={(e) => {
+          e.stopPropagation();
+          if (hasSubcategories) {
+            toggleCategory(category.id);
+          }
+        }}
+      >
+        <div className="flex items-center gap-2">
+          {hasSubcategories && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-6 w-6 p-0 hover:bg-gray-100"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleCategory(category.id);
+              }}
+            >
+              {isExpanded ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </Button>
+          )}
+          <h3 className="text-lg font-semibold text-gray-700 group-hover:text-gray-900">
+            {category.name}
+          </h3>
+        </div>
+      </div>
+    );
+
+    const categoryContent = (level === 0 || isExpanded) && (
+      <>
+        <CategoryActions
+          prompts={category.prompts}
+          onSelectAll={(checked) => toggleSelectAll(category.name, checked)}
+          onDelete={() => deleteSelectedPrompts(category.name)}
+          onMove={(targetCategoryId) => {
+            const selectedPrompts = category.prompts.filter(p => p.selected);
+            selectedPrompts.forEach(prompt => movePrompt(prompt.id, targetCategoryId));
+          }}
+          categories={categories}
+          currentCategoryId={category.id}
+        />
+        
+        {category.prompts.length === 0 && category.subcategories?.length === 0 && (
+          <div className="text-center py-6 text-gray-500 bg-gray-50 rounded-lg">
+            Nenhum prompt nesta categoria ainda
+          </div>
+        )}
+
+        {category.prompts.map((prompt) => (
+          <PromptCard
+            key={prompt.id}
+            prompt={prompt}
+            onRate={ratePrompt}
+            onAddComment={addComment}
+            onSelect={togglePromptSelection}
+            selected={prompt.selected || false}
+            categories={categories}
+          />
+        ))}
+
+        {category.subcategories?.map((subCategory) => 
+          renderCategoryContent(subCategory, level + 1)
+        )}
+      </>
+    );
 
     return (
       <div key={category.id} className={`space-y-4 ${level > 0 ? 'ml-6' : ''}`}>
-        {level > 0 && (
-          <div 
-            className="flex items-center gap-2 cursor-pointer"
-            onClick={() => hasSubcategories && toggleCategory(category.id)}
-          >
-            {hasSubcategories && (
-              <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
-                {isExpanded ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </Button>
-            )}
-            <h3 className="text-lg font-semibold text-gray-700 hover:text-gray-900">
-              {category.name}
-            </h3>
-          </div>
-        )}
-        
-        {(level === 0 || isExpanded) && (
-          <>
-            <CategoryActions
-              prompts={category.prompts}
-              onSelectAll={(checked) => toggleSelectAll(category.name, checked)}
-              onDelete={() => deleteSelectedPrompts(category.name)}
-              onMove={(targetCategoryId) => {
-                const selectedPrompts = category.prompts.filter(p => p.selected);
-                selectedPrompts.forEach(prompt => movePrompt(prompt.id, targetCategoryId));
-              }}
-              categories={categories}
-              currentCategoryId={category.id}
-            />
-            
-            {category.prompts.length === 0 && category.subcategories?.length === 0 && (
-              <div className="text-center py-6 text-gray-500 bg-gray-50 rounded-lg">
-                Nenhum prompt nesta categoria ainda
-              </div>
-            )}
-
-            {category.prompts.map((prompt) => (
-              <PromptCard
-                key={prompt.id}
-                prompt={prompt}
-                onRate={ratePrompt}
-                onAddComment={addComment}
-                onSelect={togglePromptSelection}
-                selected={prompt.selected || false}
-                categories={categories}
-              />
-            ))}
-
-            {category.subcategories?.map((subCategory) => 
-              renderCategoryContent(subCategory, level + 1)
-            )}
-          </>
-        )}
+        {categoryHeader}
+        {categoryContent}
       </div>
     );
   };
-
-  const renderPrompts = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-800">Prompts</h2>
-        <div className="flex gap-2">
-          <AddCategory onAdd={addCategory} categories={categories} />
-          {categories.length > 0 && (
-            <BulkImport
-              categories={categories}
-              onImport={bulkImportPrompts}
-            />
-          )}
-        </div>
-      </div>
-
-      {categories.length === 0 ? (
-        <div className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg">
-          Crie uma categoria para começar a adicionar prompts
-        </div>
-      ) : (
-        <Tabs defaultValue={categories[0]?.name} className="w-full">
-          <TabsList className="w-full justify-start mb-6 bg-gray-100/80 p-1 rounded-lg">
-            {categories
-              .filter(category => !category.parentId)
-              .map((category) => (
-                <TabsTrigger
-                  key={category.id}
-                  value={category.name}
-                  className="px-4 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm"
-                >
-                  {category.name}
-                </TabsTrigger>
-              ))}
-          </TabsList>
-
-          {categories
-            .filter(category => !category.parentId)
-            .map((category) => (
-              <TabsContent
-                key={category.id}
-                value={category.name}
-                className="mt-6 space-y-6"
-              >
-                {renderCategoryContent(category)}
-              </TabsContent>
-            ))}
-        </Tabs>
-      )}
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -204,7 +175,54 @@ const Prompts = () => {
           </TabsList>
 
           <TabsContent value="prompts" className="mt-6">
-            {renderPrompts()}
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-800">Prompts</h2>
+                <div className="flex gap-2">
+                  <AddCategory onAdd={addCategory} categories={categories} />
+                  {categories.length > 0 && (
+                    <BulkImport
+                      categories={categories}
+                      onImport={bulkImportPrompts}
+                    />
+                  )}
+                </div>
+              </div>
+
+              {categories.length === 0 ? (
+                <div className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg">
+                  Crie uma categoria para começar a adicionar prompts
+                </div>
+              ) : (
+                <Tabs defaultValue={categories[0]?.name} className="w-full">
+                  <TabsList className="w-full justify-start mb-6 bg-gray-100/80 p-1 rounded-lg">
+                    {categories
+                      .filter(category => !category.parentId)
+                      .map((category) => (
+                        <TabsTrigger
+                          key={category.id}
+                          value={category.name}
+                          className="px-4 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                        >
+                          {category.name}
+                        </TabsTrigger>
+                      ))}
+                  </TabsList>
+
+                  {categories
+                    .filter(category => !category.parentId)
+                    .map((category) => (
+                      <TabsContent
+                        key={category.id}
+                        value={category.name}
+                        className="mt-6 space-y-6"
+                      >
+                        {renderCategoryContent(category)}
+                      </TabsContent>
+                    ))}
+                </Tabs>
+              )}
+            </div>
           </TabsContent>
 
           <TabsContent value="estrutura" className="mt-6">
