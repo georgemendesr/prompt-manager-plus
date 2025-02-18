@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { PromptCard } from "@/components/PromptCard";
 import { BulkImport } from "@/components/BulkImport";
@@ -130,9 +131,16 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="max-w-7xl mx-auto p-6">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">
-          Gestor de Prompts
-        </h1>
+        <div className="flex items-center gap-4 mb-6">
+          <img 
+            src="/lovable-uploads/1aa9cab2-6b56-4f6c-a517-d69a832d9040.png" 
+            alt="R10 Comunicação Criativa" 
+            className="h-16 w-auto"
+          />
+          <h1 className="text-3xl font-bold text-gray-800">
+            Gestor de Prompts
+          </h1>
+        </div>
         
         <Tabs defaultValue="prompts" className="w-full">
           <TabsList className="bg-white/60 backdrop-blur-sm">
