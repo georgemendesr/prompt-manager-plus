@@ -7,9 +7,13 @@ import { CategoryActions } from "@/components/CategoryActions";
 import { Workspace } from "@/components/Workspace";
 import { usePromptManager } from "@/hooks/usePromptManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/components/AuthProvider";
+import { LogOut } from "lucide-react";
 import type { Category } from "@/types/prompt";
 
 const Index = () => {
+  const { signOut } = useAuth();
   const {
     categories,
     loading,
@@ -131,15 +135,25 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="max-w-7xl mx-auto p-6">
-        <div className="flex items-center gap-4 mb-6">
-          <img 
-            src="/lovable-uploads/1aa9cab2-6b56-4f6c-a517-d69a832d9040.png" 
-            alt="R10 Comunicação Criativa" 
-            className="h-16 w-auto"
-          />
-          <h1 className="text-3xl font-bold text-gray-800">
-            Gestor de Prompts
-          </h1>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <img 
+              src="/lovable-uploads/1aa9cab2-6b56-4f6c-a517-d69a832d9040.png" 
+              alt="R10 Comunicação Criativa" 
+              className="h-16 w-auto"
+            />
+            <h1 className="text-3xl font-bold text-gray-800">
+              Gestor de Prompts
+            </h1>
+          </div>
+          <Button 
+            variant="outline" 
+            onClick={signOut}
+            className="gap-2"
+          >
+            <LogOut className="h-4 w-4" />
+            Sair
+          </Button>
         </div>
         
         <Tabs defaultValue="prompts" className="w-full">
