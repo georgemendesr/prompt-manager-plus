@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { BulkImport } from "@/components/BulkImport";
 import { AddCategory } from "@/components/AddCategory";
 import { Workspace } from "@/components/Workspace";
