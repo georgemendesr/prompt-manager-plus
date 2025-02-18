@@ -11,6 +11,7 @@ export const useCategories = () => {
   const loadCategories = async () => {
     try {
       setLoading(true);
+      console.log('Iniciando carregamento de categorias...');
       
       let { data: categoriesData, error: categoriesError } = await supabase
         .from('categories')
@@ -18,10 +19,12 @@ export const useCategories = () => {
 
       if (categoriesError) {
         console.error('Erro ao carregar categorias:', categoriesError);
-        toast.error('Erro ao carregar categorias');
+        toast.error('Erro ao carregar categorias. Por favor, verifique sua conexão.');
         setCategories([]);
         return;
       }
+
+      console.log('Categorias carregadas:', categoriesData);
 
       let { data: promptsData, error: promptsError } = await supabase
         .from('prompts')
@@ -29,10 +32,12 @@ export const useCategories = () => {
 
       if (promptsError) {
         console.error('Erro ao carregar prompts:', promptsError);
-        toast.error('Erro ao carregar prompts');
+        toast.error('Erro ao carregar prompts. Por favor, verifique sua conexão.');
         setCategories([]);
         return;
       }
+
+      console.log('Prompts carregados:', promptsData);
 
       let { data: commentsData, error: commentsError } = await supabase
         .from('comments')
@@ -40,10 +45,12 @@ export const useCategories = () => {
 
       if (commentsError) {
         console.error('Erro ao carregar comentários:', commentsError);
-        toast.error('Erro ao carregar comentários');
+        toast.error('Erro ao carregar comentários. Por favor, verifique sua conexão.');
         setCategories([]);
         return;
       }
+
+      console.log('Comentários carregados:', commentsData);
 
       // Initialize with empty arrays if data is null
       categoriesData = categoriesData || [];
@@ -68,10 +75,12 @@ export const useCategories = () => {
           })) || []
       }));
 
+      console.log('Categorias formatadas:', formattedCategories);
       setCategories(formattedCategories);
+      toast.success('Dados carregados com sucesso!');
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
-      toast.error('Erro ao conectar com o banco de dados');
+      toast.error('Erro ao conectar com o banco de dados. Por favor, tente novamente mais tarde.');
       setCategories([]);
     } finally {
       setLoading(false);
@@ -80,6 +89,7 @@ export const useCategories = () => {
 
   const addCategory = async (name: string) => {
     try {
+      console.log('Adicionando nova categoria:', name);
       const { data, error } = await supabase
         .from('categories')
         .insert([{ name: name.trim() }])
@@ -88,6 +98,7 @@ export const useCategories = () => {
 
       if (error) throw error;
 
+      console.log('Categoria adicionada com sucesso:', data);
       setCategories(prev => [...prev, {
         id: data.id,
         name: data.name,
@@ -98,7 +109,7 @@ export const useCategories = () => {
       return true;
     } catch (error) {
       console.error('Erro ao adicionar categoria:', error);
-      toast.error('Erro ao adicionar categoria');
+      toast.error('Erro ao adicionar categoria. Por favor, tente novamente.');
       return false;
     }
   };
