@@ -36,47 +36,45 @@ export const PromptCard = ({ prompt, onRate, onAddComment, onSelect, selected }:
 
   return (
     <Card className="p-4 space-y-4 bg-white/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
-      <div className="flex items-start justify-between gap-4">
-        <p className="text-gray-800 flex-grow">{prompt.text}</p>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleCopy}
-            className="hover:text-blue-600 transition-colors"
-          >
-            <Copy className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onRate(prompt.id, true)}
-            className="hover:text-green-600 transition-colors"
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-          <span className="min-w-[2rem] text-center">{prompt.rating}</span>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onRate(prompt.id, false)}
-            className="hover:text-red-600 transition-colors"
-          >
-            <Minus className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowCommentInput(!showCommentInput)}
-            className="hover:text-purple-600 transition-colors"
-          >
-            <MessageSquare className="h-4 w-4" />
-          </Button>
-          <Checkbox 
-            checked={selected}
-            onCheckedChange={(checked) => onSelect(prompt.id, checked as boolean)}
-          />
-        </div>
+      <Button
+        variant="ghost"
+        onClick={handleCopy}
+        className="w-full flex items-center justify-between hover:text-blue-600 transition-colors py-2 mb-2 border-b"
+      >
+        <span className="text-gray-800 text-left flex-grow">{prompt.text}</span>
+        <Copy className="h-4 w-4 ml-2 shrink-0" />
+      </Button>
+
+      <div className="flex items-center justify-end gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onRate(prompt.id, true)}
+          className="hover:text-green-600 transition-colors"
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+        <span className="min-w-[2rem] text-center">{prompt.rating}</span>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onRate(prompt.id, false)}
+          className="hover:text-red-600 transition-colors"
+        >
+          <Minus className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setShowCommentInput(!showCommentInput)}
+          className="hover:text-purple-600 transition-colors"
+        >
+          <MessageSquare className="h-4 w-4" />
+        </Button>
+        <Checkbox 
+          checked={selected}
+          onCheckedChange={(checked) => onSelect(prompt.id, checked as boolean)}
+        />
       </div>
 
       {showCommentInput && (
