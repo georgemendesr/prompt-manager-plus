@@ -49,7 +49,10 @@ export const PromptCard = ({
           <div className="flex-grow">
             <p className="text-gray-800 break-words">{prompt.text}</p>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
+        </div>
+
+        <div className="flex items-center justify-between border-t pt-3">
+          <div>
             <Button
               variant="ghost"
               size="icon"
@@ -58,41 +61,41 @@ export const PromptCard = ({
             >
               <Copy className="h-4 w-4" />
             </Button>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <RatingButtons 
+                rating={prompt.rating}
+                onRate={(increment) => onRate(prompt.id, increment)}
+              />
+              <CommentSection
+                comments={[]}
+                hashtags={hashtags}
+                onAddComment={(comment) => {
+                  onAddComment(prompt.id, comment);
+                  toast.success("Comentário adicionado!");
+                }}
+                onColorSelect={(color) => {
+                  setBgColor(color);
+                  onAddComment(prompt.id, `[color:${color}]`);
+                }}
+                onHashtagAdd={(hashtag) => {
+                  onAddComment(prompt.id, hashtag);
+                  toast.success("Hashtag adicionada!");
+                }}
+                onStructureAdd={(structureName) => {
+                  onAddComment(prompt.id, `[${structureName}]`);
+                  toast.success("Estrutura adicionada!");
+                }}
+                onEditPrompt={onEditPrompt ? (newText) => onEditPrompt(prompt.id, newText) : undefined}
+                promptText={prompt.text}
+                structures={structures}
+              />
+            </div>
             <Checkbox
               checked={selected}
               onCheckedChange={(checked) => onSelect(prompt.id, checked as boolean)}
-            />
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <RatingButtons 
-              rating={prompt.rating}
-              onRate={(increment) => onRate(prompt.id, increment)}
-            />
-            <CommentSection
-              comments={[]}
-              hashtags={hashtags}
-              onAddComment={(comment) => {
-                onAddComment(prompt.id, comment);
-                toast.success("Comentário adicionado!");
-              }}
-              onColorSelect={(color) => {
-                setBgColor(color);
-                onAddComment(prompt.id, `[color:${color}]`);
-              }}
-              onHashtagAdd={(hashtag) => {
-                onAddComment(prompt.id, hashtag);
-                toast.success("Hashtag adicionada!");
-              }}
-              onStructureAdd={(structureName) => {
-                onAddComment(prompt.id, `[${structureName}]`);
-                toast.success("Estrutura adicionada!");
-              }}
-              onEditPrompt={onEditPrompt ? (newText) => onEditPrompt(prompt.id, newText) : undefined}
-              promptText={prompt.text}
-              structures={structures}
             />
           </div>
         </div>
