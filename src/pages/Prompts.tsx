@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { BulkImport } from "@/components/BulkImport";
 import { AddCategory } from "@/components/AddCategory";
@@ -10,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/AuthProvider";
 import { LogOut } from "lucide-react";
 import { StructureList } from "@/components/structures/StructureList";
+import { AIChat } from "@/components/ai/AIChat";
 
 const Prompts = () => {
   const { signOut } = useAuth();
@@ -40,7 +40,7 @@ const Prompts = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="container mx-auto p-4 relative min-h-screen">
       <div className="max-w-7xl mx-auto p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
@@ -146,6 +146,7 @@ const Prompts = () => {
           </TabsContent>
         </Tabs>
       </div>
+      <AIChat />
     </div>
   );
 };
