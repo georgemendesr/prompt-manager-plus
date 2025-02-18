@@ -41,24 +41,23 @@ const Prompts = () => {
   }
 
   return (
-    <div className="container mx-auto px-2 sm:px-4 relative min-h-screen max-w-full overflow-x-hidden">
-      <div className="max-w-7xl mx-auto py-4 sm:py-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-2 sm:gap-4">
+    <div className="container mx-auto p-4 relative min-h-screen">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
             <img 
               src="/lovable-uploads/1aa9cab2-6b56-4f6c-a517-d69a832d9040.png" 
               alt="R10 Comunicação Criativa" 
-              className="h-12 sm:h-16 w-auto"
+              className="h-14 w-auto"
             />
-            <h1 className="text-xl sm:text-3xl font-bold text-gray-800">
+            <h1 className="text-2xl font-bold text-gray-800">
               Gestor de Prompts
             </h1>
           </div>
           <Button 
             variant="outline" 
             onClick={signOut}
-            className="gap-2 self-end sm:self-auto"
-            size="sm"
+            className="gap-2"
           >
             <LogOut className="h-4 w-4" />
             Sair
@@ -66,7 +65,7 @@ const Prompts = () => {
         </div>
         
         <Tabs defaultValue="prompts" className="w-full">
-          <TabsList className="bg-white/60 backdrop-blur-sm w-full justify-start overflow-x-auto">
+          <TabsList className="bg-white/60 backdrop-blur-sm mb-6">
             <TabsTrigger value="prompts">Prompts</TabsTrigger>
             <TabsTrigger value="estrutura">Estrutura</TabsTrigger>
             <TabsTrigger value="workspace">Área de Trabalho</TabsTrigger>
@@ -74,8 +73,8 @@ const Prompts = () => {
 
           <TabsContent value="prompts" className="mt-6">
             <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center gap-2">
                   <AddCategory onAdd={addCategory} categories={categories} />
                   {categories.length > 0 && (
                     <BulkImport
@@ -92,14 +91,14 @@ const Prompts = () => {
                 </div>
               ) : (
                 <Tabs defaultValue={categories[0]?.name} className="w-full">
-                  <TabsList className="w-full justify-start mb-6 bg-gray-100/80 p-1 rounded-lg overflow-x-auto flex-nowrap">
+                  <TabsList className="w-full mb-6 bg-gray-100/80 p-1 rounded-lg flex gap-1 overflow-x-auto">
                     {categories
                       .filter(category => !category.parentId)
                       .map((category) => (
                         <TabsTrigger
                           key={category.id}
                           value={category.name}
-                          className="whitespace-nowrap px-4 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                          className="px-3 py-1.5 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm flex-shrink-0"
                         >
                           {category.name}
                         </TabsTrigger>
