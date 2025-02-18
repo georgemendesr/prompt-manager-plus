@@ -18,7 +18,7 @@ interface CategoryHeaderProps {
   hasSubcategories: boolean;
   expanded: boolean;
   onToggle: () => void;
-  onEdit: (newName: string, newParentId?: string) => Promise<void>;
+  onEdit: (newName: string, newParentId?: string) => Promise<boolean>;
   onDelete: () => Promise<void>;
   categories?: Category[];
   category: Category;

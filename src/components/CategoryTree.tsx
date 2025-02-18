@@ -41,7 +41,7 @@ export const CategoryTree = ({
   };
 
   const handleEdit = async (newName: string, newParentId?: string) => {
-    await onEditCategory(category.id, newName, newParentId);
+    return await onEditCategory(category.id, newName, newParentId);
   };
 
   const handleDelete = async () => {
