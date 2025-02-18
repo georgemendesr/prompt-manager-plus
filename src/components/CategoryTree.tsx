@@ -43,6 +43,19 @@ export const CategoryTree = ({
     prompt.text.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Array of soft background colors for different levels
+  const levelColors = [
+    'bg-soft-purple',
+    'bg-soft-blue',
+    'bg-soft-pink',
+    'bg-soft-peach',
+    'bg-soft-green',
+    'bg-soft-yellow'
+  ];
+
+  // Get background color based on level
+  const getBgColor = (level: number) => levelColors[level % levelColors.length];
+
   // Conteúdo comum para todas as categorias
   const categoryContent = (
     <div className="space-y-4">
@@ -116,13 +129,13 @@ export const CategoryTree = ({
 
   // Para subcategorias (nível > 0)
   return (
-    <div className="ml-6 space-y-4">
+    <div className={`ml-6 space-y-4 p-4 rounded-lg ${getBgColor(level)}`}>
       <div className="flex items-center gap-2">
         {hasSubcategories && (
           <Button
             variant="ghost"
             size="icon"
-            className="h-6 w-6 p-0 hover:bg-gray-100"
+            className="h-6 w-6 p-0 hover:bg-white/30"
             onClick={handleToggle}
           >
             {expanded ? (
