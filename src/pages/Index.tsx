@@ -2,13 +2,13 @@
 const Index = () => {
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Background Image with Overlay */}
+      {/* Background Image with Blur and Overlay */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-r from-purple-900/70 to-pink-900/70 mix-blend-multiply" />
         <img 
-          src="/lovable-uploads/1aa9cab2-6b56-4f6c-a517-d69a832d9040.png" 
+          src="https://images.unsplash.com/photo-1482938289607-e9573fc25ebb?auto=format&fit=crop&w=2000&q=80" 
           alt="Background" 
-          className="w-full h-full object-cover object-center"
+          className="w-full h-full object-cover object-center filter blur-sm scale-105"
         />
       </div>
 
