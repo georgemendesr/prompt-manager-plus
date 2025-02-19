@@ -9,7 +9,7 @@ interface CategoryTreeProps {
   categories: Category[];
   onRatePrompt: (id: string, increment: boolean) => void;
   onAddComment: (id: string, comment: string) => void;
-  onEditPrompt?: (id: string, newText: string) => void; // Tornando opcional
+  onEditPrompt?: (id: string, newText: string) => void;
   onMovePrompt: (promptId: string, targetCategoryId: string) => void;
   onTogglePromptSelection: (id: string, selected: boolean) => void;
   onToggleSelectAll: (categoryName: string, selected: boolean) => void;
@@ -47,7 +47,7 @@ export const CategoryTree = ({
         expanded={expanded}
         onToggle={() => setExpanded(!expanded)}
         onEdit={onEditCategory}
-        onDelete={onDeleteCategory}
+        onDelete={(id) => onDeleteCategory(id)}
         categories={categories}
         category={category}
       />

@@ -36,21 +36,6 @@ export const CommentSection = ({
   const [editedText, setEditedText] = useState(promptText || "");
   const [isEditing, setIsEditing] = useState(false);
 
-  const handleCommentSubmit = () => {
-    if (comment.trim()) {
-      onAddComment(comment);
-      setComment("");
-      setShowCommentInput(false);
-    }
-  };
-
-  const handleStructureSelect = (structure: MusicStructure) => {
-    if (onStructureAdd) {
-      onStructureAdd(structure.name);
-      setShowCommentInput(false);
-    }
-  };
-
   const handleClick = () => {
     setShowCommentInput(!showCommentInput);
     if (onEditPrompt) {
@@ -72,7 +57,7 @@ export const CommentSection = ({
   };
 
   return (
-    <>
+    <div className="relative">
       <Button
         variant="ghost"
         size="icon"
@@ -83,29 +68,31 @@ export const CommentSection = ({
       </Button>
 
       {showCommentInput && (
-        <div className="space-y-4 mt-4">
+        <div className="absolute right-0 top-full mt-2 w-[400px] bg-white rounded-lg shadow-lg p-4 space-y-4 z-50">
           {onEditPrompt && (
-            <>
+            <div>
               <div className="text-sm font-medium text-gray-700 mb-2">Editar prompt</div>
               <Textarea
                 value={editedText}
                 onChange={(e) => setEditedText(e.target.value)}
-                className="min-h-[80px] resize-none mb-4"
+                className="min-h-[100px] resize-none mb-4"
               />
-            </>
+            </div>
           )}
 
-          <div className="flex items-center justify-center gap-2 pb-2 border-b">
-            <HashtagInput 
-              onHashtagAdd={onHashtagAdd}
-              existingHashtags={hashtags}
-            />
-            <ColorPicker onColorSelect={onColorSelect} />
+          <div className="flex items-center justify-between gap-4 pb-4 border-b">
+            <div className="flex items-center gap-2">
+              <HashtagInput 
+                onHashtagAdd={onHashtagAdd}
+                existingHashtags={hashtags}
+              />
+              <ColorPicker onColorSelect={onColorSelect} />
+            </div>
             {structures.length > 0 && (
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" size="sm">
-                    Adicionar Estrutura
+                    Estrutura
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-80">
@@ -115,7 +102,10 @@ export const CommentSection = ({
                         key={structure.id}
                         variant="ghost"
                         className="w-full justify-start"
-                        onClick={() => handleStructureSelect(structure)}
+                        onClick={() => {
+                          onStructureAdd?.(structure.name);
+                          setShowCommentInput(false);
+                        }}
                       >
                         {structure.name}
                       </Button>
@@ -132,6 +122,7 @@ export const CommentSection = ({
             placeholder="Adicione um comentário..."
             className="min-h-[80px] resize-none"
           />
+
           <div className="flex justify-end gap-2">
             <Button
               variant="outline"
@@ -162,6 +153,6 @@ export const CommentSection = ({
           ))}
         </div>
       )}
-    </>
+    </div>
   );
 };
