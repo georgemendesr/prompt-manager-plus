@@ -133,7 +133,10 @@ export const PromptCard = ({
                 onAddComment(prompt.id, `[${structureName}]`);
                 toast.success("Estrutura adicionada!");
               }}
-              onEditPrompt={onEditPrompt ? (newText) => onEditPrompt(prompt.id, newText) : undefined}
+              onEditPrompt={(newText) => {
+                onEditPrompt?.(prompt.id, newText);
+                toast.success("Prompt atualizado!");
+              }}
               promptText={prompt.text}
               structures={structures}
             />

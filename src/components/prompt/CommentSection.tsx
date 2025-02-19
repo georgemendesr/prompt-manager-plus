@@ -105,7 +105,7 @@ export const CommentSection = ({
 
       {showCommentInput && (
         <div className="space-y-4 mt-4">
-          <div className="flex items-center gap-2 pb-2 border-b">
+          <div className="flex items-center justify-center gap-2 pb-2 border-b">
             <HashtagInput 
               onHashtagAdd={onHashtagAdd}
               existingHashtags={hashtags}
@@ -134,7 +134,6 @@ export const CommentSection = ({
                 </PopoverContent>
               </Popover>
             )}
-            <span className="text-sm text-gray-500">Personalize seu prompt</span>
           </div>
 
           <Textarea
