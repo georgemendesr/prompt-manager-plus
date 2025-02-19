@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { BulkImport } from "@/components/BulkImport";
 import { AddCategory } from "@/components/AddCategory";
@@ -19,6 +20,8 @@ const Prompts = () => {
   const { signOut } = useAuth();
   const [structures, setStructures] = useState<MusicStructure[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+
   const {
     categories,
     loading: categoriesLoading,
@@ -248,6 +251,8 @@ const Prompts = () => {
                           onDeleteSelectedPrompts={deleteSelectedPrompts}
                           onEditCategory={editCategory}
                           onDeleteCategory={deleteCategory}
+                          searchTerm={searchTerm}
+                          setSearchTerm={setSearchTerm}
                         />
                       </TabsContent>
                     ))}
