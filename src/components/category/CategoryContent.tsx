@@ -32,12 +32,12 @@ export const CategoryContent = ({
   onToggleSelectAll,
   onDeleteSelectedPrompts,
 }: CategoryContentProps) => {
-  // Obter as estruturas do PromptManager
-  const { structures } = usePromptManager();
-
   // Primeiro aplicamos a busca
   const filteredPrompts = category.prompts.filter(prompt => 
-    prompt.text.toLowerCase().includes(searchTerm.toLowerCase())
+    prompt.text.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    prompt.comments.some(comment => 
+      comment.toLowerCase().includes(searchTerm.toLowerCase())
+    )
   );
 
   // Depois separamos em favoritos e não favoritos
@@ -75,7 +75,6 @@ export const CategoryContent = ({
           selected={prompt.selected || false}
           categories={categories}
           searchTerm={searchTerm}
-          structures={structures}
         />
       ))}
 
