@@ -4,14 +4,13 @@ import { CheckCircle } from "lucide-react";
 
 const Index = () => {
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative overflow-hidden">
       {/* Background Image with Blur */}
       <div 
         className="absolute inset-0 z-0 bg-cover bg-center"
         style={{
-          backgroundImage: "url('/lovable-uploads/9cb1402d-bcb0-479f-874d-9eba6445170d.png')",
+          backgroundImage: `url('/lovable-uploads/9cb1402d-bcb0-479f-874d-9eba6445170d.png')`,
           filter: "brightness(0.3)",
-          backgroundColor: "#1a1a1a",
         }}
       />
 
@@ -46,9 +45,24 @@ const Index = () => {
                 <div className="flex items-center gap-3">
                   <CheckCircle className="h-8 w-8 text-green-400" />
                   <h3 className="text-xl font-semibold text-white">
+                    Estratégia Digital
+                  </h3>
+                </div>
+                <p className="text-base text-gray-100 pl-11">
+                  Desenvolvimento de projetos digitais, redes sociais e campanhas eleitorais
+                </p>
+              </div>
+
+              <div className="bg-black/30 backdrop-blur-sm rounded-xl p-8 space-y-4 border border-white/10">
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="h-8 w-8 text-green-400" />
+                  <h3 className="text-xl font-semibold text-white">
                     Comunicação Pública
                   </h3>
                 </div>
+                <p className="text-base text-gray-100 pl-11">
+                  Gestão e desenvolvimento de projetos de comunicação institucional
+                </p>
               </div>
 
               <div className="bg-black/30 backdrop-blur-sm rounded-xl p-8 space-y-4 border border-white/10">
@@ -58,15 +72,9 @@ const Index = () => {
                     Marketing Político
                   </h3>
                 </div>
-              </div>
-
-              <div className="bg-black/30 backdrop-blur-sm rounded-xl p-8 space-y-4 border border-white/10">
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="h-8 w-8 text-green-400" />
-                  <h3 className="text-xl font-semibold text-white">
-                    + 100 Marcas
-                  </h3>
-                </div>
+                <p className="text-base text-gray-100 pl-11">
+                  Planejamento de marketing político e desenvolvimento de campanhas eleitorais
+                </p>
               </div>
             </div>
           </div>
