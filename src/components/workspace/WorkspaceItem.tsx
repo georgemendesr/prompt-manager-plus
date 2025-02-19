@@ -19,12 +19,6 @@ export const WorkspaceItem = ({
   onCopy,
   onRemove,
 }: WorkspaceItemProps) => {
-  // Função para truncar o texto e adicionar reticências
-  const truncateText = (text: string, maxLength: number) => {
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength).trim() + "...";
-  };
-
   return (
     <Card className="p-4 relative group">
       <div className="flex justify-between items-start mb-2">
@@ -62,19 +56,10 @@ export const WorkspaceItem = ({
           </Button>
         </div>
       </div>
-      <div>
-        {/* Prévia do texto (sempre visível) */}
-        {!isExpanded && (
-          <p className="text-sm text-gray-700 line-clamp-2">
-            {truncateText(item.text, 150)}
-          </p>
-        )}
-        {/* Texto completo (visível quando expandido) */}
-        <div className={`overflow-hidden transition-all duration-200 ${
-          isExpanded ? 'max-h-[1000px]' : 'max-h-[0px]'
-        }`}>
-          <p className="whitespace-pre-wrap text-sm text-gray-700">{item.text}</p>
-        </div>
+      <div className={`overflow-hidden transition-all duration-200 ${
+        isExpanded ? 'max-h-[1000px]' : 'max-h-[0px]'
+      }`}>
+        <p className="whitespace-pre-wrap text-sm text-gray-700">{item.text}</p>
       </div>
     </Card>
   );

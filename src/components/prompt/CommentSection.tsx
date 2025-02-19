@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import {
-  MessageSquare,
-  X
-} from "lucide-react"
-import { ColorPicker } from './ColorPicker';
-import { HashtagInput } from './HashtagInput';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { MessageSquare, Hash, Palette } from "lucide-react";
+import { ColorPicker } from "./ColorPicker";
+import { HashtagInput } from "./HashtagInput";
+import type { MusicStructure } from "@/types/prompt";
 
 interface CommentSectionProps {
   comments: string[];
@@ -15,10 +14,10 @@ interface CommentSectionProps {
   onAddComment: (comment: string) => void;
   onColorSelect: (color: string) => void;
   onHashtagAdd: (hashtag: string) => void;
-  onStructureAdd?: (structure: string) => void;
-  onEditPrompt?: (text: string) => void;
+  onStructureAdd?: (structureName: string) => void;
+  onEditPrompt?: (newText: string) => void;
   promptText?: string;
-  structures?: { id: string; name: string }[];
+  structures?: MusicStructure[];
 }
 
 export const CommentSection = ({ 
@@ -33,24 +32,28 @@ export const CommentSection = ({
   structures = []
 }: CommentSectionProps) => {
   const [showCommentInput, setShowCommentInput] = useState(false);
-  const [comment, setComment] = useState('');
-  const [editedText, setEditedText] = useState(promptText || '');
+  const [comment, setComment] = useState("");
+  const [editedText, setEditedText] = useState(promptText || "");
   const [isEditing, setIsEditing] = useState(false);
 
   const handleClick = () => {
-    setShowCommentInput(true);
-    setIsEditing(!!onEditPrompt);
-    setEditedText(promptText || '');
+    setShowCommentInput(!showCommentInput);
+    if (onEditPrompt) {
+      setIsEditing(true);
+      setEditedText(promptText || "");
+    }
   };
 
   const handleSave = () => {
-    if (isEditing && onEditPrompt) {
+    if (isEditing && editedText.trim() && onEditPrompt) {
       onEditPrompt(editedText);
+      setIsEditing(false);
     }
-    onAddComment(comment);
-    setComment('');
+    if (comment.trim()) {
+      onAddComment(comment);
+      setComment("");
+    }
     setShowCommentInput(false);
-    setIsEditing(false);
   };
 
   return (
@@ -65,86 +68,75 @@ export const CommentSection = ({
       </Button>
 
       {showCommentInput && (
-        <div className="fixed inset-0 bg-black/20 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-lg shadow-lg p-4 space-y-4 w-[400px] max-h-[90vh] overflow-y-auto relative">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowCommentInput(false)}
-              className="absolute right-2 top-2"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+        <div className="absolute right-0 top-full mt-2 w-[400px] bg-white rounded-lg shadow-lg p-4 space-y-4 z-[100]">
+          {onEditPrompt && (
+            <div>
+              <div className="text-sm font-medium text-gray-700 mb-2">Editar prompt</div>
+              <Textarea
+                value={editedText}
+                onChange={(e) => setEditedText(e.target.value)}
+                className="min-h-[100px] resize-none mb-4"
+              />
+            </div>
+          )}
 
-            {onEditPrompt && (
-              <div>
-                <div className="text-sm font-medium text-gray-700 mb-2">Editar prompt</div>
-                <Textarea
-                  value={editedText}
-                  onChange={(e) => setEditedText(e.target.value)}
-                  className="min-h-[100px] resize-none mb-4"
-                />
-              </div>
+          <div className="flex items-center justify-between gap-4 pb-4 border-b">
+            <div className="flex items-center gap-2">
+              <HashtagInput 
+                onHashtagAdd={onHashtagAdd}
+                existingHashtags={hashtags}
+              />
+              <ColorPicker onColorSelect={onColorSelect} />
+            </div>
+            {structures.length > 0 && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    Estrutura
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80">
+                  <div className="space-y-2">
+                    {structures.map((structure) => (
+                      <Button
+                        key={structure.id}
+                        variant="ghost"
+                        className="w-full justify-start"
+                        onClick={() => {
+                          onStructureAdd?.(structure.name);
+                          setShowCommentInput(false);
+                        }}
+                      >
+                        {structure.name}
+                      </Button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
             )}
+          </div>
 
-            <div className="flex items-center justify-between gap-4 pb-4 border-b">
-              <div className="flex items-center gap-2">
-                <HashtagInput 
-                  onHashtagAdd={onHashtagAdd}
-                  existingHashtags={hashtags}
-                />
-                <ColorPicker onColorSelect={onColorSelect} />
-              </div>
-              {structures.length > 0 && (
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      Estrutura
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-80">
-                    <div className="space-y-2">
-                      {structures.map((structure) => (
-                        <Button
-                          key={structure.id}
-                          variant="ghost"
-                          className="w-full justify-start"
-                          onClick={() => {
-                            onStructureAdd?.(structure.name);
-                            setShowCommentInput(false);
-                          }}
-                        >
-                          {structure.name}
-                        </Button>
-                      ))}
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              )}
-            </div>
+          <Textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="Adicione um comentário..."
+            className="min-h-[80px] resize-none"
+          />
 
-            <Textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="Adicione um comentário..."
-              className="min-h-[80px] resize-none"
-            />
-
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setShowCommentInput(false);
-                  setIsEditing(false);
-                }}
-              >
-                Cancelar
-              </Button>
-              <Button size="sm" onClick={handleSave}>
-                Salvar
-              </Button>
-            </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setShowCommentInput(false);
+                setIsEditing(false);
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button size="sm" onClick={handleSave}>
+              Salvar
+            </Button>
           </div>
         </div>
       )}
