@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { MessageSquare, Hash, Palette, Edit } from "lucide-react";
+import { MessageSquare, Hash, Palette } from "lucide-react";
 import { ColorPicker } from "./ColorPicker";
 import { HashtagInput } from "./HashtagInput";
 import type { MusicStructure } from "@/types/prompt";
@@ -33,8 +33,8 @@ export const CommentSection = ({
 }: CommentSectionProps) => {
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [comment, setComment] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
   const [editedText, setEditedText] = useState(promptText || "");
+  const [isEditing, setIsEditing] = useState(false);
 
   const handleCommentSubmit = () => {
     if (comment.trim()) {
@@ -51,60 +51,50 @@ export const CommentSection = ({
     }
   };
 
-  const handleEditSubmit = () => {
-    if (editedText.trim() && onEditPrompt) {
+  const handleClick = () => {
+    setShowCommentInput(!showCommentInput);
+    if (onEditPrompt) {
+      setIsEditing(true);
+      setEditedText(promptText || "");
+    }
+  };
+
+  const handleSave = () => {
+    if (isEditing && editedText.trim() && onEditPrompt) {
       onEditPrompt(editedText);
       setIsEditing(false);
     }
+    if (comment.trim()) {
+      onAddComment(comment);
+      setComment("");
+    }
+    setShowCommentInput(false);
   };
 
   return (
     <>
-      <div className="flex items-center gap-1">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setShowCommentInput(!showCommentInput)}
-          className="hover:text-purple-600 transition-colors"
-        >
-          <MessageSquare className="h-4 w-4" />
-        </Button>
-        {onEditPrompt && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsEditing(!isEditing)}
-            className="hover:text-blue-600 transition-colors"
-          >
-            <Edit className="h-4 w-4" />
-          </Button>
-        )}
-      </div>
-
-      {isEditing && (
-        <div className="space-y-4 mt-4">
-          <Textarea
-            value={editedText}
-            onChange={(e) => setEditedText(e.target.value)}
-            className="min-h-[80px] resize-none"
-          />
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsEditing(false)}
-            >
-              Cancelar
-            </Button>
-            <Button size="sm" onClick={handleEditSubmit}>
-              Salvar
-            </Button>
-          </div>
-        </div>
-      )}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleClick}
+        className="hover:text-purple-600 transition-colors"
+      >
+        <MessageSquare className="h-4 w-4" />
+      </Button>
 
       {showCommentInput && (
         <div className="space-y-4 mt-4">
+          {onEditPrompt && (
+            <>
+              <div className="text-sm font-medium text-gray-700 mb-2">Editar prompt</div>
+              <Textarea
+                value={editedText}
+                onChange={(e) => setEditedText(e.target.value)}
+                className="min-h-[80px] resize-none mb-4"
+              />
+            </>
+          )}
+
           <div className="flex items-center justify-center gap-2 pb-2 border-b">
             <HashtagInput 
               onHashtagAdd={onHashtagAdd}
@@ -146,11 +136,14 @@ export const CommentSection = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setShowCommentInput(false)}
+              onClick={() => {
+                setShowCommentInput(false);
+                setIsEditing(false);
+              }}
             >
               Cancelar
             </Button>
-            <Button size="sm" onClick={handleCommentSubmit}>
+            <Button size="sm" onClick={handleSave}>
               Salvar
             </Button>
           </div>
