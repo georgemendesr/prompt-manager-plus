@@ -100,6 +100,72 @@ export type Database = {
         }
         Relationships: []
       }
+      music_requests: {
+        Row: {
+          avoid_elements: string | null
+          created_at: string
+          desired_delivery_date: string
+          email: string
+          family_names: string
+          full_name: string
+          honored_people: string
+          id: string
+          mandatory_phrases: string
+          music_tone: string
+          notes: string | null
+          occasion: string
+          other_occasion: string | null
+          phone: string
+          relationship_with_honored: string
+          special_details: string | null
+          special_moment: string | null
+          status: string
+          story_context: string
+        }
+        Insert: {
+          avoid_elements?: string | null
+          created_at?: string
+          desired_delivery_date: string
+          email: string
+          family_names: string
+          full_name: string
+          honored_people: string
+          id?: string
+          mandatory_phrases: string
+          music_tone: string
+          notes?: string | null
+          occasion: string
+          other_occasion?: string | null
+          phone: string
+          relationship_with_honored: string
+          special_details?: string | null
+          special_moment?: string | null
+          status?: string
+          story_context: string
+        }
+        Update: {
+          avoid_elements?: string | null
+          created_at?: string
+          desired_delivery_date?: string
+          email?: string
+          family_names?: string
+          full_name?: string
+          honored_people?: string
+          id?: string
+          mandatory_phrases?: string
+          music_tone?: string
+          notes?: string | null
+          occasion?: string
+          other_occasion?: string | null
+          phone?: string
+          relationship_with_honored?: string
+          special_details?: string | null
+          special_moment?: string | null
+          status?: string
+          story_context?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           email: string | null

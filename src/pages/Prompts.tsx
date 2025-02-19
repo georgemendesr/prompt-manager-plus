@@ -7,15 +7,13 @@ import { StructureList } from "@/components/structures/StructureList";
 import { Workspace } from "@/components/Workspace";
 import { AIChat } from "@/components/ai/AIChat";
 import { usePromptManager } from "@/hooks/usePromptManager";
+import { useStructures } from "@/hooks/useStructures";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import type { MusicStructure } from "@/types/prompt";
 
 const Prompts = () => {
   const { signOut } = useAuth();
-  const [structures, setStructures] = useState<MusicStructure[]>([]);
-  const [loading, setLoading] = useState(true);
   const [globalSearchTerm, setGlobalSearchTerm] = useState("");
 
   const {
@@ -34,6 +32,15 @@ const Prompts = () => {
     toggleSelectAll
   } = usePromptManager();
 
+  const {
+    structures,
+    loading: structuresLoading,
+    loadStructures,
+    addStructure,
+    editStructure,
+    deleteStructure
+  } = useStructures();
+
   const editPrompt = async (id: string, newText: string) => {
     try {
       const { error } = await supabase
@@ -51,93 +58,12 @@ const Prompts = () => {
     }
   };
 
-  const loadStructures = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('structures')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setStructures(data);
-    } catch (error) {
-      console.error('Erro ao carregar estruturas:', error);
-      toast.error('Erro ao carregar estruturas');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const addStructure = async (structureOrStructures: MusicStructure | MusicStructure[]) => {
-    try {
-      const structuresToAdd = Array.isArray(structureOrStructures) 
-        ? structureOrStructures 
-        : [structureOrStructures];
-
-      const { error } = await supabase
-        .from('structures')
-        .insert(structuresToAdd.map(structure => ({
-          name: structure.name,
-          description: structure.description,
-          tags: structure.tags,
-          effect: structure.effect
-        })));
-
-      if (error) throw error;
-
-      loadStructures();
-      toast.success(`${structuresToAdd.length} estrutura(s) adicionada(s) com sucesso!`);
-    } catch (error) {
-      console.error('Erro ao adicionar estrutura:', error);
-      toast.error('Erro ao adicionar estrutura');
-    }
-  };
-
-  const editStructure = async (id: string, structure: MusicStructure) => {
-    try {
-      const { error } = await supabase
-        .from('structures')
-        .update({
-          name: structure.name,
-          description: structure.description,
-          tags: structure.tags,
-          effect: structure.effect
-        })
-        .eq('id', id);
-
-      if (error) throw error;
-
-      loadStructures();
-      toast.success('Estrutura atualizada com sucesso!');
-    } catch (error) {
-      console.error('Erro ao atualizar estrutura:', error);
-      toast.error('Erro ao atualizar estrutura');
-    }
-  };
-
-  const deleteStructure = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('structures')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      setStructures(prev => prev.filter(s => s.id !== id));
-      toast.success('Estrutura removida com sucesso!');
-    } catch (error) {
-      console.error('Erro ao deletar estrutura:', error);
-      toast.error('Erro ao deletar estrutura');
-    }
-  };
-
   useEffect(() => {
     loadCategories();
     loadStructures();
-  }, [loadCategories]);
+  }, [loadCategories, loadStructures]);
 
-  if (loading || categoriesLoading) {
+  if (structuresLoading || categoriesLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-gray-500">Carregando...</p>
