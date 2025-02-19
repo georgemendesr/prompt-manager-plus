@@ -61,21 +61,25 @@ export const usePromptRating = (
 
       // Se sucesso no Supabase, atualiza o estado local recursivamente
       const updateCategoriesRecursively = (cats: Category[]): Category[] => {
-        return cats.map((cat) => ({
-          ...cat,
-          // Ordena os prompts: favoritados primeiro, mantendo a ordem relativa entre eles
-          prompts: [...cat.prompts]
-            .map((p) => p.id === promptId ? { ...p, rating: newRating } : p)
-            .sort((a, b) => {
-              // Ordenação: favoritados primeiro (-1), não favoritados depois (1)
-              if (a.rating > b.rating) return -1;
-              if (a.rating < b.rating) return 1;
-              return 0;
-            }),
-          subcategories: cat.subcategories 
-            ? updateCategoriesRecursively(cat.subcategories)
-            : []
-        }));
+        return cats.map((cat) => {
+          // Primeiro, atualizamos o rating do prompt
+          const updatedPrompts = cat.prompts.map((p) =>
+            p.id === promptId ? { ...p, rating: newRating } : p
+          );
+
+          // Separamos os prompts em favoritados e não favoritados
+          const favoritedPrompts = updatedPrompts.filter(p => p.rating > 0);
+          const unfavoritedPrompts = updatedPrompts.filter(p => p.rating === 0);
+
+          // Mantemos a ordem relativa dentro de cada grupo
+          return {
+            ...cat,
+            prompts: [...favoritedPrompts, ...unfavoritedPrompts],
+            subcategories: cat.subcategories 
+              ? updateCategoriesRecursively(cat.subcategories)
+              : []
+          };
+        });
       };
 
       setCategories(updateCategoriesRecursively(categories));
