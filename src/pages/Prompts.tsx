@@ -35,6 +35,36 @@ const Prompts = () => {
     toggleSelectAll
   } = usePromptManager();
 
+  const editPrompt = async (id: string, newText: string) => {
+    try {
+      const { error } = await supabase
+        .from('prompts')
+        .update({ text: newText })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      const updatedCategories = categories.map(category => ({
+        ...category,
+        prompts: category.prompts.map(prompt =>
+          prompt.id === id ? { ...prompt, text: newText } : prompt
+        ),
+        subcategories: category.subcategories?.map(subcat => ({
+          ...subcat,
+          prompts: subcat.prompts.map(prompt =>
+            prompt.id === id ? { ...prompt, text: newText } : prompt
+          )
+        }))
+      }));
+
+      loadCategories();
+      toast.success("Prompt atualizado com sucesso!");
+    } catch (error) {
+      console.error('Erro ao editar prompt:', error);
+      toast.error("Erro ao editar prompt");
+    }
+  };
+
   const loadStructures = async () => {
     try {
       const { data, error } = await supabase
@@ -69,7 +99,7 @@ const Prompts = () => {
 
       if (error) throw error;
 
-      loadStructures(); // Recarrega a lista após adicionar
+      loadStructures();
       toast.success(`${structuresToAdd.length} estrutura(s) adicionada(s) com sucesso!`);
     } catch (error) {
       console.error('Erro ao adicionar estrutura:', error);
@@ -91,7 +121,7 @@ const Prompts = () => {
 
       if (error) throw error;
 
-      loadStructures(); // Recarrega a lista após editar
+      loadStructures();
       toast.success('Estrutura atualizada com sucesso!');
     } catch (error) {
       console.error('Erro ao atualizar estrutura:', error);
@@ -211,6 +241,7 @@ const Prompts = () => {
                           categories={categories}
                           onRatePrompt={ratePrompt}
                           onAddComment={addComment}
+                          onEditPrompt={editPrompt}
                           onMovePrompt={movePrompt}
                           onTogglePromptSelection={togglePromptSelection}
                           onToggleSelectAll={toggleSelectAll}
