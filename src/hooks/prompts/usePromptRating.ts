@@ -15,15 +15,13 @@ export const usePromptRating = (
 
       if (!prompt) return;
 
-      // Define o novo rating como 0 ou 1
+      // Define o novo rating como 0 ou 1 baseado no increment
       const newRating = increment ? 1 : 0;
 
+      // Atualiza no Supabase
       const { error } = await supabase
         .from('prompts')
-        .update({ 
-          rating: newRating,
-          background_color: prompt.backgroundColor 
-        })
+        .update({ rating: newRating })
         .eq('id', promptId);
 
       if (error) {
