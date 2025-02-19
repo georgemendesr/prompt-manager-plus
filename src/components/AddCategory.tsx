@@ -19,21 +19,22 @@ import {
 } from "@/components/ui/dialog";
 import type { Category } from "@/types/prompt";
 
-interface AddCategoryProps {
-  onAdd: (name: string, parentId?: string) => Promise<boolean>;
+type AddCategoryProps = {
   categories?: Category[];
   mode?: "add" | "edit";
   initialName?: string;
   initialParentId?: string;
-  onEdit?: (name: string, parentId?: string) => Promise<boolean>;
-}
+} & (
+  | { mode?: "add"; onAdd: (name: string, parentId?: string) => Promise<boolean>; onEdit?: never; }
+  | { mode: "edit"; onEdit: (name: string, parentId?: string) => Promise<boolean>; onAdd?: never; }
+);
 
 export const AddCategory = ({ 
-  onAdd, 
   categories = [], 
   mode = "add",
   initialName = "",
   initialParentId,
+  onAdd,
   onEdit
 }: AddCategoryProps) => {
   const [open, setOpen] = useState(false);
@@ -43,7 +44,7 @@ export const AddCategory = ({
   const handleSave = async () => {
     if (name.trim()) {
       const success = mode === "add" 
-        ? await onAdd(name, parentId === "root" ? undefined : parentId)
+        ? await onAdd?.(name, parentId === "root" ? undefined : parentId)
         : await onEdit?.(name, parentId === "root" ? undefined : parentId);
 
       if (success) {
