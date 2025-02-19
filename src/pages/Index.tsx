@@ -7,11 +7,9 @@ const Index = () => {
     <div className="min-h-screen relative">
       {/* Background Image with Blur */}
       <div 
-        className="absolute inset-0 z-0"
+        className="absolute inset-0 z-0 bg-cover bg-center"
         style={{
           backgroundImage: "url('/lovable-uploads/9cb1402d-bcb0-479f-874d-9eba6445170d.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
           filter: "brightness(0.3)",
           backgroundColor: "#1a1a1a",
         }}
@@ -38,38 +36,37 @@ const Index = () => {
             <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-pink-500 via-orange-500 to-yellow-500 bg-clip-text text-transparent">
               R10 Comunicação Criativa
             </h1>
-            <p className="text-2xl text-white font-light">
-              Agência de publicidade
-            </p>
             <p className="text-4xl font-medium text-white">
               Você sente. Você vê.
             </p>
             
             {/* Features */}
-            <div className="grid md:grid-cols-2 gap-8 mt-12 text-left">
+            <div className="grid md:grid-cols-3 gap-8 mt-12 text-left">
               <div className="bg-black/30 backdrop-blur-sm rounded-xl p-8 space-y-4 border border-white/10">
                 <div className="flex items-center gap-3">
                   <CheckCircle className="h-8 w-8 text-green-400" />
                   <h3 className="text-xl font-semibold text-white">
-                    Especialistas em:
+                    Comunicação Pública
                   </h3>
                 </div>
-                <p className="text-lg text-gray-100 pl-11">
-                  Comunicação Pública / Marketing Político
-                </p>
               </div>
 
               <div className="bg-black/30 backdrop-blur-sm rounded-xl p-8 space-y-4 border border-white/10">
                 <div className="flex items-center gap-3">
                   <CheckCircle className="h-8 w-8 text-green-400" />
                   <h3 className="text-xl font-semibold text-white">
-                    Experiência Comprovada
+                    Marketing Político
                   </h3>
                 </div>
-                <ul className="text-lg text-gray-100 space-y-2 pl-11">
-                  <li>+ 100 marcas atendidas</li>
-                  <li>Diversas campanhas eleitorais de sucesso</li>
-                </ul>
+              </div>
+
+              <div className="bg-black/30 backdrop-blur-sm rounded-xl p-8 space-y-4 border border-white/10">
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="h-8 w-8 text-green-400" />
+                  <h3 className="text-xl font-semibold text-white">
+                    + 100 Marcas
+                  </h3>
+                </div>
               </div>
             </div>
           </div>
