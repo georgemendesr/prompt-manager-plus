@@ -70,6 +70,7 @@ export const CategoryContent = ({
           onSelect={onTogglePromptSelection}
           selected={prompt.selected || false}
           categories={categories}
+          searchTerm={searchTerm}
         />
       ))}
 

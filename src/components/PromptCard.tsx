@@ -19,6 +19,7 @@ interface PromptCardProps {
   selected: boolean;
   structures?: MusicStructure[];
   categories?: Category[];
+  searchTerm?: string;
 }
 
 export const PromptCard = ({ 
@@ -29,7 +30,8 @@ export const PromptCard = ({
   onSelect,
   selected,
   structures = [],
-  categories = []
+  categories = [],
+  searchTerm = ""
 }: PromptCardProps) => {
   const [bgColor, setBgColor] = useState(prompt.backgroundColor || "bg-white/80");
 
@@ -40,6 +42,19 @@ export const PromptCard = ({
   const handleCopy = async () => {
     await navigator.clipboard.writeText(prompt.text);
     toast.success("Prompt copiado!");
+  };
+
+  // Função para destacar o termo de busca no texto
+  const highlightSearchTerm = (text: string, term: string) => {
+    if (!term) return text;
+    
+    const parts = text.split(new RegExp(`(${term})`, 'gi'));
+    return parts.map((part, i) => {
+      if (part.toLowerCase() === term.toLowerCase()) {
+        return <span key={i} className="bg-yellow-200 rounded px-0.5">{part}</span>;
+      }
+      return part;
+    });
   };
 
   // Estilização aprimorada para prompts favoritos
@@ -71,7 +86,9 @@ export const PromptCard = ({
         
         <div className="flex items-start justify-between gap-4">
           <div className="flex-grow">
-            <p className={textClasses}>{prompt.text}</p>
+            <p className={textClasses}>
+              {highlightSearchTerm(prompt.text, searchTerm)}
+            </p>
           </div>
         </div>
 
