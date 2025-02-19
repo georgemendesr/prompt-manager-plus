@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -36,6 +36,18 @@ export const CommentSection = ({
   const [editedText, setEditedText] = useState(promptText || "");
   const [isEditing, setIsEditing] = useState(false);
 
+  // Impede o scroll do body quando o modal está aberto
+  useEffect(() => {
+    if (showCommentInput) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showCommentInput]);
+
   const handleClick = () => {
     setShowCommentInput(!showCommentInput);
     if (onEditPrompt) {
@@ -68,8 +80,18 @@ export const CommentSection = ({
       </Button>
 
       {showCommentInput && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
-          <div className="bg-white rounded-lg shadow-lg p-4 w-[400px] max-h-[90vh] overflow-y-auto relative">
+        <div 
+          className="fixed inset-0 z-[100] overflow-y-auto"
+          style={{
+            display: 'grid',
+            placeItems: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.2)',
+          }}
+        >
+          <div 
+            className="bg-white rounded-lg shadow-lg p-4 w-[400px] max-h-[90vh] overflow-y-auto relative m-4"
+            style={{ minHeight: 'min-content' }}
+          >
             <Button
               variant="ghost"
               size="icon"
