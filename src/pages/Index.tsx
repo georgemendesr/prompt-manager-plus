@@ -13,6 +13,7 @@ const Index = () => {
           backgroundSize: "cover",
           backgroundPosition: "center",
           filter: "blur(8px) brightness(0.7)",
+          backgroundColor: "#1a1a1a", // Fallback color while image loads
         }}
       />
 
@@ -26,12 +27,16 @@ const Index = () => {
                 src="/lovable-uploads/96b8ea8f-5502-4611-b6ef-97206a354361.png" 
                 alt="R10 Comunicação Criativa" 
                 className="h-24 w-auto"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "https://via.placeholder.com/150x60?text=R10"; // Fallback image
+                }}
               />
             </div>
           </div>
 
           {/* Hero Content */}
-          <div className="max-w-4xl mx-auto text-center space-y-8 glass rounded-2xl p-8 backdrop-blur-md">
+          <div className="max-w-4xl mx-auto text-center space-y-8 glass rounded-2xl p-8 backdrop-blur-md bg-black/30">
             <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-pink-500 via-orange-500 to-yellow-500 bg-clip-text text-transparent">
               R10 Comunicação Criativa
             </h1>
