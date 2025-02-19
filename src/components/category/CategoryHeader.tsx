@@ -18,8 +18,8 @@ interface CategoryHeaderProps {
   hasSubcategories: boolean;
   expanded: boolean;
   onToggle: () => void;
-  onEdit: (newName: string, newParentId?: string) => Promise<boolean>;
-  onDelete: () => Promise<void>;
+  onEdit: (id: string, newName: string, newParentId?: string) => Promise<boolean>;
+  onDelete: (id: string) => Promise<boolean>;
   categories?: Category[];
   category: Category;
 }
@@ -68,7 +68,7 @@ export const CategoryHeader = ({
           variant="ghost"
           size="icon"
           className="h-8 w-8"
-          onClick={onDelete}
+          onClick={() => onDelete(category.id)}
         >
           <Trash className="h-4 w-4" />
         </Button>
