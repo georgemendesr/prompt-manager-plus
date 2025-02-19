@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { BulkImport } from "@/components/BulkImport";
 import { AddCategory } from "@/components/AddCategory";
@@ -14,6 +13,7 @@ import { AIChat } from "@/components/ai/AIChat";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { MusicStructure } from "@/types/prompt";
+import { Link } from "react-router-dom";
 
 const Prompts = () => {
   const { signOut } = useAuth();
@@ -133,7 +133,10 @@ const Prompts = () => {
     <div className="container mx-auto p-2 sm:p-4 relative min-h-screen">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-4 sm:mb-6">
-          <div className="flex items-center gap-2">
+          <Link 
+            to="/prompts" 
+            className="flex items-center gap-2"
+          >
             <img 
               src="/lovable-uploads/1aa9cab2-6b56-4f6c-a517-d69a832d9040.png" 
               alt="R10 Comunicação Criativa" 
@@ -142,7 +145,7 @@ const Prompts = () => {
             <h1 className="text-lg sm:text-2xl font-bold text-gray-800">
               Prompts
             </h1>
-          </div>
+          </Link>
           <Button 
             variant="outline" 
             onClick={signOut}

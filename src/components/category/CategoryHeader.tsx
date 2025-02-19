@@ -35,30 +35,28 @@ export const CategoryHeader = ({
   category
 }: CategoryHeaderProps) => {
   return (
-    <div className="flex items-center justify-between">
+    <div 
+      className="flex items-center justify-between p-2 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors"
+      onClick={onToggle}
+    >
       <div className="flex items-center gap-2">
         {hasSubcategories && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 p-0 hover:bg-white/30"
-            onClick={onToggle}
-          >
+          <div className="flex items-center justify-center h-6 w-6">
             {expanded ? (
               <ChevronDown className="h-4 w-4" />
             ) : (
               <ChevronRight className="h-4 w-4" />
             )}
-          </Button>
+          </div>
         )}
-        <h3 
-          className="text-lg font-semibold text-gray-700 hover:text-gray-900 cursor-pointer"
-          onClick={onToggle}
-        >
+        <h3 className="text-lg font-semibold text-gray-700 hover:text-gray-900">
           {name}
         </h3>
       </div>
-      <div className="flex items-center gap-2">
+      <div 
+        className="flex items-center gap-2"
+        onClick={(e) => e.stopPropagation()} // Prevent triggering the parent onClick
+      >
         <AddCategory
           mode="edit"
           initialName={name}
