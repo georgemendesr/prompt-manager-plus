@@ -42,17 +42,26 @@ export const PromptCard = ({
     toast.success("Prompt copiado!");
   };
 
+  // Adiciona classes especiais quando o prompt está marcado com estrela
+  const cardClasses = `${bgColor} backdrop-blur-sm hover:shadow-lg transition-all duration-300 relative sm:text-base text-sm ${
+    prompt.rating > 0 ? 'ring-2 ring-yellow-400 shadow-md' : ''
+  }`;
+
+  const textClasses = `text-gray-800 break-words ${
+    prompt.rating > 0 ? 'font-medium' : ''
+  }`;
+
   return (
-    <Card className={`${bgColor} backdrop-blur-sm hover:shadow-lg transition-all duration-300 relative sm:text-base text-sm`}>
+    <Card className={cardClasses}>
       <div className="flex flex-col p-4 space-y-3">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-grow">
-            <p className="text-gray-800 break-words">{prompt.text}</p>
+            <p className={textClasses}>{prompt.text}</p>
           </div>
         </div>
 
         <div className="flex items-center justify-between border-t pt-3">
-          <div>
+          <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="icon"
@@ -61,38 +70,37 @@ export const PromptCard = ({
             >
               <Copy className="h-4 w-4" />
             </Button>
+            <RatingButtons 
+              rating={prompt.rating}
+              onRate={(increment) => onRate(prompt.id, increment)}
+              backgroundColor={bgColor}
+            />
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <RatingButtons 
-                rating={prompt.rating}
-                onRate={(increment) => onRate(prompt.id, increment)}
-              />
-              <CommentSection
-                comments={[]}
-                hashtags={hashtags}
-                onAddComment={(comment) => {
-                  onAddComment(prompt.id, comment);
-                  toast.success("Comentário adicionado!");
-                }}
-                onColorSelect={(color) => {
-                  setBgColor(color);
-                  onAddComment(prompt.id, `[color:${color}]`);
-                }}
-                onHashtagAdd={(hashtag) => {
-                  onAddComment(prompt.id, hashtag);
-                  toast.success("Hashtag adicionada!");
-                }}
-                onStructureAdd={(structureName) => {
-                  onAddComment(prompt.id, `[${structureName}]`);
-                  toast.success("Estrutura adicionada!");
-                }}
-                onEditPrompt={onEditPrompt ? (newText) => onEditPrompt(prompt.id, newText) : undefined}
-                promptText={prompt.text}
-                structures={structures}
-              />
-            </div>
+            <CommentSection
+              comments={[]}
+              hashtags={hashtags}
+              onAddComment={(comment) => {
+                onAddComment(prompt.id, comment);
+                toast.success("Comentário adicionado!");
+              }}
+              onColorSelect={(color) => {
+                setBgColor(color);
+                onAddComment(prompt.id, `[color:${color}]`);
+              }}
+              onHashtagAdd={(hashtag) => {
+                onAddComment(prompt.id, hashtag);
+                toast.success("Hashtag adicionada!");
+              }}
+              onStructureAdd={(structureName) => {
+                onAddComment(prompt.id, `[${structureName}]`);
+                toast.success("Estrutura adicionada!");
+              }}
+              onEditPrompt={onEditPrompt ? (newText) => onEditPrompt(prompt.id, newText) : undefined}
+              promptText={prompt.text}
+              structures={structures}
+            />
             <Checkbox
               checked={selected}
               onCheckedChange={(checked) => onSelect(prompt.id, checked as boolean)}

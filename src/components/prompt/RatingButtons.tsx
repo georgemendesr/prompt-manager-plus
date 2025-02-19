@@ -1,32 +1,22 @@
 
 import { Button } from "@/components/ui/button";
-import { Plus, Minus } from "lucide-react";
+import { Star } from "lucide-react";
 
 interface RatingButtonsProps {
   rating: number;
   onRate: (increment: boolean) => void;
+  backgroundColor?: string;
 }
 
-export const RatingButtons = ({ rating, onRate }: RatingButtonsProps) => {
+export const RatingButtons = ({ rating, onRate, backgroundColor }: RatingButtonsProps) => {
   return (
-    <>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => onRate(true)}
-        className="hover:text-green-600 transition-colors"
-      >
-        <Plus className="h-4 w-4" />
-      </Button>
-      <span className="min-w-[2rem] text-center">{rating}</span>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => onRate(false)}
-        className="hover:text-red-600 transition-colors"
-      >
-        <Minus className="h-4 w-4" />
-      </Button>
-    </>
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={() => onRate(!rating)} // Alterna entre 0 e 1
+      className={`hover:text-yellow-500 transition-colors ${rating ? 'text-yellow-500' : 'text-gray-400'}`}
+    >
+      <Star className="h-4 w-4" />
+    </Button>
   );
 };
