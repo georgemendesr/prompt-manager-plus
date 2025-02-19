@@ -13,12 +13,17 @@ export const usePromptRating = (
         .flatMap(c => c.prompts)
         .find(p => p.id === promptId);
 
-      if (!prompt) return;
+      if (!prompt) {
+        console.error('Prompt não encontrado:', promptId);
+        return;
+      }
 
       // Define o novo rating como 0 ou 1 baseado no increment
       const newRating = increment ? 1 : 0;
 
-      // Atualiza no Supabase
+      console.log('Atualizando rating:', { promptId, newRating });
+
+      // Atualiza no Supabase primeiro
       const { error } = await supabase
         .from('prompts')
         .update({ rating: newRating })
@@ -26,10 +31,11 @@ export const usePromptRating = (
 
       if (error) {
         console.error('Erro ao atualizar rating:', error);
-        throw error;
+        toast.error('Erro ao atualizar marcação');
+        return;
       }
 
-      // Atualiza o estado local
+      // Se sucesso no Supabase, atualiza o estado local
       setCategories(
         categories.map((category) => ({
           ...category,

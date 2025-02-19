@@ -21,7 +21,7 @@ export const RatingButtons = ({ rating, onRate, backgroundColor }: RatingButtons
       variant="ghost"
       size="icon"
       onClick={handleClick}
-      className={`hover:text-yellow-500 transition-colors ${rating ? 'text-yellow-500' : 'text-gray-400'}`}
+      className={`hover:text-yellow-500 transition-colors ${rating > 0 ? 'text-yellow-500' : 'text-gray-400'}`}
     >
       <Star className="h-4 w-4" />
     </Button>
