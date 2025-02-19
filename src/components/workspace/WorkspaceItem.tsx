@@ -19,6 +19,13 @@ export const WorkspaceItem = ({
   onCopy,
   onRemove,
 }: WorkspaceItemProps) => {
+  // Função para criar uma prévia do texto
+  const getPreviewText = (text: string) => {
+    const words = text.split(' ');
+    const preview = words.slice(0, 15).join(' ');
+    return words.length > 15 ? `${preview}...` : preview;
+  };
+
   return (
     <Card className="p-4 relative group">
       <div className="flex justify-between items-start mb-2">
@@ -56,8 +63,17 @@ export const WorkspaceItem = ({
           </Button>
         </div>
       </div>
+
+      {/* Prévia do texto quando recolhido */}
+      {!isExpanded && (
+        <p className="text-sm text-gray-700 mb-2 line-clamp-2">
+          {getPreviewText(item.text)}
+        </p>
+      )}
+      
+      {/* Texto completo quando expandido */}
       <div className={`overflow-hidden transition-all duration-200 ${
-        isExpanded ? 'max-h-[1000px]' : 'max-h-[0px]'
+        isExpanded ? 'max-h-[1000px] opacity-100' : 'max-h-[0px] opacity-0'
       }`}>
         <p className="whitespace-pre-wrap text-sm text-gray-700">{item.text}</p>
       </div>
