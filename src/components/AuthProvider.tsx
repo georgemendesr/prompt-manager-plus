@@ -27,17 +27,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    // Initialize user state with current session
     const initializeAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         
-        if (session?.user) {
-          setUser(session.user);
-          if (location.pathname === '/auth') {
-            navigate('/prompts');
-          }
-        } else if (location.pathname !== '/auth') {
+        setUser(session?.user ?? null);
+        
+        // Only redirect if we're on the auth page and user is logged in
+        if (session?.user && location.pathname === '/auth') {
+          navigate('/prompts');
+        } else if (!session?.user && location.pathname.startsWith('/prompts')) {
+          // Only redirect to auth if trying to access protected routes
           navigate('/auth');
         }
       } catch (error) {
@@ -49,16 +49,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     initializeAuth();
 
-    // Set up listener for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth state changed:', event, session?.user?.email);
       
       setUser(session?.user ?? null);
       
-      if (session?.user) {
-        navigate('/prompts');
-      } else {
-        navigate('/auth');
+      // Only redirect on auth state change if not on home page
+      if (location.pathname !== '/') {
+        if (session?.user) {
+          navigate('/prompts');
+        } else {
+          navigate('/auth');
+        }
       }
     });
 
