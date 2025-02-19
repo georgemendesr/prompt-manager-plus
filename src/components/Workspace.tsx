@@ -1,39 +1,111 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Textarea } from "./ui/textarea";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { Plus, Trash, Copy, ChevronDown, ChevronUp } from "lucide-react";
 import type { WorkspaceItem } from "@/types/prompt";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/components/AuthProvider";
 
 export const Workspace = () => {
   const [items, setItems] = useState<WorkspaceItem[]>([]);
   const [newText, setNewText] = useState("");
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
-  const addItem = () => {
-    if (newText.trim()) {
-      const newId = crypto.randomUUID();
-      setItems(prev => [...prev, {
-        id: newId,
-        text: newText.trim(),
-        createdAt: new Date()
-      }]);
-      setExpandedItems(prev => ({ ...prev, [newId]: true }));
-      setNewText("");
-      toast.success("Texto adicionado à área de trabalho");
+  useEffect(() => {
+    if (user) {
+      loadWorkspaceItems();
+    }
+  }, [user]);
+
+  const loadWorkspaceItems = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('workspace_items')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const workspaceItems = data.map(item => ({
+        id: item.id,
+        text: item.text,
+        createdAt: new Date(item.created_at)
+      }));
+
+      setItems(workspaceItems);
+      
+      // Expandir todos os itens por padrão
+      const expandedState: Record<string, boolean> = {};
+      workspaceItems.forEach(item => {
+        expandedState[item.id] = true;
+      });
+      setExpandedItems(expandedState);
+    } catch (error) {
+      console.error('Erro ao carregar itens:', error);
+      toast.error("Erro ao carregar itens do workspace");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const removeItem = (id: string) => {
-    setItems(prev => prev.filter(item => item.id !== id));
-    setExpandedItems(prev => {
-      const newState = { ...prev };
-      delete newState[id];
-      return newState;
-    });
-    toast.success("Texto removido da área de trabalho");
+  const addItem = async () => {
+    if (!newText.trim() || !user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('workspace_items')
+        .insert([
+          {
+            text: newText.trim(),
+            user_id: user.id
+          }
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const newItem: WorkspaceItem = {
+        id: data.id,
+        text: data.text,
+        createdAt: new Date(data.created_at)
+      };
+
+      setItems(prev => [newItem, ...prev]);
+      setExpandedItems(prev => ({ ...prev, [newItem.id]: true }));
+      setNewText("");
+      toast.success("Texto adicionado à área de trabalho");
+    } catch (error) {
+      console.error('Erro ao adicionar item:', error);
+      toast.error("Erro ao adicionar texto");
+    }
+  };
+
+  const removeItem = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('workspace_items')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setItems(prev => prev.filter(item => item.id !== id));
+      setExpandedItems(prev => {
+        const newState = { ...prev };
+        delete newState[id];
+        return newState;
+      });
+      toast.success("Texto removido da área de trabalho");
+    } catch (error) {
+      console.error('Erro ao remover item:', error);
+      toast.error("Erro ao remover texto");
+    }
   };
 
   const copyToClipboard = async (text: string) => {
@@ -51,6 +123,22 @@ export const Workspace = () => {
       [id]: !prev[id]
     }));
   };
+
+  if (!user) {
+    return (
+      <div className="text-center py-12 text-gray-500">
+        Faça login para acessar a área de trabalho
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="text-center py-12 text-gray-500">
+        Carregando...
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
