@@ -68,7 +68,7 @@ export const CommentSection = ({
       </Button>
 
       {showCommentInput && (
-        <div className="absolute right-0 top-full mt-2 w-[400px] bg-white rounded-lg shadow-lg p-4 space-y-4 z-50">
+        <div className="absolute right-0 top-full mt-2 w-[400px] bg-white rounded-lg shadow-lg p-4 space-y-4 z-[100]">
           {onEditPrompt && (
             <div>
               <div className="text-sm font-medium text-gray-700 mb-2">Editar prompt</div>

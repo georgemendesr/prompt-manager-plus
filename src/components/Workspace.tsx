@@ -14,6 +14,7 @@ export const Workspace = () => {
   const [newText, setNewText] = useState("");
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
+  const [isFormExpanded, setIsFormExpanded] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -39,10 +40,10 @@ export const Workspace = () => {
 
       setItems(workspaceItems);
       
-      // Expandir todos os itens por padrão
+      // Iniciar com todos os itens recolhidos
       const expandedState: Record<string, boolean> = {};
       workspaceItems.forEach(item => {
-        expandedState[item.id] = true;
+        expandedState[item.id] = false;
       });
       setExpandedItems(expandedState);
     } catch (error) {
@@ -142,9 +143,26 @@ export const Workspace = () => {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold">Área de Trabalho</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold">Área de Trabalho</h2>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsFormExpanded(!isFormExpanded)}
+          className="gap-2"
+        >
+          {isFormExpanded ? (
+            <ChevronUp className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )}
+          {isFormExpanded ? "Recolher" : "Expandir"}
+        </Button>
+      </div>
       
-      <Card className="p-4">
+      <Card className={`p-4 overflow-hidden transition-all duration-200 ${
+        isFormExpanded ? 'max-h-[1000px]' : 'max-h-[60px]'
+      }`}>
         <div className="flex justify-end mb-2">
           <Button 
             variant="outline" 
@@ -183,6 +201,9 @@ export const Workspace = () => {
                 ) : (
                   <ChevronDown className="h-4 w-4" />
                 )}
+                <span className="ml-2">
+                  {expandedItems[item.id] ? "Recolher" : "Expandir"}
+                </span>
               </Button>
               <div className="flex gap-2">
                 <Button
@@ -204,7 +225,7 @@ export const Workspace = () => {
               </div>
             </div>
             <div className={`overflow-hidden transition-all duration-200 ${
-              expandedItems[item.id] ? 'max-h-[1000px]' : 'max-h-[100px]'
+              expandedItems[item.id] ? 'max-h-[1000px]' : 'max-h-[0px]'
             }`}>
               <p className="whitespace-pre-wrap text-sm text-gray-700">{item.text}</p>
             </div>
