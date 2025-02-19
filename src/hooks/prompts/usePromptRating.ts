@@ -63,9 +63,15 @@ export const usePromptRating = (
       const updateCategoriesRecursively = (cats: Category[]): Category[] => {
         return cats.map((cat) => ({
           ...cat,
-          prompts: cat.prompts.map((p) =>
-            p.id === promptId ? { ...p, rating: newRating } : p
-          ),
+          // Ordena os prompts: favoritados primeiro, mantendo a ordem relativa entre eles
+          prompts: [...cat.prompts]
+            .map((p) => p.id === promptId ? { ...p, rating: newRating } : p)
+            .sort((a, b) => {
+              // Ordenação: favoritados primeiro (-1), não favoritados depois (1)
+              if (a.rating > b.rating) return -1;
+              if (a.rating < b.rating) return 1;
+              return 0;
+            }),
           subcategories: cat.subcategories 
             ? updateCategoriesRecursively(cat.subcategories)
             : []
