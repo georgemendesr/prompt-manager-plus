@@ -30,7 +30,7 @@ export const useCategories = () => {
       
       const [categoriesResult, promptsResult, commentsResult] = await Promise.all([
         supabase.from('categories').select('id, name, parent_id, created_at'),
-        supabase.from('prompts').select('id, text, category_id, rating, created_at'),
+        supabase.from('prompts').select('id, text, category_id, rating, background_color, created_at'),
         supabase.from('comments').select('id, prompt_id, text, created_at')
       ]);
 
@@ -69,6 +69,7 @@ export const useCategories = () => {
               text: prompt.text,
               category: category.name,
               rating: prompt.rating,
+              backgroundColor: prompt.background_color,
               comments: commentsData
                 .filter(comment => comment.prompt_id === prompt.id)
                 .map(comment => comment.text) || [],
@@ -160,31 +161,50 @@ export const useCategories = () => {
     }
   };
 
-  const editCategory = async (id: string, newName: string) => {
+  const editCategory = async (id: string, newName: string, newParentId?: string) => {
     try {
+      console.log('Editando categoria:', { id, newName, newParentId });
+      
+      // Se newParentId for "root", definimos como null para categoria raiz
+      const parentId = newParentId === "root" ? null : newParentId;
+
       const { error } = await supabase
         .from('categories')
-        .update({ name: newName.trim() })
+        .update({ 
+          name: newName.trim(),
+          parent_id: parentId
+        })
         .eq('id', id);
 
       if (error) throw error;
 
-      const updateCategoryInTree = (categories: Category[]): Category[] => {
-        return categories.map(category => {
-          if (category.id === id) {
-            return { ...category, name: newName };
-          }
-          if (category.subcategories?.length) {
-            return {
-              ...category,
-              subcategories: updateCategoryInTree(category.subcategories)
-            };
-          }
-          return category;
+      // Recarrega as categorias para garantir que a estrutura esteja correta
+      const { data: updatedCategories, error: fetchError } = await supabase
+        .from('categories')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (fetchError) throw fetchError;
+
+      const categoryTree = buildCategoryTree(updatedCategories);
+      
+      // Mantém os prompts existentes ao atualizar a árvore
+      const updateTreeWithPrompts = (newTree: Category[], oldCategories: Category[]): Category[] => {
+        return newTree.map(category => {
+          const oldCategory = oldCategories.find(c => c.id === category.id);
+          return {
+            ...category,
+            prompts: oldCategory?.prompts || [],
+            subcategories: category.subcategories ? 
+              updateTreeWithPrompts(category.subcategories, oldCategories.flatMap(c => c.subcategories || [])) : 
+              []
+          };
         });
       };
 
-      setCategories(prev => updateCategoryInTree(prev));
+      const updatedTree = updateTreeWithPrompts(categoryTree, categories);
+      setCategories(updatedTree);
+      
       toast.success('Categoria atualizada com sucesso!');
       return true;
     } catch (error) {
