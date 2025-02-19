@@ -40,56 +40,64 @@ export const CategoryTree = ({
   const [expanded, setExpanded] = useState(true);
   
   return (
-    <div className="space-y-4">
-      <CategoryHeader
-        name={category.name}
-        hasSubcategories={Boolean(category.subcategories?.length)}
-        expanded={expanded}
-        onToggle={() => setExpanded(!expanded)}
-        onEdit={onEditCategory}
-        onDelete={(id) => onDeleteCategory(id)}
-        categories={categories}
-        category={category}
-      />
+    <div className={`space-y-4 ${level > 0 ? 'ml-6' : ''}`}>
+      <div className={`
+        rounded-lg border
+        ${level === 0 ? 'bg-white shadow-sm' : 'bg-gray-50/50 border-gray-100'}
+        ${level === 1 ? 'border-l-4 border-l-purple-400' : ''}
+        ${level === 2 ? 'border-l-4 border-l-blue-400' : ''}
+        ${level >= 3 ? 'border-l-4 border-l-indigo-400' : ''}
+      `}>
+        <CategoryHeader
+          name={category.name}
+          hasSubcategories={Boolean(category.subcategories?.length)}
+          expanded={expanded}
+          onToggle={() => setExpanded(!expanded)}
+          onEdit={onEditCategory}
+          onDelete={(id) => onDeleteCategory(id)}
+          categories={categories}
+          category={category}
+        />
 
-      {expanded && (
-        <>
-          <CategoryContent
-            category={category}
-            level={level}
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            categories={categories}
-            onRatePrompt={onRatePrompt}
-            onAddComment={onAddComment}
-            onMovePrompt={onMovePrompt}
-            onTogglePromptSelection={onTogglePromptSelection}
-            onToggleSelectAll={onToggleSelectAll}
-            onDeleteSelectedPrompts={onDeleteSelectedPrompts}
-          />
+        {expanded && (
+          <div className="p-4">
+            <CategoryContent
+              category={category}
+              level={level}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              categories={categories}
+              onRatePrompt={onRatePrompt}
+              onAddComment={onAddComment}
+              onMovePrompt={onMovePrompt}
+              onTogglePromptSelection={onTogglePromptSelection}
+              onToggleSelectAll={onToggleSelectAll}
+              onDeleteSelectedPrompts={onDeleteSelectedPrompts}
+            />
 
-          {category.subcategories?.map((subcategory) => (
-            <div key={subcategory.id} className="ml-4">
-              <CategoryTree
-                category={subcategory}
-                categories={categories}
-                onRatePrompt={onRatePrompt}
-                onAddComment={onAddComment}
-                onEditPrompt={onEditPrompt}
-                onMovePrompt={onMovePrompt}
-                onTogglePromptSelection={onTogglePromptSelection}
-                onToggleSelectAll={onToggleSelectAll}
-                onDeleteSelectedPrompts={onDeleteSelectedPrompts}
-                onEditCategory={onEditCategory}
-                onDeleteCategory={onDeleteCategory}
-                level={level + 1}
-                searchTerm={searchTerm}
-                setSearchTerm={setSearchTerm}
-              />
-            </div>
-          ))}
-        </>
-      )}
+            {category.subcategories?.map((subcategory) => (
+              <div key={subcategory.id} className="mt-4">
+                <CategoryTree
+                  category={subcategory}
+                  categories={categories}
+                  onRatePrompt={onRatePrompt}
+                  onAddComment={onAddComment}
+                  onEditPrompt={onEditPrompt}
+                  onMovePrompt={onMovePrompt}
+                  onTogglePromptSelection={onTogglePromptSelection}
+                  onToggleSelectAll={onToggleSelectAll}
+                  onDeleteSelectedPrompts={onDeleteSelectedPrompts}
+                  onEditCategory={onEditCategory}
+                  onDeleteCategory={onDeleteCategory}
+                  level={level + 1}
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
