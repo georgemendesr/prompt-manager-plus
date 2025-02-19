@@ -31,9 +31,17 @@ export const CategoryContent = ({
   onToggleSelectAll,
   onDeleteSelectedPrompts,
 }: CategoryContentProps) => {
+  // Primeiro aplicamos a busca
   const filteredPrompts = category.prompts.filter(prompt => 
     prompt.text.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Depois separamos em favoritos e não favoritos
+  const favoritedPrompts = filteredPrompts.filter(p => p.rating > 0);
+  const unfavoritedPrompts = filteredPrompts.filter(p => p.rating === 0);
+
+  // Combinamos os arrays mantendo a ordem (favoritos primeiro)
+  const orderedPrompts = [...favoritedPrompts, ...unfavoritedPrompts];
 
   return (
     <div className="space-y-4">
@@ -53,7 +61,7 @@ export const CategoryContent = ({
         currentCategoryId={category.id}
       />
 
-      {filteredPrompts.map((prompt) => (
+      {orderedPrompts.map((prompt) => (
         <PromptCard
           key={prompt.id}
           prompt={prompt}
@@ -65,7 +73,7 @@ export const CategoryContent = ({
         />
       ))}
 
-      {filteredPrompts.length === 0 && (!category.subcategories || category.subcategories.length === 0) && (
+      {orderedPrompts.length === 0 && (!category.subcategories || category.subcategories.length === 0) && (
         <div className="text-center py-6 text-gray-500 bg-gray-50 rounded-lg">
           {searchTerm ? "Nenhum prompt encontrado" : "Nenhum prompt nesta categoria ainda"}
         </div>
