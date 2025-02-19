@@ -42,18 +42,33 @@ export const PromptCard = ({
     toast.success("Prompt copiado!");
   };
 
-  // Adiciona classes especiais quando o prompt está marcado com estrela
-  const cardClasses = `${bgColor} backdrop-blur-sm hover:shadow-lg transition-all duration-300 relative sm:text-base text-sm ${
-    prompt.rating > 0 ? 'ring-2 ring-yellow-400 shadow-md' : ''
+  // Estilização aprimorada para prompts favoritos
+  const cardClasses = `${bgColor} backdrop-blur-sm transition-all duration-300 relative sm:text-base text-sm ${
+    prompt.rating > 0 
+      ? 'ring-2 ring-yellow-400 shadow-lg transform hover:-translate-y-1 hover:shadow-xl' 
+      : 'hover:shadow-lg'
   }`;
 
   const textClasses = `text-gray-800 break-words ${
-    prompt.rating > 0 ? 'font-medium' : ''
+    prompt.rating > 0 
+      ? 'font-semibold bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent' 
+      : ''
   }`;
 
   return (
-    <Card className={cardClasses}>
+    <Card 
+      className={cardClasses}
+      style={prompt.rating > 0 ? {
+        background: 'linear-gradient(135deg, rgba(255,246,183,0.4) 0%, rgba(255,250,215,0.4) 100%)'
+      } : undefined}
+    >
       <div className="flex flex-col p-4 space-y-3">
+        {prompt.rating > 0 && (
+          <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center transform rotate-12 shadow-lg">
+            <span className="text-white text-xs font-bold">★</span>
+          </div>
+        )}
+        
         <div className="flex items-start justify-between gap-4">
           <div className="flex-grow">
             <p className={textClasses}>{prompt.text}</p>
@@ -66,7 +81,11 @@ export const PromptCard = ({
               variant="ghost"
               size="icon"
               onClick={handleCopy}
-              className="hover:text-blue-600 transition-colors"
+              className={`transition-colors ${
+                prompt.rating > 0 
+                  ? 'hover:text-yellow-600 text-yellow-500' 
+                  : 'hover:text-blue-600'
+              }`}
             >
               <Copy className="h-4 w-4" />
             </Button>
@@ -114,7 +133,11 @@ export const PromptCard = ({
             {structureRefs.filter(ref => !ref.startsWith('[color:')).map((ref, index) => (
               <div
                 key={`struct-${index}`}
-                className="text-xs font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full"
+                className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                  prompt.rating > 0 
+                    ? 'text-yellow-700 bg-yellow-50 border border-yellow-200' 
+                    : 'text-blue-700 bg-blue-50'
+                }`}
               >
                 {ref}
               </div>
@@ -122,7 +145,11 @@ export const PromptCard = ({
             {regularComments.map((comment, index) => (
               <div
                 key={`comment-${index}`}
-                className="text-xs text-gray-600 bg-soft-gray px-2 py-0.5 rounded-full"
+                className={`text-xs px-2 py-0.5 rounded-full ${
+                  prompt.rating > 0 
+                    ? 'text-yellow-700 bg-yellow-50 border border-yellow-200' 
+                    : 'text-gray-600 bg-soft-gray'
+                }`}
               >
                 {comment}
               </div>
