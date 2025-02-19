@@ -17,6 +17,7 @@ export const CategorySearch = ({ value, onChange }: CategorySearchProps) => {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="pl-10"
+        autoComplete="off"
       />
     </div>
   );

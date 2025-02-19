@@ -50,7 +50,10 @@ export const CategoryContent = ({
   return (
     <div className="space-y-4">
       {level === 0 && (
-        <CategorySearch value={searchTerm} onChange={setSearchTerm} />
+        <CategorySearch 
+          value={searchTerm} 
+          onChange={(value) => setSearchTerm(value)} 
+        />
       )}
 
       <CategoryActions
