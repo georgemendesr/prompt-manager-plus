@@ -20,7 +20,7 @@ const Prompts = () => {
   const { signOut } = useAuth();
   const [structures, setStructures] = useState<MusicStructure[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [globalSearchTerm, setGlobalSearchTerm] = useState("");
 
   const {
     categories,
@@ -199,14 +199,16 @@ const Prompts = () => {
 
           <TabsContent value="prompts" className="mt-4 sm:mt-6">
             <div className="space-y-4 sm:space-y-6">
-              <div className="flex flex-wrap gap-2">
-                <AddCategory onAdd={addCategory} categories={categories} />
-                {categories.length > 0 && (
-                  <BulkImport
-                    categories={categories}
-                    onImport={bulkImportPrompts}
-                  />
-                )}
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-wrap gap-2">
+                  <AddCategory onAdd={addCategory} categories={categories} />
+                  {categories.length > 0 && (
+                    <BulkImport
+                      categories={categories}
+                      onImport={bulkImportPrompts}
+                    />
+                  )}
+                </div>
               </div>
 
               {categories.length === 0 ? (
@@ -251,8 +253,8 @@ const Prompts = () => {
                           onDeleteSelectedPrompts={deleteSelectedPrompts}
                           onEditCategory={editCategory}
                           onDeleteCategory={deleteCategory}
-                          searchTerm={searchTerm}
-                          setSearchTerm={setSearchTerm}
+                          searchTerm={globalSearchTerm}
+                          setSearchTerm={setGlobalSearchTerm}
                         />
                       </TabsContent>
                     ))}
