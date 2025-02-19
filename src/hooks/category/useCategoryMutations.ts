@@ -1,12 +1,15 @@
 
 import { Category } from "@/types/prompt";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client"; // Added missing import
 import { addCategoryToDb, updateCategoryInDb, deleteCategoryFromDb } from "@/services/categoryService";
 import { buildCategoryTree, updateTreeWithPrompts, removeCategoryFromTree } from "@/utils/categoryTreeUtils";
 
+type SetCategoriesFunction = React.Dispatch<React.SetStateAction<Category[]>>;
+
 export const useCategoryMutations = (
   categories: Category[],
-  setCategories: (categories: Category[]) => void
+  setCategories: SetCategoriesFunction // Updated type
 ) => {
   const addCategory = async (name: string, parentId?: string) => {
     try {
@@ -17,9 +20,9 @@ export const useCategoryMutations = (
 
       console.log('Categoria adicionada com sucesso:', data);
       
-      const updateCategoriesTree = (categories: Category[]): Category[] => {
+      const updateCategoriesTree = (prevCategories: Category[]): Category[] => {
         if (parentId) {
-          return categories.map(category => {
+          return prevCategories.map(category => {
             if (category.id === parentId) {
               return {
                 ...category,
@@ -42,7 +45,7 @@ export const useCategoryMutations = (
           });
         }
         
-        return [...categories, {
+        return [...prevCategories, {
           id: data.id,
           name: data.name,
           parentId: data.parent_id,
@@ -51,6 +54,7 @@ export const useCategoryMutations = (
         }];
       };
 
+      // Fixed: Now using the correct setState pattern
       setCategories(prev => updateCategoriesTree(prev));
       toast.success('Categoria adicionada com sucesso!');
       return true;
@@ -109,6 +113,7 @@ export const useCategoryMutations = (
 
       if (error) throw error;
 
+      // Fixed: Now using the correct setState pattern
       setCategories(prev => removeCategoryFromTree(prev, id));
       toast.success('Categoria removida com sucesso!');
       return true;
