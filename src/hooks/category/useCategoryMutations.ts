@@ -1,0 +1,127 @@
+
+import { Category } from "@/types/prompt";
+import { toast } from "sonner";
+import { addCategoryToDb, updateCategoryInDb, deleteCategoryFromDb } from "@/services/categoryService";
+import { buildCategoryTree, updateTreeWithPrompts, removeCategoryFromTree } from "@/utils/categoryTreeUtils";
+
+export const useCategoryMutations = (
+  categories: Category[],
+  setCategories: (categories: Category[]) => void
+) => {
+  const addCategory = async (name: string, parentId?: string) => {
+    try {
+      console.log('Adicionando nova categoria:', { name, parentId });
+      const { data, error } = await addCategoryToDb(name, parentId);
+
+      if (error) throw error;
+
+      console.log('Categoria adicionada com sucesso:', data);
+      
+      const updateCategoriesTree = (categories: Category[]): Category[] => {
+        if (parentId) {
+          return categories.map(category => {
+            if (category.id === parentId) {
+              return {
+                ...category,
+                subcategories: [...(category.subcategories || []), {
+                  id: data.id,
+                  name: data.name,
+                  parentId: data.parent_id,
+                  prompts: [],
+                  subcategories: []
+                }]
+              };
+            }
+            if (category.subcategories?.length) {
+              return {
+                ...category,
+                subcategories: updateCategoriesTree(category.subcategories)
+              };
+            }
+            return category;
+          });
+        }
+        
+        return [...categories, {
+          id: data.id,
+          name: data.name,
+          parentId: data.parent_id,
+          prompts: [],
+          subcategories: []
+        }];
+      };
+
+      setCategories(prev => updateCategoriesTree(prev));
+      toast.success('Categoria adicionada com sucesso!');
+      return true;
+    } catch (error) {
+      console.error('Erro ao adicionar categoria:', error);
+      toast.error('Erro ao adicionar categoria');
+      return false;
+    }
+  };
+
+  const editCategory = async (id: string, newName: string, newParentId?: string) => {
+    try {
+      console.log('Editando categoria:', { id, newName, newParentId });
+      
+      const parentId = newParentId === "root" ? null : newParentId;
+      const { error } = await updateCategoryInDb(id, newName, parentId);
+
+      if (error) throw error;
+
+      const { data: updatedCategories, error: fetchError } = await supabase
+        .from('categories')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (fetchError) throw fetchError;
+
+      const categoryTree = buildCategoryTree(updatedCategories);
+      const updatedTree = updateTreeWithPrompts(categoryTree, categories);
+      setCategories(updatedTree);
+      
+      toast.success('Categoria atualizada com sucesso!');
+      return true;
+    } catch (error) {
+      console.error('Erro ao editar categoria:', error);
+      toast.error('Erro ao editar categoria');
+      return false;
+    }
+  };
+
+  const deleteCategory = async (id: string) => {
+    try {
+      const hasPrompts = categories.some(category => {
+        const checkPrompts = (cat: Category): boolean => {
+          if (cat.id === id && cat.prompts.length > 0) return true;
+          return cat.subcategories?.some(checkPrompts) || false;
+        };
+        return checkPrompts(category);
+      });
+
+      if (hasPrompts) {
+        toast.error('Não é possível deletar uma categoria que contém prompts');
+        return false;
+      }
+
+      const { error } = await deleteCategoryFromDb(id);
+
+      if (error) throw error;
+
+      setCategories(prev => removeCategoryFromTree(prev, id));
+      toast.success('Categoria removida com sucesso!');
+      return true;
+    } catch (error) {
+      console.error('Erro ao deletar categoria:', error);
+      toast.error('Erro ao deletar categoria');
+      return false;
+    }
+  };
+
+  return {
+    addCategory,
+    editCategory,
+    deleteCategory
+  };
+};
