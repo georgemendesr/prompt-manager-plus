@@ -1,14 +1,14 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Copy, Music2, Music4 } from "lucide-react";
-import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Checkbox } from "./ui/checkbox";
 import type { Prompt, MusicStructure, Category } from "@/types/prompt";
 import { RatingButtons } from "./prompt/RatingButtons";
 import { CommentSection } from "./prompt/CommentSection";
-import { HashtagList } from "./prompt/HashtagList";
+import { PromptText } from "./prompt/PromptText";
+import { ActionButtons } from "./prompt/ActionButtons";
+import { PromptComments } from "./prompt/PromptComments";
 
 interface PromptCardProps {
   prompt: Prompt;
@@ -39,44 +39,6 @@ export const PromptCard = ({
   const regularComments = prompt.comments.filter(comment => !comment.startsWith('#') && !comment.startsWith('['));
   const structureRefs = prompt.comments.filter(comment => comment.startsWith('['));
 
-  const handleCopy = async () => {
-    const textToCopy = `português, brasil\n${prompt.text}`;
-    await navigator.clipboard.writeText(textToCopy);
-    toast.success("Prompt copiado!");
-  };
-
-  const handleAddMaleVoice = () => {
-    onAddComment(prompt.id, "male voice");
-    toast.success("Voz masculina adicionada!");
-  };
-
-  const handleAddFemaleVoice = () => {
-    onAddComment(prompt.id, "female voice");
-    toast.success("Voz feminina adicionada!");
-  };
-
-  const highlightSearchTerm = (text: string, term: string) => {
-    if (!term) return text;
-    
-    const parts = text.split(new RegExp(`(${term})`, 'gi'));
-    return parts.map((part, i) => {
-      if (part.toLowerCase() === term.toLowerCase()) {
-        return <span key={i} className="bg-yellow-200 px-0.5">{part}</span>;
-      }
-      return part;
-    });
-  };
-
-  const cardClasses = `${bgColor} backdrop-blur-sm relative sm:text-xs text-xs p-2 ${
-    prompt.rating > 0 ? 'ring-1 ring-yellow-400' : 'border-b'
-  }`;
-
-  const textClasses = `text-gray-800 break-words line-clamp-2 ${
-    prompt.rating > 0 
-      ? 'font-medium bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent' 
-      : ''
-  }`;
-
   const hasMaleVoice = regularComments.some(comment => 
     comment.toLowerCase().includes('male voice')
   );
@@ -85,48 +47,30 @@ export const PromptCard = ({
     comment.toLowerCase().includes('female voice')
   );
 
+  const cardClasses = `${bgColor} backdrop-blur-sm relative sm:text-xs text-xs p-2 ${
+    prompt.rating > 0 ? 'ring-1 ring-yellow-400' : 'border-b'
+  }`;
+
   return (
     <Card className={cardClasses}>
       <div className="flex flex-col space-y-1">
         <div className="flex items-start gap-1">
           <div className="flex-grow">
-            <p className={textClasses}>
-              {highlightSearchTerm(prompt.text, searchTerm)}
-            </p>
+            <PromptText 
+              text={prompt.text}
+              searchTerm={searchTerm}
+              rating={prompt.rating}
+            />
           </div>
         </div>
 
         <div className="flex items-center justify-between pt-1">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleCopy}
-              className="h-7 w-7 transition-colors hover:text-blue-600"
-            >
-              <Copy className="h-3 w-3" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleAddMaleVoice}
-              className={`h-7 w-7 transition-colors hover:text-blue-600 ${
-                hasMaleVoice ? 'text-blue-600' : 'text-gray-400'
-              }`}
-            >
-              <Music2 className="h-3 w-3" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleAddFemaleVoice}
-              className={`h-7 w-7 transition-colors hover:text-pink-600 ${
-                hasFemaleVoice ? 'text-pink-600' : 'text-gray-400'
-              }`}
-            >
-              <Music4 className="h-3 w-3" />
-            </Button>
-          </div>
+          <ActionButtons
+            text={prompt.text}
+            onAddComment={(comment) => onAddComment(prompt.id, comment)}
+            hasMaleVoice={hasMaleVoice}
+            hasFemaleVoice={hasFemaleVoice}
+          />
 
           <div className="flex items-center gap-1">
             {prompt.rating > 0 && (
@@ -173,35 +117,12 @@ export const PromptCard = ({
           </div>
         </div>
 
-        {(hashtags.length > 0 || regularComments.length > 0 || structureRefs.length > 0) && (
-          <div className="flex flex-wrap items-center gap-0.5 pt-1">
-            <HashtagList hashtags={hashtags} />
-            {structureRefs.filter(ref => !ref.startsWith('[color:')).map((ref, index) => (
-              <div
-                key={`struct-${index}`}
-                className={`text-[10px] font-medium px-1 py-0.5 ${
-                  prompt.rating > 0 
-                    ? 'text-yellow-700 bg-yellow-50' 
-                    : 'text-blue-700 bg-blue-50'
-                }`}
-              >
-                {ref}
-              </div>
-            ))}
-            {regularComments.map((comment, index) => (
-              <div
-                key={`comment-${index}`}
-                className={`text-[10px] px-1 py-0.5 ${
-                  prompt.rating > 0 
-                    ? 'text-yellow-700 bg-yellow-50' 
-                    : 'text-gray-600 bg-soft-gray'
-                }`}
-              >
-                {comment}
-              </div>
-            ))}
-          </div>
-        )}
+        <PromptComments 
+          hashtags={hashtags}
+          regularComments={regularComments}
+          structureRefs={structureRefs}
+          rating={prompt.rating}
+        />
       </div>
     </Card>
   );
