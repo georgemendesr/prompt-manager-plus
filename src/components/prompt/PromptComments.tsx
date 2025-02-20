@@ -12,21 +12,16 @@ export const PromptComments = ({
   structureRefs, 
   rating 
 }: PromptCommentsProps) => {
-  // Remove tags internas do sistema que não devem aparecer
+  const unwantedTags = ['male voice', 'female voice', 'busca', 'selecionar todos'];
+  
+  // Filtra os comentários mantendo as tags de cor
   const filteredComments = regularComments.filter(comment => {
-    // Remove comandos internos e tags do sistema
-    return !comment.includes('male voice') && 
-           !comment.includes('female voice') &&
-           !comment.includes('busca') && 
-           !comment.includes('selecionar todos');
+    if (comment.startsWith('[color:')) return true; // Mantém tags de cor
+    return !unwantedTags.some(tag => comment.includes(tag)); // Remove outras tags do sistema
   });
 
   const filteredHashtags = hashtags.filter(tag => {
-    // Remove hashtags internas do sistema
-    return !tag.includes('male voice') && 
-           !tag.includes('female voice') &&
-           !tag.includes('busca') && 
-           !tag.includes('selecionar todos');
+    return !unwantedTags.some(unwanted => tag.includes(unwanted));
   });
 
   if (filteredHashtags.length === 0 && filteredComments.length === 0 && structureRefs.length === 0) {
