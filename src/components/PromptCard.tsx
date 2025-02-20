@@ -36,7 +36,9 @@ export const PromptCard = ({
   const [bgColor, setBgColor] = useState(prompt.backgroundColor || "bg-blue-50/30");
 
   const hashtags = prompt.comments.filter(comment => comment.startsWith('#'));
-  const regularComments = prompt.comments.filter(comment => !comment.startsWith('#'));
+  const regularComments = prompt.comments.filter(comment => 
+    !comment.startsWith('#') && !comment.startsWith('[color:')
+  );
 
   const cardClasses = `${bgColor} backdrop-blur-sm relative sm:text-xs text-xs p-2 ${
     prompt.rating > 0 ? 'ring-1 ring-yellow-400' : 'border-b'
