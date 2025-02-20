@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Copy } from "lucide-react";
+import { Copy, Mic, MicVocal } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Checkbox } from "./ui/checkbox";
@@ -33,14 +33,15 @@ export const PromptCard = ({
   categories = [],
   searchTerm = ""
 }: PromptCardProps) => {
-  const [bgColor, setBgColor] = useState(prompt.backgroundColor || "bg-white/80");
+  const [bgColor, setBgColor] = useState(prompt.backgroundColor || "bg-blue-50/30");
 
   const hashtags = prompt.comments.filter(comment => comment.startsWith('#'));
   const regularComments = prompt.comments.filter(comment => !comment.startsWith('#') && !comment.startsWith('['));
   const structureRefs = prompt.comments.filter(comment => comment.startsWith('['));
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(prompt.text);
+    const textToCopy = `português, brasil\n${prompt.text}`;
+    await navigator.clipboard.writeText(textToCopy);
     toast.success("Prompt copiado!");
   };
 
@@ -66,12 +67,26 @@ export const PromptCard = ({
       : ''
   }`;
 
+  const hasMaleVoice = regularComments.some(comment => 
+    comment.toLowerCase().includes('male voice')
+  );
+  
+  const hasFemaleVoice = regularComments.some(comment => 
+    comment.toLowerCase().includes('female voice')
+  );
+
   return (
     <Card className={cardClasses}>
       <div className="flex flex-col space-y-1">
         <div className="flex items-start gap-1">
           <div className="flex-grow">
             <p className={textClasses}>
+              {hasMaleVoice && (
+                <Mic className="inline-block w-3 h-3 mr-1 text-blue-600" />
+              )}
+              {hasFemaleVoice && (
+                <MicVocal className="inline-block w-3 h-3 mr-1 text-pink-600" />
+              )}
               {highlightSearchTerm(prompt.text, searchTerm)}
             </p>
           </div>
