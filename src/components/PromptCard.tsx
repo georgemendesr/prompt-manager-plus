@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { toast } from "sonner";
 import { Card } from "./ui/card";
@@ -120,7 +119,7 @@ export const PromptCard = ({
               <Checkbox
                 checked={selected}
                 onCheckedChange={(checked) => onSelect(prompt.id, checked as boolean)}
-                className="h-4 w-4 rounded-sm cursor-pointer"
+                className="h-4 w-4 rounded-sm border-[1.5px] border-gray-400 cursor-pointer data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
               />
             </div>
           </div>
