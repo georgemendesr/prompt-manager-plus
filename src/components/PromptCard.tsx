@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { toast } from "sonner";
 import { Card } from "./ui/card";
@@ -34,27 +35,39 @@ export const PromptCard = ({
 }: PromptCardProps) => {
   const [bgColor, setBgColor] = useState(prompt.backgroundColor || "bg-blue-50/30");
 
-  // Lista única de todas as tags do sistema que devem ser filtradas
-  const systemComments = new Set([
-    'busca',
-    'selecionar todos',
-    'male voice',
-    'female voice',
-    '[color:',
-  ]);
+  // Filtra comentários do sistema e tags especiais
+  const filterComments = (comments: string[]) => {
+    return comments.filter(comment => {
+      const lowerComment = comment.toLowerCase();
+      
+      // Lista explícita de todas as tags do sistema para remover
+      const systemTags = [
+        'male voice',
+        'female voice',
+        'busca',
+        'selecionar todos',
+        '[color:',
+        'voice:male',
+        'voice:female'
+      ];
 
-  // Função auxiliar para verificar se um comentário é do sistema
-  const isSystemComment = (comment: string) => {
-    const lowerComment = comment.toLowerCase();
-    return Array.from(systemComments).some(tag => lowerComment.includes(tag.toLowerCase()));
+      // Remove qualquer comentário que contenha tags do sistema
+      const isSystemTag = systemTags.some(tag => 
+        lowerComment.includes(tag.toLowerCase())
+      );
+
+      return !isSystemTag;
+    });
   };
 
-  // Filtragem de hashtags e comentários regulares
-  const hashtags = prompt.comments
-    .filter(comment => comment.startsWith('#') && !isSystemComment(comment));
+  // Separa os comentários filtrados em hashtags e regulares
+  const hashtags = filterComments(
+    prompt.comments.filter(comment => comment.startsWith('#'))
+  );
 
-  const regularComments = prompt.comments
-    .filter(comment => !comment.startsWith('#') && !isSystemComment(comment));
+  const regularComments = filterComments(
+    prompt.comments.filter(comment => !comment.startsWith('#'))
+  );
 
   const cardClasses = `${bgColor} backdrop-blur-sm relative sm:text-xs text-xs p-2 ${
     prompt.rating > 0 ? 'ring-1 ring-yellow-400' : 'border-b'
