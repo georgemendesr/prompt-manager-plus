@@ -12,13 +12,30 @@ export const PromptComments = ({
   structureRefs, 
   rating 
 }: PromptCommentsProps) => {
-  if (hashtags.length === 0 && regularComments.length === 0 && structureRefs.length === 0) {
+  // Remove tags internas do sistema que não devem aparecer
+  const filteredComments = regularComments.filter(comment => {
+    // Remove comandos internos e tags do sistema
+    return !comment.includes('male voice') && 
+           !comment.includes('female voice') &&
+           !comment.includes('busca') && 
+           !comment.includes('selecionar todos');
+  });
+
+  const filteredHashtags = hashtags.filter(tag => {
+    // Remove hashtags internas do sistema
+    return !tag.includes('male voice') && 
+           !tag.includes('female voice') &&
+           !tag.includes('busca') && 
+           !tag.includes('selecionar todos');
+  });
+
+  if (filteredHashtags.length === 0 && filteredComments.length === 0 && structureRefs.length === 0) {
     return null;
   }
 
   return (
     <div className="flex flex-wrap items-center gap-0.5 pt-1">
-      {hashtags.map((tag, index) => (
+      {filteredHashtags.map((tag, index) => (
         <span
           key={`tag-${index}`}
           className="inline-flex items-center px-2 py-0.5 rounded-full bg-soft-purple text-xs font-medium text-purple-700"
@@ -38,7 +55,7 @@ export const PromptComments = ({
           {ref}
         </div>
       ))}
-      {regularComments.map((comment, index) => (
+      {filteredComments.map((comment, index) => (
         <div
           key={`comment-${index}`}
           className={`text-[10px] px-1 py-0.5 ${
