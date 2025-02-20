@@ -13,21 +13,30 @@ export const ActionButtons = ({
   onAddComment
 }: ActionButtonsProps) => {
   const handleCopy = async () => {
-    const textToCopy = `português, brasil\n${text}`;
-    await navigator.clipboard.writeText(textToCopy);
-    toast.success("Prompt copiado!");
+    try {
+      await navigator.clipboard.writeText(`português, brasil\n${text}`);
+      toast.success("Prompt copiado!");
+    } catch (error) {
+      toast.error("Erro ao copiar prompt");
+    }
   };
 
   const handleAddMaleVoice = async () => {
-    const textToCopy = `male voice\nportuguês, brasil\n${text}`;
-    await navigator.clipboard.writeText(textToCopy);
-    toast.success("Prompt copiado com voz masculina!");
+    try {
+      await navigator.clipboard.writeText(`male voice\nportuguês, brasil\n${text}`);
+      toast.success("Prompt copiado com voz masculina!");
+    } catch (error) {
+      toast.error("Erro ao copiar prompt");
+    }
   };
 
   const handleAddFemaleVoice = async () => {
-    const textToCopy = `female voice\nportuguês, brasil\n${text}`;
-    await navigator.clipboard.writeText(textToCopy);
-    toast.success("Prompt copiado com voz feminina!");
+    try {
+      await navigator.clipboard.writeText(`female voice\nportuguês, brasil\n${text}`);
+      toast.success("Prompt copiado com voz feminina!");
+    } catch (error) {
+      toast.error("Erro ao copiar prompt");
+    }
   };
 
   return (
