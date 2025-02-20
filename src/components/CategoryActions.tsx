@@ -43,14 +43,7 @@ export const CategoryActions = ({
   };
 
   return (
-    <div className="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm">
-      <div className="flex items-center gap-2">
-        <Checkbox
-          checked={prompts.every((p) => p.selected)}
-          onCheckedChange={(checked) => onSelectAll(checked as boolean)}
-        />
-        <span className="text-sm text-gray-600">Selecionar todos</span>
-      </div>
+    <div className="flex items-center justify-end gap-2 bg-white p-4 rounded-lg shadow-sm">
       {hasSelectedPrompts && (
         <div className="flex items-center gap-2">
           {onMove && categories.length > 0 && (
