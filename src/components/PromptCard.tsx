@@ -45,6 +45,16 @@ export const PromptCard = ({
     toast.success("Prompt copiado!");
   };
 
+  const handleAddMaleVoice = () => {
+    onAddComment(prompt.id, "male voice");
+    toast.success("Voz masculina adicionada!");
+  };
+
+  const handleAddFemaleVoice = () => {
+    onAddComment(prompt.id, "female voice");
+    toast.success("Voz feminina adicionada!");
+  };
+
   const highlightSearchTerm = (text: string, term: string) => {
     if (!term) return text;
     
@@ -81,26 +91,42 @@ export const PromptCard = ({
         <div className="flex items-start gap-1">
           <div className="flex-grow">
             <p className={textClasses}>
-              {hasMaleVoice && (
-                <Music2 className="inline-block w-3 h-3 mr-1 text-blue-600" />
-              )}
-              {hasFemaleVoice && (
-                <Music4 className="inline-block w-3 h-3 mr-1 text-pink-600" />
-              )}
               {highlightSearchTerm(prompt.text, searchTerm)}
             </p>
           </div>
         </div>
 
         <div className="flex items-center justify-between pt-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleCopy}
-            className="h-5 w-5 -ml-1 transition-colors hover:text-blue-600"
-          >
-            <Copy className="h-3 w-3" />
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleCopy}
+              className="h-5 w-5 -ml-1 transition-colors hover:text-blue-600"
+            >
+              <Copy className="h-3 w-3" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleAddMaleVoice}
+              className={`h-5 w-5 transition-colors hover:text-blue-600 ${
+                hasMaleVoice ? 'text-blue-600' : 'text-gray-400'
+              }`}
+            >
+              <Music2 className="h-3 w-3" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleAddFemaleVoice}
+              className={`h-5 w-5 transition-colors hover:text-pink-600 ${
+                hasFemaleVoice ? 'text-pink-600' : 'text-gray-400'
+              }`}
+            >
+              <Music4 className="h-3 w-3" />
+            </Button>
+          </div>
 
           <div className="flex items-center gap-1">
             {prompt.rating > 0 && (
