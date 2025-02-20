@@ -47,11 +47,6 @@ export const PromptCard = ({
     <Card className={cardClasses}>
       <div className="flex flex-col space-y-1">
         <div className="flex items-start gap-1">
-          <Checkbox
-            checked={selected}
-            onCheckedChange={(checked) => onSelect(prompt.id, checked as boolean)}
-            className="h-3.5 w-3.5 mt-0.5"
-          />
           <div className="flex-grow">
             <PromptText 
               text={prompt.text}
@@ -102,6 +97,11 @@ export const PromptCard = ({
               }}
               promptText={prompt.text}
               structures={structures}
+            />
+            <Checkbox
+              checked={selected}
+              onCheckedChange={(checked) => onSelect(prompt.id, checked as boolean)}
+              className="h-3.5 w-3.5"
             />
           </div>
         </div>
