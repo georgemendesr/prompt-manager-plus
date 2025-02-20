@@ -39,14 +39,6 @@ export const PromptCard = ({
   const regularComments = prompt.comments.filter(comment => !comment.startsWith('#') && !comment.startsWith('['));
   const structureRefs = prompt.comments.filter(comment => comment.startsWith('['));
 
-  const hasMaleVoice = regularComments.some(comment => 
-    comment.toLowerCase().includes('male voice')
-  );
-  
-  const hasFemaleVoice = regularComments.some(comment => 
-    comment.toLowerCase().includes('female voice')
-  );
-
   const cardClasses = `${bgColor} backdrop-blur-sm relative sm:text-xs text-xs p-2 ${
     prompt.rating > 0 ? 'ring-1 ring-yellow-400' : 'border-b'
   }`;
@@ -55,6 +47,11 @@ export const PromptCard = ({
     <Card className={cardClasses}>
       <div className="flex flex-col space-y-1">
         <div className="flex items-start gap-1">
+          <Checkbox
+            checked={selected}
+            onCheckedChange={(checked) => onSelect(prompt.id, checked as boolean)}
+            className="h-3.5 w-3.5 mt-0.5"
+          />
           <div className="flex-grow">
             <PromptText 
               text={prompt.text}
@@ -68,10 +65,7 @@ export const PromptCard = ({
           <ActionButtons
             text={prompt.text}
             onAddComment={(comment) => onAddComment(prompt.id, comment)}
-            hasMaleVoice={hasMaleVoice}
-            hasFemaleVoice={hasFemaleVoice}
           />
-
           <div className="flex items-center gap-1">
             {prompt.rating > 0 && (
               <div className="w-3.5 h-3.5 bg-yellow-400 flex items-center justify-center">
@@ -108,11 +102,6 @@ export const PromptCard = ({
               }}
               promptText={prompt.text}
               structures={structures}
-            />
-            <Checkbox
-              checked={selected}
-              onCheckedChange={(checked) => onSelect(prompt.id, checked as boolean)}
-              className="h-3.5 w-3.5"
             />
           </div>
         </div>
