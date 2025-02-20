@@ -10,10 +10,21 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, Trash } from "lucide-react";
 import { ColorPicker } from "./ColorPicker";
 import { HashtagInput } from "./HashtagInput";
 import type { MusicStructure } from "@/types/prompt";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface CommentSectionProps {
   comments: string[];
@@ -23,6 +34,7 @@ interface CommentSectionProps {
   onHashtagAdd: (hashtag: string) => void;
   onStructureAdd?: (structureName: string) => void;
   onEditPrompt?: (newText: string) => void;
+  onDeletePrompt?: () => void;
   promptText?: string;
   structures?: MusicStructure[];
 }
@@ -35,6 +47,7 @@ export const CommentSection = ({
   onHashtagAdd,
   onStructureAdd,
   onEditPrompt,
+  onDeletePrompt,
   promptText,
   structures = []
 }: CommentSectionProps) => {
@@ -75,7 +88,42 @@ export const CommentSection = ({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Adicionar Comentário</DialogTitle>
+            <DialogTitle className="flex justify-between items-center">
+              <span>Adicionar Comentário</span>
+              {onDeletePrompt && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 hover:text-red-600 transition-colors"
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Excluir Prompt</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Tem certeza que deseja excluir este prompt? Esta ação não pode ser desfeita.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => {
+                          onDeletePrompt();
+                          setOpen(false);
+                        }}
+                        className="bg-red-600 hover:bg-red-700"
+                      >
+                        Excluir
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+            </DialogTitle>
           </DialogHeader>
 
           {onEditPrompt && (
