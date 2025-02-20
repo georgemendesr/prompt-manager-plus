@@ -1,7 +1,7 @@
 
 import { Category } from "@/types/prompt";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client"; // Added missing import
+import { supabase } from "@/integrations/supabase/client"; 
 import { addCategoryToDb, updateCategoryInDb, deleteCategoryFromDb } from "@/services/categoryService";
 import { buildCategoryTree, updateTreeWithPrompts, removeCategoryFromTree } from "@/utils/categoryTreeUtils";
 
@@ -9,7 +9,7 @@ type SetCategoriesFunction = React.Dispatch<React.SetStateAction<Category[]>>;
 
 export const useCategoryMutations = (
   categories: Category[],
-  setCategories: SetCategoriesFunction // Updated type
+  setCategories: SetCategoriesFunction
 ) => {
   const addCategory = async (name: string, parentId?: string) => {
     try {
@@ -54,7 +54,6 @@ export const useCategoryMutations = (
         }];
       };
 
-      // Fixed: Now using the correct setState pattern
       setCategories(prev => updateCategoriesTree(prev));
       toast.success('Categoria adicionada com sucesso!');
       return true;
@@ -96,25 +95,47 @@ export const useCategoryMutations = (
 
   const deleteCategory = async (id: string) => {
     try {
-      const hasPrompts = categories.some(category => {
-        const checkPrompts = (cat: Category): boolean => {
-          if (cat.id === id && cat.prompts.length > 0) return true;
-          return cat.subcategories?.some(checkPrompts) || false;
-        };
-        return checkPrompts(category);
-      });
+      // Função auxiliar para verificar recursivamente se há prompts
+      const hasPromptsInCategory = (category: Category): boolean => {
+        if (category.prompts.length > 0) return true;
+        return category.subcategories?.some(hasPromptsInCategory) || false;
+      };
 
-      if (hasPrompts) {
+      // Encontra a categoria a ser deletada
+      const findCategory = (categories: Category[], targetId: string): Category | null => {
+        for (const category of categories) {
+          if (category.id === targetId) return category;
+          if (category.subcategories) {
+            const found = findCategory(category.subcategories, targetId);
+            if (found) return found;
+          }
+        }
+        return null;
+      };
+
+      const categoryToDelete = findCategory(categories, id);
+      if (!categoryToDelete) {
+        toast.error('Categoria não encontrada');
+        return false;
+      }
+
+      if (hasPromptsInCategory(categoryToDelete)) {
         toast.error('Não é possível deletar uma categoria que contém prompts');
         return false;
       }
 
+      console.log('Deletando categoria:', id);
       const { error } = await deleteCategoryFromDb(id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao deletar categoria no banco:', error);
+        throw error;
+      }
 
-      // Fixed: Now using the correct setState pattern
+      // Atualiza o estado local
       setCategories(prev => removeCategoryFromTree(prev, id));
+      
+      console.log('Categoria deletada com sucesso');
       toast.success('Categoria removida com sucesso!');
       return true;
     } catch (error) {
