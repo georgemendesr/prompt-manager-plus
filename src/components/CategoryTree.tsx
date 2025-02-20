@@ -40,13 +40,14 @@ export const CategoryTree = ({
   const [expanded, setExpanded] = useState(true);
   
   return (
-    <div className={`space-y-4 ${level > 0 ? 'ml-6' : ''}`}>
+    <div className="space-y-2">
       <div className={`
-        rounded-lg border
+        rounded-lg border relative
         ${level === 0 ? 'bg-white shadow-sm' : 'bg-gray-50/50 border-gray-100'}
-        ${level === 1 ? 'border-l-4 border-l-purple-400' : ''}
-        ${level === 2 ? 'border-l-4 border-l-blue-400' : ''}
-        ${level >= 3 ? 'border-l-4 border-l-indigo-400' : ''}
+        ${level >= 1 ? 'border-l-4' : ''}
+        ${level === 1 ? 'border-l-purple-400' : ''}
+        ${level === 2 ? 'border-l-blue-400' : ''}
+        ${level >= 3 ? 'border-l-indigo-400' : ''}
       `}>
         <CategoryHeader
           name={category.name}
@@ -76,7 +77,7 @@ export const CategoryTree = ({
             />
 
             {category.subcategories?.map((subcategory) => (
-              <div key={subcategory.id} className="mt-4">
+              <div key={subcategory.id} className="mt-2">
                 <CategoryTree
                   category={subcategory}
                   categories={categories}
