@@ -44,6 +44,10 @@ export const PromptCard = ({
     prompt.rating > 0 ? 'ring-1 ring-yellow-400' : 'border-b'
   }`;
 
+  const handleCheckboxChange = (checked: boolean) => {
+    onSelect(prompt.id, checked);
+  };
+
   return (
     <Card className={cardClasses}>
       <div className="flex flex-col space-y-1">
@@ -100,9 +104,10 @@ export const PromptCard = ({
               structures={structures}
             />
             <Checkbox
+              id={`checkbox-${prompt.id}`}
               checked={selected}
-              onCheckedChange={(checked) => onSelect(prompt.id, checked as boolean)}
-              className="h-3.5 w-3.5"
+              onCheckedChange={handleCheckboxChange}
+              className="h-3.5 w-3.5 cursor-pointer"
             />
           </div>
         </div>
