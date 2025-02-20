@@ -35,22 +35,27 @@ export const PromptCard = ({
 }: PromptCardProps) => {
   const [bgColor, setBgColor] = useState(prompt.backgroundColor || "bg-blue-50/30");
 
-  // Filtragem centralizada de todos os comentários indesejados
-  const systemTags = ['male voice', 'female voice', 'busca', 'selecionar todos'];
-  
-  const hashtags = prompt.comments
-    .filter(comment => comment.startsWith('#'))
-    .filter(tag => !systemTags.some(unwanted => 
-      tag.toLowerCase().includes(unwanted.toLowerCase())
-    ));
+  // Lista única de todas as tags do sistema que devem ser filtradas
+  const systemComments = new Set([
+    'busca',
+    'selecionar todos',
+    'male voice',
+    'female voice',
+    '[color:',
+  ]);
 
-  const regularComments = prompt.comments.filter(comment => {
-    if (comment.startsWith('#')) return false;
-    if (comment.startsWith('[color:')) return false;
-    return !systemTags.some(tag => 
-      comment.toLowerCase().includes(tag.toLowerCase())
-    );
-  });
+  // Função auxiliar para verificar se um comentário é do sistema
+  const isSystemComment = (comment: string) => {
+    const lowerComment = comment.toLowerCase();
+    return Array.from(systemComments).some(tag => lowerComment.includes(tag.toLowerCase()));
+  };
+
+  // Filtragem de hashtags e comentários regulares
+  const hashtags = prompt.comments
+    .filter(comment => comment.startsWith('#') && !isSystemComment(comment));
+
+  const regularComments = prompt.comments
+    .filter(comment => !comment.startsWith('#') && !isSystemComment(comment));
 
   const cardClasses = `${bgColor} backdrop-blur-sm relative sm:text-xs text-xs p-2 ${
     prompt.rating > 0 ? 'ring-1 ring-yellow-400' : 'border-b'
@@ -111,14 +116,11 @@ export const PromptCard = ({
               promptText={prompt.text}
               structures={structures}
             />
-            <div 
-              className="relative inline-flex h-4 w-4 items-center justify-center rounded-sm border cursor-pointer hover:bg-gray-50"
-              onClick={() => onSelect(prompt.id, !selected)}
-            >
+            <div className="h-5 w-5 flex items-center justify-center">
               <Checkbox
                 checked={selected}
                 onCheckedChange={(checked) => onSelect(prompt.id, checked as boolean)}
-                className="h-3.5 w-3.5"
+                className="h-4 w-4 rounded-sm cursor-pointer"
               />
             </div>
           </div>
