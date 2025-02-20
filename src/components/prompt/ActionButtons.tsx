@@ -37,6 +37,7 @@ export const ActionButtons = ({
         size="icon"
         onClick={handleCopy}
         className="h-7 w-7 transition-colors hover:text-blue-600"
+        title="Copiar"
       >
         <Copy className="h-3 w-3" />
       </Button>
@@ -45,6 +46,7 @@ export const ActionButtons = ({
         size="icon"
         onClick={handleAddMaleVoice}
         className="h-7 w-7 transition-colors hover:text-blue-600"
+        title="Voz masculina"
       >
         <Music2 className="h-3 w-3" />
       </Button>
@@ -53,6 +55,7 @@ export const ActionButtons = ({
         size="icon"
         onClick={handleAddFemaleVoice}
         className="h-7 w-7 transition-colors hover:text-pink-600"
+        title="Voz feminina"
       >
         <Music4 className="h-3 w-3" />
       </Button>
