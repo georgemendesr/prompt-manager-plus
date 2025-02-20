@@ -12,19 +12,13 @@ export const PromptComments = ({
   structureRefs, 
   rating 
 }: PromptCommentsProps) => {
-  const unwantedTags = ['male voice', 'female voice', 'busca', 'selecionar todos'];
-  
-  const filteredHashtags = hashtags.filter(tag => {
-    return !unwantedTags.some(unwanted => tag.toLowerCase().includes(unwanted.toLowerCase()));
-  });
-
-  if (filteredHashtags.length === 0 && regularComments.length === 0 && structureRefs.length === 0) {
+  if (hashtags.length === 0 && regularComments.length === 0 && structureRefs.length === 0) {
     return null;
   }
 
   return (
     <div className="flex flex-wrap items-center gap-0.5 pt-1">
-      {filteredHashtags.map((tag, index) => (
+      {hashtags.map((tag, index) => (
         <span
           key={`tag-${index}`}
           className="inline-flex items-center px-2 py-0.5 rounded-full bg-soft-purple text-xs font-medium text-purple-700"

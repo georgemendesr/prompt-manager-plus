@@ -35,13 +35,21 @@ export const PromptCard = ({
 }: PromptCardProps) => {
   const [bgColor, setBgColor] = useState(prompt.backgroundColor || "bg-blue-50/30");
 
-  // Filtragem de comentários - excluindo tags de sistema
-  const systemTags = ['busca', 'selecionar todos'];
-  const hashtags = prompt.comments.filter(comment => comment.startsWith('#'));
+  // Filtragem centralizada de todos os comentários indesejados
+  const systemTags = ['male voice', 'female voice', 'busca', 'selecionar todos'];
+  
+  const hashtags = prompt.comments
+    .filter(comment => comment.startsWith('#'))
+    .filter(tag => !systemTags.some(unwanted => 
+      tag.toLowerCase().includes(unwanted.toLowerCase())
+    ));
+
   const regularComments = prompt.comments.filter(comment => {
     if (comment.startsWith('#')) return false;
     if (comment.startsWith('[color:')) return false;
-    return !systemTags.some(tag => comment.toLowerCase().includes(tag.toLowerCase()));
+    return !systemTags.some(tag => 
+      comment.toLowerCase().includes(tag.toLowerCase())
+    );
   });
 
   const cardClasses = `${bgColor} backdrop-blur-sm relative sm:text-xs text-xs p-2 ${
