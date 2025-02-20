@@ -23,13 +23,17 @@ export const ActionButtons = ({
   };
 
   const handleAddMaleVoice = () => {
-    onAddComment("male voice");
-    toast.success("Voz masculina adicionada!");
+    if (!hasMaleVoice) {
+      onAddComment("male voice");
+      toast.success("Voz masculina adicionada!");
+    }
   };
 
   const handleAddFemaleVoice = () => {
-    onAddComment("female voice");
-    toast.success("Voz feminina adicionada!");
+    if (!hasFemaleVoice) {
+      onAddComment("female voice");
+      toast.success("Voz feminina adicionada!");
+    }
   };
 
   return (
