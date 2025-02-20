@@ -33,11 +33,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         setUser(session?.user ?? null);
         
-        // Only redirect if we're on the auth page and user is logged in
-        if (session?.user && location.pathname === '/auth') {
+        // Redireciona para /prompts se estiver autenticado e em /auth ou /
+        if (session?.user && (location.pathname === '/auth' || location.pathname === '/')) {
           navigate('/prompts');
         } else if (!session?.user && location.pathname.startsWith('/prompts')) {
-          // Only redirect to auth if trying to access protected routes
+          // Redireciona para /auth apenas se tentar acessar rotas protegidas
           navigate('/auth');
         }
       } catch (error) {
@@ -54,13 +54,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       setUser(session?.user ?? null);
       
-      // Only redirect on auth state change if not on home page
-      if (location.pathname !== '/') {
-        if (session?.user) {
-          navigate('/prompts');
-        } else {
-          navigate('/auth');
-        }
+      // Redireciona para /prompts quando autenticado, exceto se já estiver lá
+      if (session?.user && location.pathname !== '/prompts') {
+        navigate('/prompts');
+      } else if (!session?.user && location.pathname.startsWith('/prompts')) {
+        navigate('/auth');
       }
     });
 
