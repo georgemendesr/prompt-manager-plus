@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { toast } from "sonner";
 import { Copy } from "lucide-react";
@@ -56,10 +55,10 @@ export const PromptCard = ({
     });
   };
 
-  const cardClasses = `${bgColor} backdrop-blur-sm transition-all duration-300 relative sm:text-sm text-sm p-4 ${
+  const cardClasses = `${bgColor} backdrop-blur-sm transition-all duration-300 relative sm:text-sm text-sm p-3 ${
     prompt.rating > 0 
-      ? 'ring-1 ring-yellow-400 shadow-md transform hover:-translate-y-0.5 hover:shadow-lg' 
-      : 'hover:shadow-md'
+      ? 'ring-1 ring-yellow-400 shadow-sm hover:shadow' 
+      : 'hover:shadow-sm'
   }`;
 
   const textClasses = `text-gray-800 break-words ${
@@ -70,43 +69,39 @@ export const PromptCard = ({
 
   return (
     <Card className={cardClasses}>
-      <div className="flex flex-col space-y-3">
-        {prompt.rating > 0 && (
-          <div className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center transform rotate-12 shadow-md">
-            <span className="text-white text-xs font-bold">★</span>
-          </div>
-        )}
-        
-        <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-col space-y-2">
+        <div className="flex items-start gap-2">
           <div className="flex-grow">
             <p className={textClasses}>
               {highlightSearchTerm(prompt.text, searchTerm)}
             </p>
           </div>
+          {prompt.rating > 0 && (
+            <div className="flex-shrink-0 w-4 h-4 bg-yellow-400 rounded-full flex items-center justify-center">
+              <span className="text-white text-[10px] font-bold">★</span>
+            </div>
+          )}
         </div>
 
-        <div className="flex items-center justify-between border-t pt-3">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between border-t pt-2">
+          <div className="flex items-center space-x-0.5">
             <Button
               variant="ghost"
               size="icon"
               onClick={handleCopy}
-              className={`h-8 w-8 transition-colors ${
+              className={`h-6 w-6 transition-colors ${
                 prompt.rating > 0 
                   ? 'hover:text-yellow-600 text-yellow-500' 
                   : 'hover:text-blue-600'
               }`}
             >
-              <Copy className="h-4 w-4" />
+              <Copy className="h-3.5 w-3.5" />
             </Button>
             <RatingButtons 
               rating={prompt.rating}
               onRate={(increment) => onRate(prompt.id, increment)}
               backgroundColor={bgColor}
             />
-          </div>
-
-          <div className="flex items-center gap-3">
             <CommentSection
               comments={[]}
               hashtags={hashtags}
@@ -136,17 +131,18 @@ export const PromptCard = ({
             <Checkbox
               checked={selected}
               onCheckedChange={(checked) => onSelect(prompt.id, checked as boolean)}
+              className="h-4 w-4"
             />
           </div>
         </div>
 
         {(hashtags.length > 0 || regularComments.length > 0 || structureRefs.length > 0) && (
-          <div className="flex flex-wrap items-center gap-1.5 pt-2">
+          <div className="flex flex-wrap items-center gap-1 pt-1">
             <HashtagList hashtags={hashtags} />
             {structureRefs.filter(ref => !ref.startsWith('[color:')).map((ref, index) => (
               <div
                 key={`struct-${index}`}
-                className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${
                   prompt.rating > 0 
                     ? 'text-yellow-700 bg-yellow-50 border border-yellow-200' 
                     : 'text-blue-700 bg-blue-50'
@@ -158,7 +154,7 @@ export const PromptCard = ({
             {regularComments.map((comment, index) => (
               <div
                 key={`comment-${index}`}
-                className={`text-xs px-2 py-0.5 rounded-full ${
+                className={`text-xs px-1.5 py-0.5 rounded-full ${
                   prompt.rating > 0 
                     ? 'text-yellow-700 bg-yellow-50 border border-yellow-200' 
                     : 'text-gray-600 bg-soft-gray'
