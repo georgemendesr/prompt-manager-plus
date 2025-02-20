@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { toast } from "sonner";
 import { Copy } from "lucide-react";
@@ -56,7 +57,7 @@ export const PromptCard = ({
   };
 
   const cardClasses = `${bgColor} backdrop-blur-sm relative sm:text-xs text-xs p-2 ${
-    prompt.rating > 0 ? 'ring-1 ring-yellow-400' : ''
+    prompt.rating > 0 ? 'ring-1 ring-yellow-400' : 'border-b'
   }`;
 
   const textClasses = `text-gray-800 break-words line-clamp-2 ${
@@ -76,7 +77,7 @@ export const PromptCard = ({
           </div>
         </div>
 
-        <div className="flex items-center justify-between border-t pt-1">
+        <div className="flex items-center justify-between pt-1">
           <Button
             variant="ghost"
             size="icon"
@@ -139,7 +140,7 @@ export const PromptCard = ({
                 key={`struct-${index}`}
                 className={`text-[10px] font-medium px-1 py-0.5 ${
                   prompt.rating > 0 
-                    ? 'text-yellow-700 bg-yellow-50 border border-yellow-200' 
+                    ? 'text-yellow-700 bg-yellow-50' 
                     : 'text-blue-700 bg-blue-50'
                 }`}
               >
@@ -151,7 +152,7 @@ export const PromptCard = ({
                 key={`comment-${index}`}
                 className={`text-[10px] px-1 py-0.5 ${
                   prompt.rating > 0 
-                    ? 'text-yellow-700 bg-yellow-50 border border-yellow-200' 
+                    ? 'text-yellow-700 bg-yellow-50' 
                     : 'text-gray-600 bg-soft-gray'
                 }`}
               >
