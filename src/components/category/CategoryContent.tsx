@@ -48,7 +48,7 @@ export const CategoryContent = ({
   const orderedPrompts = [...favoritedPrompts, ...unfavoritedPrompts];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {level === 0 && (
         <CategorySearch 
           value={searchTerm} 
@@ -68,21 +68,23 @@ export const CategoryContent = ({
         currentCategoryId={category.id}
       />
 
-      {orderedPrompts.map((prompt) => (
-        <PromptCard
-          key={prompt.id}
-          prompt={prompt}
-          onRate={onRatePrompt}
-          onAddComment={onAddComment}
-          onSelect={onTogglePromptSelection}
-          selected={prompt.selected || false}
-          categories={categories}
-          searchTerm={searchTerm}
-        />
-      ))}
+      <div className="grid gap-6">
+        {orderedPrompts.map((prompt) => (
+          <PromptCard
+            key={prompt.id}
+            prompt={prompt}
+            onRate={onRatePrompt}
+            onAddComment={onAddComment}
+            onSelect={onTogglePromptSelection}
+            selected={prompt.selected || false}
+            categories={categories}
+            searchTerm={searchTerm}
+          />
+        ))}
+      </div>
 
       {orderedPrompts.length === 0 && (!category.subcategories || category.subcategories.length === 0) && (
-        <div className="text-center py-6 text-gray-500 bg-gray-50 rounded-lg">
+        <div className="text-center py-8 text-gray-500 bg-gray-50/50 rounded-lg backdrop-blur-sm">
           {searchTerm ? "Nenhum prompt encontrado" : "Nenhum prompt nesta categoria ainda"}
         </div>
       )}

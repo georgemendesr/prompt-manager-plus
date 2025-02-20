@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { toast } from "sonner";
 import { Copy } from "lucide-react";
@@ -44,7 +43,6 @@ export const PromptCard = ({
     toast.success("Prompt copiado!");
   };
 
-  // Função para destacar o termo de busca no texto
   const highlightSearchTerm = (text: string, term: string) => {
     if (!term) return text;
     
@@ -57,27 +55,21 @@ export const PromptCard = ({
     });
   };
 
-  // Estilização aprimorada para prompts favoritos
-  const cardClasses = `${bgColor} backdrop-blur-sm transition-all duration-300 relative sm:text-base text-sm ${
+  const cardClasses = `${bgColor} backdrop-blur-sm transition-all duration-300 relative sm:text-base text-sm p-6 ${
     prompt.rating > 0 
       ? 'ring-2 ring-yellow-400 shadow-lg transform hover:-translate-y-1 hover:shadow-xl' 
       : 'hover:shadow-lg'
   }`;
 
-  const textClasses = `text-gray-800 break-words ${
+  const textClasses = `text-gray-800 break-words text-lg ${
     prompt.rating > 0 
       ? 'font-semibold bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent' 
       : ''
   }`;
 
   return (
-    <Card 
-      className={cardClasses}
-      style={prompt.rating > 0 ? {
-        background: 'linear-gradient(135deg, rgba(255,246,183,0.4) 0%, rgba(255,250,215,0.4) 100%)'
-      } : undefined}
-    >
-      <div className="flex flex-col p-4 space-y-3">
+    <Card className={cardClasses}>
+      <div className="flex flex-col space-y-4">
         {prompt.rating > 0 && (
           <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center transform rotate-12 shadow-lg">
             <span className="text-white text-xs font-bold">★</span>
@@ -92,8 +84,8 @@ export const PromptCard = ({
           </div>
         </div>
 
-        <div className="flex items-center justify-between border-t pt-3">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between border-t pt-4">
+          <div className="flex items-center gap-3">
             <Button
               variant="ghost"
               size="icon"
@@ -148,12 +140,12 @@ export const PromptCard = ({
         </div>
 
         {(hashtags.length > 0 || regularComments.length > 0 || structureRefs.length > 0) && (
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 pt-2">
             <HashtagList hashtags={hashtags} />
             {structureRefs.filter(ref => !ref.startsWith('[color:')).map((ref, index) => (
               <div
                 key={`struct-${index}`}
-                className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                className={`text-xs font-medium px-3 py-1 rounded-full ${
                   prompt.rating > 0 
                     ? 'text-yellow-700 bg-yellow-50 border border-yellow-200' 
                     : 'text-blue-700 bg-blue-50'
@@ -165,7 +157,7 @@ export const PromptCard = ({
             {regularComments.map((comment, index) => (
               <div
                 key={`comment-${index}`}
-                className={`text-xs px-2 py-0.5 rounded-full ${
+                className={`text-xs px-3 py-1 rounded-full ${
                   prompt.rating > 0 
                     ? 'text-yellow-700 bg-yellow-50 border border-yellow-200' 
                     : 'text-gray-600 bg-soft-gray'
