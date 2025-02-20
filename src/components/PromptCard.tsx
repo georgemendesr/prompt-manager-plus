@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Copy, Mic, MicVocal } from "lucide-react";
+import { Copy, Music2, Music4 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Checkbox } from "./ui/checkbox";
@@ -82,10 +82,10 @@ export const PromptCard = ({
           <div className="flex-grow">
             <p className={textClasses}>
               {hasMaleVoice && (
-                <Mic className="inline-block w-3 h-3 mr-1 text-blue-600" />
+                <Music2 className="inline-block w-3 h-3 mr-1 text-blue-600" />
               )}
               {hasFemaleVoice && (
-                <MicVocal className="inline-block w-3 h-3 mr-1 text-pink-600" />
+                <Music4 className="inline-block w-3 h-3 mr-1 text-pink-600" />
               )}
               {highlightSearchTerm(prompt.text, searchTerm)}
             </p>
