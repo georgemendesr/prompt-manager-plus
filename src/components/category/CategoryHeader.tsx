@@ -1,15 +1,13 @@
 
 import { useState } from "react";
-import { Edit, Trash, ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { AddCategory } from "@/components/AddCategory";
 import type { Category } from "@/types/prompt";
 
@@ -54,24 +52,33 @@ export const CategoryHeader = ({
         </h3>
       </div>
       <div 
-        className="flex items-center gap-2"
-        onClick={(e) => e.stopPropagation()} // Prevent triggering the parent onClick
+        className="flex items-center"
+        onClick={(e) => e.stopPropagation()}
       >
-        <AddCategory
-          mode="edit"
-          initialName={name}
-          initialParentId={category.parentId}
-          onEdit={onEdit}
-          categories={categories}
-        />
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={() => onDelete(category.id)}
-        >
-          <Trash className="h-4 w-4" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild>
+              <AddCategory
+                mode="edit"
+                initialName={name}
+                initialParentId={category.parentId}
+                onEdit={onEdit}
+                categories={categories}
+              />
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-red-600 focus:text-red-600"
+              onClick={() => onDelete(category.id)}
+            >
+              Excluir
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );
