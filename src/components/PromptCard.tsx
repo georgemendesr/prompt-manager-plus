@@ -49,7 +49,7 @@ export const PromptCard = ({
     const parts = text.split(new RegExp(`(${term})`, 'gi'));
     return parts.map((part, i) => {
       if (part.toLowerCase() === term.toLowerCase()) {
-        return <span key={i} className="bg-yellow-200 rounded px-0.5">{part}</span>;
+        return <span key={i} className="bg-yellow-200 px-0.5">{part}</span>;
       }
       return part;
     });
@@ -61,7 +61,7 @@ export const PromptCard = ({
       : 'hover:shadow-sm'
   }`;
 
-  const textClasses = `text-gray-800 break-words ${
+  const textClasses = `text-gray-800 break-words line-clamp-2 ${
     prompt.rating > 0 
       ? 'font-medium bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent' 
       : ''
@@ -76,27 +76,24 @@ export const PromptCard = ({
               {highlightSearchTerm(prompt.text, searchTerm)}
             </p>
           </div>
-          {prompt.rating > 0 && (
-            <div className="flex-shrink-0 w-4 h-4 bg-yellow-400 rounded-full flex items-center justify-center">
-              <span className="text-white text-[10px] font-bold">★</span>
-            </div>
-          )}
         </div>
 
         <div className="flex items-center justify-between border-t pt-2">
-          <div className="flex items-center space-x-0.5">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleCopy}
-              className={`h-6 w-6 transition-colors ${
-                prompt.rating > 0 
-                  ? 'hover:text-yellow-600 text-yellow-500' 
-                  : 'hover:text-blue-600'
-              }`}
-            >
-              <Copy className="h-3.5 w-3.5" />
-            </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleCopy}
+            className="h-6 w-6 transition-colors hover:text-blue-600"
+          >
+            <Copy className="h-3.5 w-3.5" />
+          </Button>
+
+          <div className="flex items-center gap-2">
+            {prompt.rating > 0 && (
+              <div className="w-4 h-4 bg-yellow-400 flex items-center justify-center">
+                <span className="text-white text-[10px] font-bold">★</span>
+              </div>
+            )}
             <RatingButtons 
               rating={prompt.rating}
               onRate={(increment) => onRate(prompt.id, increment)}
@@ -142,7 +139,7 @@ export const PromptCard = ({
             {structureRefs.filter(ref => !ref.startsWith('[color:')).map((ref, index) => (
               <div
                 key={`struct-${index}`}
-                className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${
+                className={`text-xs font-medium px-1.5 py-0.5 ${
                   prompt.rating > 0 
                     ? 'text-yellow-700 bg-yellow-50 border border-yellow-200' 
                     : 'text-blue-700 bg-blue-50'
@@ -154,7 +151,7 @@ export const PromptCard = ({
             {regularComments.map((comment, index) => (
               <div
                 key={`comment-${index}`}
-                className={`text-xs px-1.5 py-0.5 rounded-full ${
+                className={`text-xs px-1.5 py-0.5 ${
                   prompt.rating > 0 
                     ? 'text-yellow-700 bg-yellow-50 border border-yellow-200' 
                     : 'text-gray-600 bg-soft-gray'
