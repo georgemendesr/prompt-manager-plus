@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { CategoryHeader } from "./category/CategoryHeader";
 import { CategoryContent } from "./category/CategoryContent";
@@ -42,12 +41,8 @@ export const CategoryTree = ({
   return (
     <div className="space-y-2">
       <div className={`
-        rounded-lg border relative
+        border relative
         ${level === 0 ? 'bg-white shadow-sm' : 'bg-gray-50/50 border-gray-100'}
-        ${level >= 1 ? 'border-l-4' : ''}
-        ${level === 1 ? 'border-l-purple-400' : ''}
-        ${level === 2 ? 'border-l-blue-400' : ''}
-        ${level >= 3 ? 'border-l-indigo-400' : ''}
       `}>
         <CategoryHeader
           name={category.name}

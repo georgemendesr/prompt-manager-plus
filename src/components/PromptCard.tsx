@@ -55,10 +55,8 @@ export const PromptCard = ({
     });
   };
 
-  const cardClasses = `${bgColor} backdrop-blur-sm transition-all duration-300 relative sm:text-sm text-sm p-3 ${
-    prompt.rating > 0 
-      ? 'ring-1 ring-yellow-400 shadow-sm hover:shadow' 
-      : 'hover:shadow-sm'
+  const cardClasses = `${bgColor} backdrop-blur-sm relative sm:text-xs text-xs p-2 ${
+    prompt.rating > 0 ? 'ring-1 ring-yellow-400' : ''
   }`;
 
   const textClasses = `text-gray-800 break-words line-clamp-2 ${
@@ -69,8 +67,8 @@ export const PromptCard = ({
 
   return (
     <Card className={cardClasses}>
-      <div className="flex flex-col space-y-2">
-        <div className="flex items-start gap-2">
+      <div className="flex flex-col space-y-1">
+        <div className="flex items-start gap-1">
           <div className="flex-grow">
             <p className={textClasses}>
               {highlightSearchTerm(prompt.text, searchTerm)}
@@ -78,20 +76,20 @@ export const PromptCard = ({
           </div>
         </div>
 
-        <div className="flex items-center justify-between border-t pt-2">
+        <div className="flex items-center justify-between border-t pt-1">
           <Button
             variant="ghost"
             size="icon"
             onClick={handleCopy}
-            className="h-6 w-6 transition-colors hover:text-blue-600"
+            className="h-5 w-5 -ml-1 transition-colors hover:text-blue-600"
           >
-            <Copy className="h-3.5 w-3.5" />
+            <Copy className="h-3 w-3" />
           </Button>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             {prompt.rating > 0 && (
-              <div className="w-4 h-4 bg-yellow-400 flex items-center justify-center">
-                <span className="text-white text-[10px] font-bold">★</span>
+              <div className="w-3.5 h-3.5 bg-yellow-400 flex items-center justify-center">
+                <span className="text-white text-[8px] font-bold">★</span>
               </div>
             )}
             <RatingButtons 
@@ -128,18 +126,18 @@ export const PromptCard = ({
             <Checkbox
               checked={selected}
               onCheckedChange={(checked) => onSelect(prompt.id, checked as boolean)}
-              className="h-4 w-4"
+              className="h-3.5 w-3.5"
             />
           </div>
         </div>
 
         {(hashtags.length > 0 || regularComments.length > 0 || structureRefs.length > 0) && (
-          <div className="flex flex-wrap items-center gap-1 pt-1">
+          <div className="flex flex-wrap items-center gap-0.5 pt-1">
             <HashtagList hashtags={hashtags} />
             {structureRefs.filter(ref => !ref.startsWith('[color:')).map((ref, index) => (
               <div
                 key={`struct-${index}`}
-                className={`text-xs font-medium px-1.5 py-0.5 ${
+                className={`text-[10px] font-medium px-1 py-0.5 ${
                   prompt.rating > 0 
                     ? 'text-yellow-700 bg-yellow-50 border border-yellow-200' 
                     : 'text-blue-700 bg-blue-50'
@@ -151,7 +149,7 @@ export const PromptCard = ({
             {regularComments.map((comment, index) => (
               <div
                 key={`comment-${index}`}
-                className={`text-xs px-1.5 py-0.5 ${
+                className={`text-[10px] px-1 py-0.5 ${
                   prompt.rating > 0 
                     ? 'text-yellow-700 bg-yellow-50 border border-yellow-200' 
                     : 'text-gray-600 bg-soft-gray'
