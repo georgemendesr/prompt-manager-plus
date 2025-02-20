@@ -22,18 +22,16 @@ export const ActionButtons = ({
     toast.success("Prompt copiado!");
   };
 
-  const handleAddMaleVoice = () => {
-    if (!hasMaleVoice) {
-      onAddComment("male voice");
-      toast.success("Voz masculina adicionada!");
-    }
+  const handleAddMaleVoice = async () => {
+    const textToCopy = `português, brasil\n${text}\nmale voice`;
+    await navigator.clipboard.writeText(textToCopy);
+    toast.success("Prompt copiado com voz masculina!");
   };
 
-  const handleAddFemaleVoice = () => {
-    if (!hasFemaleVoice) {
-      onAddComment("female voice");
-      toast.success("Voz feminina adicionada!");
-    }
+  const handleAddFemaleVoice = async () => {
+    const textToCopy = `português, brasil\n${text}\nfemale voice`;
+    await navigator.clipboard.writeText(textToCopy);
+    toast.success("Prompt copiado com voz feminina!");
   };
 
   return (
@@ -50,9 +48,7 @@ export const ActionButtons = ({
         variant="ghost"
         size="icon"
         onClick={handleAddMaleVoice}
-        className={`h-7 w-7 transition-colors hover:text-blue-600 ${
-          hasMaleVoice ? 'text-blue-600' : 'text-gray-400'
-        }`}
+        className="h-7 w-7 transition-colors hover:text-blue-600"
       >
         <Music2 className="h-3 w-3" />
       </Button>
@@ -60,9 +56,7 @@ export const ActionButtons = ({
         variant="ghost"
         size="icon"
         onClick={handleAddFemaleVoice}
-        className={`h-7 w-7 transition-colors hover:text-pink-600 ${
-          hasFemaleVoice ? 'text-pink-600' : 'text-gray-400'
-        }`}
+        className="h-7 w-7 transition-colors hover:text-pink-600"
       >
         <Music4 className="h-3 w-3" />
       </Button>
