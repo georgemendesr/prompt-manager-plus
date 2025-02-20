@@ -97,12 +97,12 @@ export const PromptCard = ({
         </div>
 
         <div className="flex items-center justify-between pt-1">
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="icon"
               onClick={handleCopy}
-              className="h-5 w-5 -ml-1 transition-colors hover:text-blue-600"
+              className="h-7 w-7 transition-colors hover:text-blue-600"
             >
               <Copy className="h-3 w-3" />
             </Button>
@@ -110,7 +110,7 @@ export const PromptCard = ({
               variant="ghost"
               size="icon"
               onClick={handleAddMaleVoice}
-              className={`h-5 w-5 transition-colors hover:text-blue-600 ${
+              className={`h-7 w-7 transition-colors hover:text-blue-600 ${
                 hasMaleVoice ? 'text-blue-600' : 'text-gray-400'
               }`}
             >
@@ -120,7 +120,7 @@ export const PromptCard = ({
               variant="ghost"
               size="icon"
               onClick={handleAddFemaleVoice}
-              className={`h-5 w-5 transition-colors hover:text-pink-600 ${
+              className={`h-7 w-7 transition-colors hover:text-pink-600 ${
                 hasFemaleVoice ? 'text-pink-600' : 'text-gray-400'
               }`}
             >
