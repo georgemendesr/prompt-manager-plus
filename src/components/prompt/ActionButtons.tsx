@@ -19,15 +19,15 @@ export const ActionButtons = ({
   };
 
   const handleAddMaleVoice = async () => {
-    const textToCopy = `português, brasil\n${text}`;
+    const textToCopy = `male voice\nportuguês, brasil\n${text}`;
     await navigator.clipboard.writeText(textToCopy);
-    toast.success("Prompt copiado!");
+    toast.success("Prompt copiado com voz masculina!");
   };
 
   const handleAddFemaleVoice = async () => {
-    const textToCopy = `português, brasil\n${text}`;
+    const textToCopy = `female voice\nportuguês, brasil\n${text}`;
     await navigator.clipboard.writeText(textToCopy);
-    toast.success("Prompt copiado!");
+    toast.success("Prompt copiado com voz feminina!");
   };
 
   return (
