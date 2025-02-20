@@ -16,7 +16,7 @@ export const PromptComments = ({
   
   // Filtra os comentários mantendo as tags de cor
   const filteredComments = regularComments.filter(comment => {
-    if (comment.startsWith('[color:')) return true; // Mantém tags de cor
+    if (comment.startsWith('[color:')) return false; // Remove tags de cor
     return !unwantedTags.some(tag => comment.includes(tag)); // Remove outras tags do sistema
   });
 

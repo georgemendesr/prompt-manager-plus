@@ -37,7 +37,7 @@ export const PromptCard = ({
 
   const hashtags = prompt.comments.filter(comment => comment.startsWith('#'));
   const regularComments = prompt.comments.filter(comment => 
-    !comment.startsWith('#') && !comment.startsWith('[color:')
+    !comment.startsWith('#') && !comment.includes('busca') && !comment.includes('selecionar todos')
   );
 
   const cardClasses = `${bgColor} backdrop-blur-sm relative sm:text-xs text-xs p-2 ${
@@ -103,12 +103,14 @@ export const PromptCard = ({
               promptText={prompt.text}
               structures={structures}
             />
-            <Checkbox
-              id={`checkbox-${prompt.id}`}
-              checked={selected}
-              onCheckedChange={handleCheckboxChange}
-              className="h-3.5 w-3.5 cursor-pointer"
-            />
+            <div className="cursor-pointer">
+              <Checkbox
+                id={`checkbox-${prompt.id}`}
+                checked={selected}
+                onCheckedChange={handleCheckboxChange}
+                className="h-3.5 w-3.5"
+              />
+            </div>
           </div>
         </div>
 
