@@ -35,18 +35,18 @@ export const PromptCard = ({
 }: PromptCardProps) => {
   const [bgColor, setBgColor] = useState(prompt.backgroundColor || "bg-blue-50/30");
 
+  // Filtragem de comentários - excluindo tags de sistema
+  const systemTags = ['busca', 'selecionar todos'];
   const hashtags = prompt.comments.filter(comment => comment.startsWith('#'));
-  const regularComments = prompt.comments.filter(comment => 
-    !comment.startsWith('#') && !comment.includes('busca') && !comment.includes('selecionar todos')
-  );
+  const regularComments = prompt.comments.filter(comment => {
+    if (comment.startsWith('#')) return false;
+    if (comment.startsWith('[color:')) return false;
+    return !systemTags.some(tag => comment.toLowerCase().includes(tag.toLowerCase()));
+  });
 
   const cardClasses = `${bgColor} backdrop-blur-sm relative sm:text-xs text-xs p-2 ${
     prompt.rating > 0 ? 'ring-1 ring-yellow-400' : 'border-b'
   }`;
-
-  const handleCheckboxChange = (checked: boolean) => {
-    onSelect(prompt.id, checked);
-  };
 
   return (
     <Card className={cardClasses}>
@@ -103,11 +103,13 @@ export const PromptCard = ({
               promptText={prompt.text}
               structures={structures}
             />
-            <div className="cursor-pointer">
+            <div 
+              className="relative inline-flex h-4 w-4 items-center justify-center rounded-sm border cursor-pointer hover:bg-gray-50"
+              onClick={() => onSelect(prompt.id, !selected)}
+            >
               <Checkbox
-                id={`checkbox-${prompt.id}`}
                 checked={selected}
-                onCheckedChange={handleCheckboxChange}
+                onCheckedChange={(checked) => onSelect(prompt.id, checked as boolean)}
                 className="h-3.5 w-3.5"
               />
             </div>

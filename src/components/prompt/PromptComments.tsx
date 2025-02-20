@@ -14,17 +14,11 @@ export const PromptComments = ({
 }: PromptCommentsProps) => {
   const unwantedTags = ['male voice', 'female voice', 'busca', 'selecionar todos'];
   
-  // Filtra os comentários mantendo as tags de cor
-  const filteredComments = regularComments.filter(comment => {
-    if (comment.startsWith('[color:')) return false; // Remove tags de cor
-    return !unwantedTags.some(tag => comment.includes(tag)); // Remove outras tags do sistema
-  });
-
   const filteredHashtags = hashtags.filter(tag => {
-    return !unwantedTags.some(unwanted => tag.includes(unwanted));
+    return !unwantedTags.some(unwanted => tag.toLowerCase().includes(unwanted.toLowerCase()));
   });
 
-  if (filteredHashtags.length === 0 && filteredComments.length === 0 && structureRefs.length === 0) {
+  if (filteredHashtags.length === 0 && regularComments.length === 0 && structureRefs.length === 0) {
     return null;
   }
 
@@ -50,7 +44,7 @@ export const PromptComments = ({
           {ref}
         </div>
       ))}
-      {filteredComments.map((comment, index) => (
+      {regularComments.map((comment, index) => (
         <div
           key={`comment-${index}`}
           className={`text-[10px] px-1 py-0.5 ${
