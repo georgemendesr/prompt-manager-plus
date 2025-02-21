@@ -1,4 +1,3 @@
-
 import { Category } from "@/types/prompt";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client"; 
@@ -124,35 +123,25 @@ export const useCategoryMutations = (
         return false;
       }
 
-      // Primeiro, deletamos qualquer subcategoria
-      const deleteSubcategoriesRecursively = async (categoryId: string) => {
-        const category = findCategory(categories, categoryId);
-        if (!category) return;
-
-        // Deletar subcategorias recursivamente
-        if (category.subcategories) {
-          for (const subcategory of category.subcategories) {
-            await deleteSubcategoriesRecursively(subcategory.id);
-          }
-        }
-
-        // Deletar a categoria atual
-        const { error } = await supabase
-          .from('categories')
-          .delete()
-          .eq('id', categoryId);
-
-        if (error) {
-          console.error('Erro ao deletar subcategoria:', error);
-          throw error;
-        }
-      };
-
       console.log('Iniciando deleção da categoria:', id);
-      await deleteSubcategoriesRecursively(id);
+      const { error } = await deleteCategoryFromDb(id);
 
-      // Atualiza o estado local
-      setCategories(prev => removeCategoryFromTree(prev, id));
+      if (error) {
+        console.error('Erro ao deletar categoria:', error);
+        throw error;
+      }
+
+      // Recarrega as categorias do banco para garantir consistência
+      const { data: updatedCategories, error: fetchError } = await supabase
+        .from('categories')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (fetchError) throw fetchError;
+
+      const categoryTree = buildCategoryTree(updatedCategories || []);
+      const updatedTree = updateTreeWithPrompts(categoryTree, categories);
+      setCategories(updatedTree);
       
       console.log('Categoria deletada com sucesso');
       toast.success('Categoria removida com sucesso!');

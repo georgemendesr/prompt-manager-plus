@@ -41,6 +41,20 @@ export const updateCategoryInDb = async (id: string, name: string, parentId: str
 };
 
 export const deleteCategoryFromDb = async (id: string) => {
+  // Primeiro busca todas as subcategorias
+  const { data: subcategories } = await supabase
+    .from('categories')
+    .select('id')
+    .eq('parent_id', id);
+    
+  // Deleta recursivamente todas as subcategorias
+  if (subcategories && subcategories.length > 0) {
+    for (const sub of subcategories) {
+      await deleteCategoryFromDb(sub.id);
+    }
+  }
+
+  // Finalmente deleta a categoria atual
   return await supabase
     .from('categories')
     .delete()
