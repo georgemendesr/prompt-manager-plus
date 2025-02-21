@@ -124,13 +124,32 @@ export const useCategoryMutations = (
         return false;
       }
 
-      console.log('Deletando categoria:', id);
-      const { error } = await deleteCategoryFromDb(id);
+      // Primeiro, deletamos qualquer subcategoria
+      const deleteSubcategoriesRecursively = async (categoryId: string) => {
+        const category = findCategory(categories, categoryId);
+        if (!category) return;
 
-      if (error) {
-        console.error('Erro ao deletar categoria no banco:', error);
-        throw error;
-      }
+        // Deletar subcategorias recursivamente
+        if (category.subcategories) {
+          for (const subcategory of category.subcategories) {
+            await deleteSubcategoriesRecursively(subcategory.id);
+          }
+        }
+
+        // Deletar a categoria atual
+        const { error } = await supabase
+          .from('categories')
+          .delete()
+          .eq('id', categoryId);
+
+        if (error) {
+          console.error('Erro ao deletar subcategoria:', error);
+          throw error;
+        }
+      };
+
+      console.log('Iniciando deleção da categoria:', id);
+      await deleteSubcategoriesRecursively(id);
 
       // Atualiza o estado local
       setCategories(prev => removeCategoryFromTree(prev, id));
