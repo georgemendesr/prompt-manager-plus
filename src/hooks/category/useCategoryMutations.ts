@@ -1,8 +1,8 @@
+
 import { Category } from "@/types/prompt";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client"; 
-import { addCategoryToDb, updateCategoryInDb, deleteCategoryFromDb } from "@/services/categoryService";
-import { buildCategoryTree, updateTreeWithPrompts, removeCategoryFromTree } from "@/utils/categoryTreeUtils";
+import { addCategoryToDb, updateCategoryInDb, deleteCategoryFromDb, fetchCategories } from "@/services/categoryService";
+import { buildCategoryTree } from "@/utils/categoryTreeUtils";
 
 type SetCategoriesFunction = React.Dispatch<React.SetStateAction<Category[]>>;
 
@@ -72,16 +72,12 @@ export const useCategoryMutations = (
 
       if (error) throw error;
 
-      const { data: updatedCategories, error: fetchError } = await supabase
-        .from('categories')
-        .select('*')
-        .order('created_at', { ascending: true });
-
+      // Recarrega todas as categorias
+      const { data: updatedCategories, error: fetchError } = await fetchCategories();
       if (fetchError) throw fetchError;
 
-      const categoryTree = buildCategoryTree(updatedCategories);
-      const updatedTree = updateTreeWithPrompts(categoryTree, categories);
-      setCategories(updatedTree);
+      const categoryTree = buildCategoryTree(updatedCategories || []);
+      setCategories(categoryTree);
       
       toast.success('Categoria atualizada com sucesso!');
       return true;
@@ -131,17 +127,12 @@ export const useCategoryMutations = (
         throw error;
       }
 
-      // Recarrega as categorias do banco para garantir consistência
-      const { data: updatedCategories, error: fetchError } = await supabase
-        .from('categories')
-        .select('*')
-        .order('created_at', { ascending: true });
-
+      // Recarrega todas as categorias
+      const { data: updatedCategories, error: fetchError } = await fetchCategories();
       if (fetchError) throw fetchError;
 
       const categoryTree = buildCategoryTree(updatedCategories || []);
-      const updatedTree = updateTreeWithPrompts(categoryTree, categories);
-      setCategories(updatedTree);
+      setCategories(categoryTree);
       
       console.log('Categoria deletada com sucesso');
       toast.success('Categoria removida com sucesso!');

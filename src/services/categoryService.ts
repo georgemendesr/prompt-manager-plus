@@ -40,23 +40,45 @@ export const updateCategoryInDb = async (id: string, name: string, parentId: str
     .eq('id', id);
 };
 
-export const deleteCategoryFromDb = async (id: string) => {
-  // Primeiro busca todas as subcategorias
-  const { data: subcategories } = await supabase
+export const getAllSubcategoriesIds = async (categoryId: string): Promise<string[]> => {
+  const { data: subcategories, error } = await supabase
     .from('categories')
     .select('id')
-    .eq('parent_id', id);
-    
-  // Deleta recursivamente todas as subcategorias
-  if (subcategories && subcategories.length > 0) {
-    for (const sub of subcategories) {
-      await deleteCategoryFromDb(sub.id);
-    }
+    .eq('parent_id', categoryId);
+
+  if (error) throw error;
+
+  const ids = [];
+  for (const sub of subcategories || []) {
+    ids.push(sub.id);
+    const subIds = await getAllSubcategoriesIds(sub.id);
+    ids.push(...subIds);
   }
 
-  // Finalmente deleta a categoria atual
-  return await supabase
-    .from('categories')
-    .delete()
-    .eq('id', id);
+  return ids;
+};
+
+export const deleteCategoryFromDb = async (id: string) => {
+  try {
+    // Primeiro, obtém todos os IDs das subcategorias recursivamente
+    const subcategoryIds = await getAllSubcategoriesIds(id);
+    
+    // Adiciona o ID da categoria atual
+    const allCategoryIds = [...subcategoryIds, id];
+    
+    console.log('Deletando categorias:', allCategoryIds);
+
+    // Deleta todas as categorias de uma vez
+    const { error } = await supabase
+      .from('categories')
+      .delete()
+      .in('id', allCategoryIds);
+
+    if (error) throw error;
+
+    return { data: null, error: null };
+  } catch (error) {
+    console.error('Erro ao deletar categorias:', error);
+    return { data: null, error };
+  }
 };
