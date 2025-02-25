@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export const fetchCategories = async () => {
@@ -59,7 +58,6 @@ export const getAllSubcategoriesIds = async (categoryId: string): Promise<string
 };
 
 export const deleteCategoryFromDb = async (id: string) => {
-  const client = supabase;
   try {
     // Primeiro, obtém todos os IDs das subcategorias recursivamente
     const subcategoryIds = await getAllSubcategoriesIds(id);
@@ -69,23 +67,15 @@ export const deleteCategoryFromDb = async (id: string) => {
     
     console.log('Tentando deletar categorias:', allCategoryIds);
 
-    // Inicia uma transação para garantir que todas as operações sejam executadas
-    const { error: deleteError } = await client
+    // Deleta todas as categorias de uma vez
+    const { error } = await supabase
       .from('categories')
       .delete()
       .in('id', allCategoryIds);
 
-    if (deleteError) throw deleteError;
-
-    // Verifica se a categoria foi realmente deletada
-    const { data: checkCategory } = await client
-      .from('categories')
-      .select('id')
-      .eq('id', id)
-      .single();
-
-    if (checkCategory) {
-      throw new Error('A categoria não foi deletada corretamente');
+    if (error) {
+      console.error('Erro do Supabase ao deletar:', error);
+      throw error;
     }
 
     return { data: null, error: null };
