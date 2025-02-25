@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Upload } from "lucide-react";
 import { Button } from "./ui/button";
@@ -23,10 +24,11 @@ export const BulkImport = ({ categories, onImport }: BulkImportProps) => {
   const [open, setOpen] = useState(false);
 
   const handleImport = () => {
+    // Divide o texto usando múltiplos separadores: quebras de linha, ```, ou espaços duplos
     const prompts = text
-      .split("```")
+      .split(/\n{2,}|```|\s{2,}/)
       .map(t => t.trim())
-      .filter(t => t && !t.includes("```")); // Remove empty strings and backticks
+      .filter(t => t && !t.includes("```")); // Remove strings vazias e backticks
 
     if (prompts.length && categoryId) {
       onImport(prompts, categoryId);
@@ -76,7 +78,7 @@ export const BulkImport = ({ categories, onImport }: BulkImportProps) => {
           <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Cole seus prompts aqui, separados por ```"
+            placeholder="Cole seus prompts aqui. Eles podem estar separados por quebras de linha duplas, ```, ou espaços duplos"
             className="min-h-[200px] font-mono"
           />
           <div className="flex justify-end gap-2">

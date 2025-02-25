@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { CategoryHeader } from "./category/CategoryHeader";
 import { CategoryContent } from "./category/CategoryContent";
@@ -36,7 +37,7 @@ export const CategoryTree = ({
   searchTerm = "",
   setSearchTerm = () => {},
 }: CategoryTreeProps) => {
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(level === 0); // Apenas expande o primeiro nível
   
   return (
     <div className="space-y-2">
@@ -50,7 +51,7 @@ export const CategoryTree = ({
           expanded={expanded}
           onToggle={() => setExpanded(!expanded)}
           onEdit={onEditCategory}
-          onDelete={(id) => onDeleteCategory(id)}
+          onDelete={onDeleteCategory}
           categories={categories}
           category={category}
         />

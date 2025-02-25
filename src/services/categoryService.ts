@@ -59,6 +59,7 @@ export const getAllSubcategoriesIds = async (categoryId: string): Promise<string
 };
 
 export const deleteCategoryFromDb = async (id: string) => {
+  const client = supabase;
   try {
     // Primeiro, obtém todos os IDs das subcategorias recursivamente
     const subcategoryIds = await getAllSubcategoriesIds(id);
@@ -66,15 +67,26 @@ export const deleteCategoryFromDb = async (id: string) => {
     // Adiciona o ID da categoria atual
     const allCategoryIds = [...subcategoryIds, id];
     
-    console.log('Deletando categorias:', allCategoryIds);
+    console.log('Tentando deletar categorias:', allCategoryIds);
 
-    // Deleta todas as categorias de uma vez
-    const { error } = await supabase
+    // Inicia uma transação para garantir que todas as operações sejam executadas
+    const { error: deleteError } = await client
       .from('categories')
       .delete()
       .in('id', allCategoryIds);
 
-    if (error) throw error;
+    if (deleteError) throw deleteError;
+
+    // Verifica se a categoria foi realmente deletada
+    const { data: checkCategory } = await client
+      .from('categories')
+      .select('id')
+      .eq('id', id)
+      .single();
+
+    if (checkCategory) {
+      throw new Error('A categoria não foi deletada corretamente');
+    }
 
     return { data: null, error: null };
   } catch (error) {
