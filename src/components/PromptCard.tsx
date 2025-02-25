@@ -35,12 +35,9 @@ export const PromptCard = ({
 }: PromptCardProps) => {
   const [bgColor, setBgColor] = useState(prompt.backgroundColor || "bg-blue-50/30");
 
-  // Filtra comentários do sistema e tags especiais
   const filterComments = (comments: string[]) => {
     return comments.filter(comment => {
       const lowerComment = comment.toLowerCase();
-      
-      // Lista explícita de todas as tags do sistema para remover
       const systemTags = [
         'male voice',
         'female voice',
@@ -50,17 +47,12 @@ export const PromptCard = ({
         'voice:male',
         'voice:female'
       ];
-
-      // Remove qualquer comentário que contenha tags do sistema
-      const isSystemTag = systemTags.some(tag => 
+      return !systemTags.some(tag => 
         lowerComment.includes(tag.toLowerCase())
       );
-
-      return !isSystemTag;
     });
   };
 
-  // Separa os comentários filtrados em hashtags e regulares
   const hashtags = filterComments(
     prompt.comments.filter(comment => comment.startsWith('#'))
   );
@@ -70,7 +62,9 @@ export const PromptCard = ({
   );
 
   const cardClasses = `${bgColor} backdrop-blur-sm relative sm:text-xs text-xs p-2 ${
-    prompt.rating > 0 ? 'ring-1 ring-yellow-400' : 'border-b'
+    prompt.rating > 0 
+      ? 'ring-2 ring-yellow-400 shadow-lg shadow-yellow-100 bg-gradient-to-r from-yellow-50 to-amber-50' 
+      : 'border-b'
   }`;
 
   return (
@@ -93,8 +87,8 @@ export const PromptCard = ({
           />
           <div className="flex items-center gap-1">
             {prompt.rating > 0 && (
-              <div className="w-3.5 h-3.5 bg-yellow-400 flex items-center justify-center">
-                <span className="text-white text-[8px] font-bold">★</span>
+              <div className="w-4 h-4 bg-yellow-400 flex items-center justify-center rounded-full">
+                <span className="text-white text-[10px] font-bold">★</span>
               </div>
             )}
             <RatingButtons 
