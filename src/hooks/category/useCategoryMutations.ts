@@ -1,7 +1,7 @@
 
 import { Category } from "@/types/prompt";
 import { toast } from "sonner";
-import { addCategoryToDb, updateCategoryInDb, deleteCategoryFromDb, fetchCategories } from "@/services/categoryService";
+import { addCategoryToDb, updateCategoryInDb, deleteCategoryFromDb, fetchCategories, fetchPrompts } from "@/services/categoryService";
 import { buildCategoryTree } from "@/utils/categoryTreeUtils";
 
 type SetCategoriesFunction = React.Dispatch<React.SetStateAction<Category[]>>;
@@ -127,12 +127,55 @@ export const useCategoryMutations = (
         throw error;
       }
 
-      // Recarrega todas as categorias
-      const { data: updatedCategories, error: fetchError } = await fetchCategories();
-      if (fetchError) throw fetchError;
+      // Primeiro atualiza o estado local removendo a categoria
+      const removeFromTree = (categories: Category[]): Category[] => {
+        return categories.filter(category => {
+          if (category.id === id) {
+            return false;
+          }
+          if (category.subcategories?.length) {
+            category.subcategories = removeFromTree(category.subcategories);
+          }
+          return true;
+        });
+      };
 
-      const categoryTree = buildCategoryTree(updatedCategories || []);
-      setCategories(categoryTree);
+      setCategories(prevCategories => removeFromTree(prevCategories));
+
+      // Depois recarrega do banco para garantir sincronização
+      const [categoriesResult, promptsResult] = await Promise.all([
+        fetchCategories(),
+        fetchPrompts()
+      ]);
+
+      if (categoriesResult.error || promptsResult.error) {
+        throw categoriesResult.error || promptsResult.error;
+      }
+
+      const categoryTree = buildCategoryTree(categoriesResult.data || []);
+
+      // Adiciona os prompts às categorias
+      const categoriesWithPrompts = categoryTree.map(category => {
+        const categoryPrompts = (promptsResult.data || [])
+          .filter(prompt => prompt.category_id === category.id)
+          .map(prompt => ({
+            id: prompt.id,
+            text: prompt.text,
+            category: category.name,
+            rating: prompt.rating,
+            backgroundColor: prompt.background_color,
+            comments: [],
+            createdAt: new Date(prompt.created_at),
+            selected: false
+          }));
+
+        return {
+          ...category,
+          prompts: categoryPrompts
+        };
+      });
+
+      setCategories(categoriesWithPrompts);
       
       console.log('Categoria deletada com sucesso');
       toast.success('Categoria removida com sucesso!');
