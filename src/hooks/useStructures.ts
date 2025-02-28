@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { MusicStructure } from "@/types/prompt";
@@ -8,6 +8,7 @@ export const useStructures = () => {
   const [structures, setStructures] = useState<MusicStructure[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   const loadStructures = async () => {
     try {
@@ -31,13 +32,25 @@ export const useStructures = () => {
     } catch (error: any) {
       console.error('Erro ao carregar estruturas:', error);
       setLoadError(error?.message || 'Erro de conexão');
-      // Não mostrar toast para evitar múltiplas notificações
-      // Use um fallback de dados vazios
+      // Fallback para dados vazios
       setStructures([]);
     } finally {
       setLoading(false);
     }
   };
+
+  // Adiciona retentativas automáticas se falhar o carregamento inicial
+  useEffect(() => {
+    if (loadError && retryCount < 3) {
+      const timer = setTimeout(() => {
+        console.log(`Tentativa ${retryCount + 1} de recarregar estruturas...`);
+        setRetryCount(prev => prev + 1);
+        loadStructures();
+      }, 2000 * (retryCount + 1)); // Backoff exponencial
+      
+      return () => clearTimeout(timer);
+    }
+  }, [loadError, retryCount]);
 
   const addStructure = async (structureOrStructures: MusicStructure | MusicStructure[]) => {
     try {

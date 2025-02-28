@@ -2,6 +2,13 @@
 import { useState } from "react";
 import { CategoryHeader } from "./category/CategoryHeader";
 import { CategoryContent } from "./category/CategoryContent";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { Category } from "@/types/prompt";
 
 interface CategoryTreeProps {
@@ -39,6 +46,14 @@ export const CategoryTree = ({
 }: CategoryTreeProps) => {
   // Apenas expande o primeiro nível (nível 0), todos os outros níveis começam recolhidos
   const [expanded, setExpanded] = useState(level === 0);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | undefined>(undefined);
+  
+  const hasSubcategories = Boolean(category.subcategories?.length);
+  
+  // Encontrar a subcategoria selecionada
+  const selectedCategory = selectedSubcategory 
+    ? category.subcategories?.find(sub => sub.id === selectedSubcategory) 
+    : undefined;
   
   return (
     <div className="space-y-2">
@@ -48,7 +63,7 @@ export const CategoryTree = ({
       `}>
         <CategoryHeader
           name={category.name}
-          hasSubcategories={Boolean(category.subcategories?.length)}
+          hasSubcategories={hasSubcategories}
           expanded={expanded}
           onToggle={() => setExpanded(!expanded)}
           onEdit={onEditCategory}
@@ -73,26 +88,51 @@ export const CategoryTree = ({
               onDeleteSelectedPrompts={onDeleteSelectedPrompts}
             />
 
-            {category.subcategories?.map((subcategory) => (
-              <div key={subcategory.id} className="mt-2">
-                <CategoryTree
-                  category={subcategory}
-                  categories={categories}
-                  onRatePrompt={onRatePrompt}
-                  onAddComment={onAddComment}
-                  onEditPrompt={onEditPrompt}
-                  onMovePrompt={onMovePrompt}
-                  onTogglePromptSelection={onTogglePromptSelection}
-                  onToggleSelectAll={onToggleSelectAll}
-                  onDeleteSelectedPrompts={onDeleteSelectedPrompts}
-                  onEditCategory={onEditCategory}
-                  onDeleteCategory={onDeleteCategory}
-                  level={level + 1}
-                  searchTerm={searchTerm}
-                  setSearchTerm={setSearchTerm}
-                />
+            {hasSubcategories && (
+              <div className="mt-4 border-t pt-4">
+                <div className="mb-4">
+                  <h4 className="text-sm font-medium mb-2">Subcategorias</h4>
+                  <Select 
+                    value={selectedSubcategory} 
+                    onValueChange={(value) => {
+                      setSelectedSubcategory(value);
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecione uma subcategoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {category.subcategories?.map((subcategory) => (
+                        <SelectItem key={subcategory.id} value={subcategory.id}>
+                          {subcategory.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {selectedCategory && (
+                  <div className="mt-2 border p-2 rounded-md bg-white">
+                    <CategoryTree
+                      category={selectedCategory}
+                      categories={categories}
+                      onRatePrompt={onRatePrompt}
+                      onAddComment={onAddComment}
+                      onEditPrompt={onEditPrompt}
+                      onMovePrompt={onMovePrompt}
+                      onTogglePromptSelection={onTogglePromptSelection}
+                      onToggleSelectAll={onToggleSelectAll}
+                      onDeleteSelectedPrompts={onDeleteSelectedPrompts}
+                      onEditCategory={onEditCategory}
+                      onDeleteCategory={onDeleteCategory}
+                      level={level + 1}
+                      searchTerm={searchTerm}
+                      setSearchTerm={setSearchTerm}
+                    />
+                  </div>
+                )}
               </div>
-            ))}
+            )}
           </div>
         )}
       </div>
