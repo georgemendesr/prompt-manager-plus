@@ -35,6 +35,7 @@ const Prompts = () => {
   const {
     structures,
     loading: structuresLoading,
+    loadError: structuresLoadError,
     loadStructures,
     addStructure,
     editStructure,
@@ -72,7 +73,7 @@ const Prompts = () => {
     loadStructures();
   }, [loadCategories, loadStructures]);
 
-  if (structuresLoading || categoriesLoading) {
+  if (categoriesLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-gray-500">Carregando...</p>
@@ -116,6 +117,7 @@ const Prompts = () => {
             <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 sm:p-6">
               <StructureList 
                 structures={structures} 
+                loadError={structuresLoadError}
                 onAddStructure={addStructure} 
                 onEditStructure={editStructure} 
                 onDeleteStructure={deleteStructure} 

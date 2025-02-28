@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Plus, MessageSquare, Tag, Star } from "lucide-react";
+import { Plus, MessageSquare, Tag, Star, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,9 +9,11 @@ import { toast } from "sonner";
 import type { MusicStructure } from "@/types/prompt";
 import { StructureItem } from "./StructureItem";
 import { BulkImportStructure } from "./BulkImportStructure";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface StructureListProps {
   structures: MusicStructure[];
+  loadError?: string | null;
   onAddStructure: (structureOrStructures: MusicStructure | MusicStructure[]) => void;
   onEditStructure: (id: string, structure: MusicStructure) => void;
   onDeleteStructure: (id: string) => void;
@@ -19,6 +21,7 @@ interface StructureListProps {
 
 export const StructureList = ({ 
   structures, 
+  loadError,
   onAddStructure, 
   onEditStructure,
   onDeleteStructure 
@@ -49,7 +52,6 @@ export const StructureList = ({
     onAddStructure(structure);
     setNewStructure({ name: "", description: "", tags: "", effect: "" });
     setIsAdding(false);
-    toast.success("Estrutura adicionada com sucesso!");
   };
 
   return (
@@ -64,6 +66,15 @@ export const StructureList = ({
           </Button>
         </div>
       </div>
+
+      {loadError && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Erro ao carregar estruturas. Você pode continuar usando o aplicativo, mas as estruturas não estão disponíveis no momento.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {isAdding && (
         <Card className="p-4 space-y-4 mb-6">
@@ -90,31 +101,39 @@ export const StructureList = ({
       )}
 
       <div className="grid gap-4">
-        <div className="grid grid-cols-3 gap-6 px-4 py-2 bg-gray-100 rounded-lg font-semibold text-sm">
-          <div className="flex items-center gap-2">
-            <MessageSquare className="h-4 w-4 text-gray-500" />
-            Prompt
-          </div>
-          <div className="flex items-center gap-2">
-            <Tag className="h-4 w-4 text-gray-500" />
-            Explicação simples (até 5 tags)
-          </div>
-          <div className="flex items-center gap-2">
-            <Star className="h-4 w-4 text-gray-500" />
-            Importância
-          </div>
-        </div>
+        {structures.length > 0 ? (
+          <>
+            <div className="grid grid-cols-3 gap-6 px-4 py-2 bg-gray-100 rounded-lg font-semibold text-sm">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4 text-gray-500" />
+                Prompt
+              </div>
+              <div className="flex items-center gap-2">
+                <Tag className="h-4 w-4 text-gray-500" />
+                Explicação simples (até 5 tags)
+              </div>
+              <div className="flex items-center gap-2">
+                <Star className="h-4 w-4 text-gray-500" />
+                Importância
+              </div>
+            </div>
 
-        {structures.map((structure) => (
-          <StructureItem
-            key={structure.id}
-            structure={structure}
-            onEdit={onEditStructure}
-            onDelete={onDeleteStructure}
-            editingId={editingId}
-            setEditingId={setEditingId}
-          />
-        ))}
+            {structures.map((structure) => (
+              <StructureItem
+                key={structure.id}
+                structure={structure}
+                onEdit={onEditStructure}
+                onDelete={onDeleteStructure}
+                editingId={editingId}
+                setEditingId={setEditingId}
+              />
+            ))}
+          </>
+        ) : !loadError ? (
+          <div className="text-center py-8 bg-gray-50 rounded-lg text-gray-500">
+            Nenhuma estrutura encontrada. Crie uma nova estrutura ou importe algumas para começar.
+          </div>
+        ) : null}
       </div>
     </div>
   );
