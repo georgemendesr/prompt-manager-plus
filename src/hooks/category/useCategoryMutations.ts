@@ -1,7 +1,7 @@
 
 import { Category } from "@/types/prompt";
 import { toast } from "sonner";
-import { addCategoryToDb, updateCategoryInDb, deleteCategoryFromDb, fetchCategories, fetchPrompts } from "@/services/categoryService";
+import { addCategoryToDb, updateCategoryInDb, deleteCategoryFromDb, fetchCategories, fetchPrompts, fetchComments } from "@/services/categoryService";
 import { buildCategoryTree } from "@/utils/categoryTreeUtils";
 
 type SetCategoriesFunction = React.Dispatch<React.SetStateAction<Category[]>>;
@@ -90,91 +90,59 @@ export const useCategoryMutations = (
 
   const deleteCategory = async (id: string) => {
     try {
-      // Função auxiliar para verificar recursivamente se há prompts
-      const hasPromptsInCategory = (category: Category): boolean => {
-        if (category.prompts.length > 0) return true;
-        return category.subcategories?.some(hasPromptsInCategory) || false;
-      };
-
-      // Encontra a categoria a ser deletada
-      const findCategory = (categories: Category[], targetId: string): Category | null => {
-        for (const category of categories) {
-          if (category.id === targetId) return category;
-          if (category.subcategories) {
-            const found = findCategory(category.subcategories, targetId);
-            if (found) return found;
-          }
-        }
-        return null;
-      };
-
-      const categoryToDelete = findCategory(categories, id);
-      if (!categoryToDelete) {
-        toast.error('Categoria não encontrada');
-        return false;
-      }
-
-      if (hasPromptsInCategory(categoryToDelete)) {
-        toast.error('Não é possível deletar uma categoria que contém prompts');
-        return false;
-      }
-
       console.log('Iniciando deleção da categoria:', id);
-      const { error } = await deleteCategoryFromDb(id);
+      const { error, promptsCount } = await deleteCategoryFromDb(id);
 
       if (error) {
+        if (promptsCount) {
+          toast.error('Não é possível deletar uma categoria que contém prompts');
+          return false;
+        }
         console.error('Erro ao deletar categoria:', error);
         throw error;
       }
 
-      // Primeiro atualiza o estado local removendo a categoria
-      const removeFromTree = (categories: Category[]): Category[] => {
-        return categories.filter(category => {
-          if (category.id === id) {
-            return false;
-          }
-          if (category.subcategories?.length) {
-            category.subcategories = removeFromTree(category.subcategories);
-          }
-          return true;
+      // Força o recarregamento completo das categorias para garantir sincronização
+      const [categoriesResult, promptsResult, commentsResult] = await Promise.all([
+        fetchCategories(),
+        fetchPrompts(),
+        fetchComments()
+      ]);
+
+      if (categoriesResult.error || promptsResult.error || commentsResult.error) {
+        throw categoriesResult.error || promptsResult.error || commentsResult.error;
+      }
+
+      // Reconstrói a árvore de categorias
+      const categoryTree = buildCategoryTree(categoriesResult.data || []);
+
+      // Adiciona os prompts às categorias reconstruídas
+      const addPromptsToCategories = (categories: Category[]) => {
+        return categories.map(category => {
+          const categoryPrompts = (promptsResult.data || [])
+            .filter(prompt => prompt.category_id === category.id)
+            .map(prompt => ({
+              id: prompt.id,
+              text: prompt.text,
+              category: category.name,
+              rating: prompt.rating,
+              backgroundColor: prompt.background_color,
+              comments: (commentsResult.data || [])
+                .filter(comment => comment.prompt_id === prompt.id)
+                .map(comment => comment.text),
+              createdAt: new Date(prompt.created_at),
+              selected: false
+            }));
+
+          return {
+            ...category,
+            prompts: categoryPrompts,
+            subcategories: category.subcategories ? addPromptsToCategories(category.subcategories) : []
+          };
         });
       };
 
-      setCategories(prevCategories => removeFromTree(prevCategories));
-
-      // Depois recarrega do banco para garantir sincronização
-      const [categoriesResult, promptsResult] = await Promise.all([
-        fetchCategories(),
-        fetchPrompts()
-      ]);
-
-      if (categoriesResult.error || promptsResult.error) {
-        throw categoriesResult.error || promptsResult.error;
-      }
-
-      const categoryTree = buildCategoryTree(categoriesResult.data || []);
-
-      // Adiciona os prompts às categorias
-      const categoriesWithPrompts = categoryTree.map(category => {
-        const categoryPrompts = (promptsResult.data || [])
-          .filter(prompt => prompt.category_id === category.id)
-          .map(prompt => ({
-            id: prompt.id,
-            text: prompt.text,
-            category: category.name,
-            rating: prompt.rating,
-            backgroundColor: prompt.background_color,
-            comments: [],
-            createdAt: new Date(prompt.created_at),
-            selected: false
-          }));
-
-        return {
-          ...category,
-          prompts: categoryPrompts
-        };
-      });
-
+      const categoriesWithPrompts = addPromptsToCategories(categoryTree);
       setCategories(categoriesWithPrompts);
       
       console.log('Categoria deletada com sucesso');

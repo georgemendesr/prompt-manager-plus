@@ -14,8 +14,6 @@ export const useCategories = () => {
   const { addCategory, editCategory, deleteCategory } = useCategoryMutations(categories, setCategories);
 
   const loadCategories = useCallback(async () => {
-    if (initialized) return;
-    
     try {
       setLoading(true);
       console.log('Iniciando carregamento de dados...');

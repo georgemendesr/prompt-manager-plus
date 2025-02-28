@@ -68,6 +68,27 @@ export const deleteCategoryFromDb = async (id: string) => {
     
     console.log('Tentando deletar categorias:', allCategoryIds);
 
+    // Check for prompts in these categories
+    const { data: promptsData, error: promptsError } = await supabase
+      .from('prompts')
+      .select('id, category_id')
+      .in('category_id', allCategoryIds);
+    
+    if (promptsError) {
+      console.error('Erro ao verificar prompts:', promptsError);
+      throw promptsError;
+    }
+    
+    // If there are prompts, don't allow deletion
+    if (promptsData && promptsData.length > 0) {
+      console.error('Categorias contêm prompts e não podem ser deletadas');
+      return { 
+        data: null, 
+        error: new Error('Não é possível deletar categorias que contêm prompts'),
+        promptsCount: promptsData.length
+      };
+    }
+
     // Deleta todas as categorias de uma vez
     const { error } = await supabase
       .from('categories')
