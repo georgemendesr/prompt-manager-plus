@@ -24,11 +24,11 @@ export const BulkImport = ({ categories, onImport }: BulkImportProps) => {
   const [open, setOpen] = useState(false);
 
   const handleImport = () => {
-    // Divide o texto usando múltiplos separadores: quebras de linha, ```, ou espaços duplos
+    // Divide o texto usando múltiplos separadores
     const prompts = text
-      .split(/\n{2,}|```|\s{2,}/)
+      .split(/\n{1,}|```|\s{2,}/)  // Quebras de linha simples ou múltiplas, ```, ou espaços duplos
       .map(t => t.trim())
-      .filter(t => t && !t.includes("```")); // Remove strings vazias e backticks
+      .filter(t => t && !t.includes("```") && t.length > 0); // Remove strings vazias e backticks
 
     if (prompts.length && categoryId) {
       onImport(prompts, categoryId);
@@ -78,7 +78,7 @@ export const BulkImport = ({ categories, onImport }: BulkImportProps) => {
           <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Cole seus prompts aqui. Eles podem estar separados por quebras de linha duplas, ```, ou espaços duplos"
+            placeholder="Cole seus prompts aqui. Eles podem estar separados por quebras de linha, ```, ou espaços duplos"
             className="min-h-[200px] font-mono"
           />
           <div className="flex justify-end gap-2">

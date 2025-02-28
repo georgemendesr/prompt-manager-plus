@@ -12,6 +12,7 @@ interface PromptsSectionProps {
   ratePrompt: (id: string, increment: boolean) => void;
   addComment: (id: string, comment: string) => void;
   editPrompt: (id: string, newText: string) => Promise<void>;
+  deletePrompt?: (id: string) => Promise<void>;
   movePrompt: (promptId: string, targetCategoryId: string) => Promise<void>;
   togglePromptSelection: (id: string, selected: boolean) => void;
   toggleSelectAll: (categoryName: string, selected: boolean) => void;
@@ -29,6 +30,7 @@ export const PromptsSection = ({
   ratePrompt,
   addComment,
   editPrompt,
+  deletePrompt,
   movePrompt,
   togglePromptSelection,
   toggleSelectAll,

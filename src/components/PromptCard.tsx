@@ -15,6 +15,7 @@ interface PromptCardProps {
   onRate: (id: string, increment: boolean) => void;
   onAddComment: (id: string, comment: string) => void;
   onEditPrompt?: (id: string, newText: string) => void;
+  onDeletePrompt?: (id: string) => void;
   onSelect: (id: string, selected: boolean) => void;
   selected: boolean;
   structures?: MusicStructure[];
@@ -27,6 +28,7 @@ export const PromptCard = ({
   onRate, 
   onAddComment, 
   onEditPrompt,
+  onDeletePrompt,
   onSelect,
   selected,
   structures = [],
@@ -117,7 +119,9 @@ export const PromptCard = ({
               }}
               onEditPrompt={(newText) => {
                 onEditPrompt?.(prompt.id, newText);
-                toast.success("Prompt atualizado!");
+              }}
+              onDeletePrompt={() => {
+                onDeletePrompt?.(prompt.id);
               }}
               promptText={prompt.text}
               structures={structures}

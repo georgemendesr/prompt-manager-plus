@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export const fetchCategories = async () => {
@@ -81,6 +82,57 @@ export const deleteCategoryFromDb = async (id: string) => {
     return { data: null, error: null };
   } catch (error) {
     console.error('Erro ao deletar categorias:', error);
+    return { data: null, error };
+  }
+};
+
+// Novas funções para gerenciar prompts
+export const deletePromptFromDb = async (id: string) => {
+  try {
+    // Primeiro deletamos todos os comentários associados ao prompt
+    const { error: commentsError } = await supabase
+      .from('comments')
+      .delete()
+      .eq('prompt_id', id);
+    
+    if (commentsError) {
+      console.error('Erro ao deletar comentários:', commentsError);
+      throw commentsError;
+    }
+    
+    // Depois deletamos o prompt
+    const { error } = await supabase
+      .from('prompts')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Erro ao deletar prompt:', error);
+      throw error;
+    }
+    
+    return { data: null, error: null };
+  } catch (error) {
+    console.error('Erro ao deletar prompt:', error);
+    return { data: null, error };
+  }
+};
+
+export const updatePromptInDb = async (id: string, text: string) => {
+  try {
+    const { error } = await supabase
+      .from('prompts')
+      .update({ text: text.trim() })
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Erro ao atualizar prompt:', error);
+      throw error;
+    }
+    
+    return { data: null, error: null };
+  } catch (error) {
+    console.error('Erro ao atualizar prompt:', error);
     return { data: null, error };
   }
 };

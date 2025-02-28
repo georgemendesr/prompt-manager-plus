@@ -37,7 +37,8 @@ export const CategoryTree = ({
   searchTerm = "",
   setSearchTerm = () => {},
 }: CategoryTreeProps) => {
-  const [expanded, setExpanded] = useState(level === 0); // Apenas expande o primeiro nível
+  // Apenas expande o primeiro nível (nível 0), todos os outros níveis começam recolhidos
+  const [expanded, setExpanded] = useState(level === 0);
   
   return (
     <div className="space-y-2">

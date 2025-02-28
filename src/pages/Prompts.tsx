@@ -9,7 +9,7 @@ import { AIChat } from "@/components/ai/AIChat";
 import { usePromptManager } from "@/hooks/usePromptManager";
 import { useStructures } from "@/hooks/useStructures";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { supabase } from "@/integrations/supabase/client";
+import { updatePromptInDb, deletePromptFromDb } from "@/services/categoryService";
 import { toast } from "sonner";
 
 const Prompts = () => {
@@ -43,11 +43,7 @@ const Prompts = () => {
 
   const editPrompt = async (id: string, newText: string) => {
     try {
-      const { error } = await supabase
-        .from('prompts')
-        .update({ text: newText })
-        .eq('id', id);
-
+      const { error } = await updatePromptInDb(id, newText);
       if (error) throw error;
 
       loadCategories();
@@ -55,6 +51,19 @@ const Prompts = () => {
     } catch (error) {
       console.error('Erro ao editar prompt:', error);
       toast.error("Erro ao editar prompt");
+    }
+  };
+
+  const deletePrompt = async (id: string) => {
+    try {
+      const { error } = await deletePromptFromDb(id);
+      if (error) throw error;
+
+      loadCategories();
+      toast.success("Prompt excluído com sucesso!");
+    } catch (error) {
+      console.error('Erro ao excluir prompt:', error);
+      toast.error("Erro ao excluir prompt");
     }
   };
 
@@ -91,6 +100,7 @@ const Prompts = () => {
               ratePrompt={ratePrompt}
               addComment={addComment}
               editPrompt={editPrompt}
+              deletePrompt={deletePrompt}
               movePrompt={movePrompt}
               togglePromptSelection={togglePromptSelection}
               toggleSelectAll={toggleSelectAll}
