@@ -9,6 +9,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 import type { Category } from "@/types/prompt";
 
 interface CategoryTreeProps {
@@ -47,6 +49,7 @@ export const CategoryTree = ({
   // Apenas expande o primeiro nível (nível 0), todos os outros níveis começam recolhidos
   const [expanded, setExpanded] = useState(level === 0);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | undefined>(undefined);
+  const [subcategoryError, setSubcategoryError] = useState<string | null>(null);
   
   const hasSubcategories = Boolean(category.subcategories?.length);
   
@@ -96,6 +99,7 @@ export const CategoryTree = ({
                     value={selectedSubcategory} 
                     onValueChange={(value) => {
                       setSelectedSubcategory(value);
+                      setSubcategoryError(null);
                     }}
                   >
                     <SelectTrigger className="w-full">
@@ -110,6 +114,15 @@ export const CategoryTree = ({
                     </SelectContent>
                   </Select>
                 </div>
+
+                {subcategoryError && (
+                  <Alert variant="destructive" className="mb-4">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      Erro ao carregar subcategoria: {subcategoryError}
+                    </AlertDescription>
+                  </Alert>
+                )}
 
                 {selectedCategory && (
                   <div className="mt-2 border p-2 rounded-md bg-white">

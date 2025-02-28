@@ -8,9 +8,10 @@ import type { Category } from "@/types/prompt";
 export interface PromptManager {
   categories: Category[];
   loading: boolean;
+  loadError: string | null;
   loadCategories: () => Promise<void>;
-  addCategory: (name: string) => Promise<boolean>;
-  editCategory: (id: string, newName: string) => Promise<boolean>;
+  addCategory: (name: string, parentId?: string) => Promise<boolean>;
+  editCategory: (id: string, newName: string, newParentId?: string) => Promise<boolean>;
   deleteCategory: (id: string) => Promise<boolean>;
   ratePrompt: (promptId: string, increment: boolean) => Promise<void>;
   addComment: (promptId: string, comment: string) => Promise<void>;
@@ -26,6 +27,7 @@ export const usePromptManager = (): PromptManager => {
     categories,
     setCategories,
     loading,
+    loadError,
     loadCategories,
     addCategory,
     editCategory,
@@ -51,6 +53,7 @@ export const usePromptManager = (): PromptManager => {
   return {
     categories,
     loading,
+    loadError,
     loadCategories,
     addCategory,
     editCategory,

@@ -9,13 +9,16 @@ import { useCategoryMutations } from "./category/useCategoryMutations";
 export const useCategories = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   const { addCategory, editCategory, deleteCategory } = useCategoryMutations(categories, setCategories);
 
   const loadCategories = useCallback(async () => {
     try {
       setLoading(true);
+      setLoadError(null);
       console.log('Iniciando carregamento de dados...');
       
       const [categoriesResult, promptsResult, commentsResult] = await Promise.all([
@@ -26,15 +29,21 @@ export const useCategories = () => {
 
       if (categoriesResult.error) {
         console.error('Erro ao carregar categorias:', categoriesResult.error);
-        toast.error('Erro ao carregar categorias');
+        setLoadError(categoriesResult.error.message || 'Erro ao carregar categorias');
         setCategories([]);
+        if (!initialized) {
+          toast.error('Erro ao carregar categorias');
+        }
         return;
       }
 
       if (promptsResult.error || commentsResult.error) {
         console.error('Erro ao carregar dados:', promptsResult.error || commentsResult.error);
-        toast.error('Erro ao carregar dados');
+        setLoadError((promptsResult.error || commentsResult.error)?.message || 'Erro ao carregar dados');
         setCategories([]);
+        if (!initialized) {
+          toast.error('Erro ao carregar dados');
+        }
         return;
       }
 
@@ -82,19 +91,41 @@ export const useCategories = () => {
         toast.success('Dados carregados com sucesso!');
         setInitialized(true);
       }
-    } catch (error) {
+      
+      // Reset retry count on successful load
+      setRetryCount(0);
+    } catch (error: any) {
       console.error('Erro ao carregar dados:', error);
-      toast.error('Erro ao conectar com o banco de dados');
+      setLoadError(error?.message || 'Erro de conexão com o banco de dados');
       setCategories([]);
+      
+      // Only show toast on first error
+      if (!loadError) {
+        toast.error('Erro ao conectar com o banco de dados');
+      }
     } finally {
       setLoading(false);
     }
-  }, [initialized]);
+  }, [initialized, loadError]);
+
+  // Auto-retry mechanism
+  useEffect(() => {
+    if (loadError && retryCount < 3) {
+      const timer = setTimeout(() => {
+        console.log(`Tentativa ${retryCount + 1} de recarregar categorias...`);
+        setRetryCount(prev => prev + 1);
+        loadCategories();
+      }, 3000 * (retryCount + 1)); // Backoff exponential
+      
+      return () => clearTimeout(timer);
+    }
+  }, [loadError, retryCount, loadCategories]);
 
   return {
     categories,
     setCategories,
     loading,
+    loadError,
     loadCategories,
     addCategory,
     editCategory,

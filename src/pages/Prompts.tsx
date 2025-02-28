@@ -9,16 +9,21 @@ import { AIChat } from "@/components/ai/AIChat";
 import { usePromptManager } from "@/hooks/usePromptManager";
 import { useStructures } from "@/hooks/useStructures";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle, RefreshCw } from "lucide-react";
 import { updatePromptInDb, deletePromptFromDb } from "@/services/categoryService";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 const Prompts = () => {
   const { signOut } = useAuth();
   const [globalSearchTerm, setGlobalSearchTerm] = useState("");
+  const [connectionError, setConnectionError] = useState<string | null>(null);
 
   const {
     categories,
     loading: categoriesLoading,
+    loadError: categoriesLoadError,
     loadCategories,
     addCategory,
     editCategory,
@@ -68,10 +73,25 @@ const Prompts = () => {
     }
   };
 
+  const handleRetryConnection = () => {
+    setConnectionError(null);
+    loadCategories();
+    loadStructures();
+    toast.info("Tentando reconectar ao banco de dados...");
+  };
+
   useEffect(() => {
     loadCategories();
     loadStructures();
   }, [loadCategories, loadStructures]);
+
+  useEffect(() => {
+    if (categoriesLoadError || structuresLoadError) {
+      setConnectionError(categoriesLoadError || structuresLoadError);
+    } else {
+      setConnectionError(null);
+    }
+  }, [categoriesLoadError, structuresLoadError]);
 
   if (categoriesLoading) {
     return (
@@ -85,6 +105,24 @@ const Prompts = () => {
     <div className="container mx-auto p-2 sm:p-4 relative min-h-screen">
       <div className="max-w-7xl mx-auto">
         <PromptsHeader onSignOut={signOut} />
+        
+        {connectionError && (
+          <Alert variant="destructive" className="my-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Erro de conexão</AlertTitle>
+            <AlertDescription className="flex flex-col gap-2">
+              <p>Não foi possível conectar ao banco de dados: {connectionError}</p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="self-start flex items-center gap-2"
+                onClick={handleRetryConnection}
+              >
+                <RefreshCw className="h-4 w-4" /> Tentar novamente
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
         
         <Tabs defaultValue="prompts" className="w-full">
           <TabsList className="bg-white/60 backdrop-blur-sm mb-4 sm:mb-6 w-full flex">
