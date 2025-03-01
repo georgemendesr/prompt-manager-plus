@@ -14,8 +14,8 @@ export const ActionButtons = ({
 }: ActionButtonsProps) => {
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(`português, brasil\n${text}`);
-      onAddComment("português, brasil");
+      // Just copy the text without adding any tags
+      await navigator.clipboard.writeText(text);
       toast.success("Prompt copiado!");
     } catch (error) {
       toast.error("Erro ao copiar prompt");

@@ -19,6 +19,7 @@ const Prompts = () => {
   const { signOut } = useAuth();
   const [globalSearchTerm, setGlobalSearchTerm] = useState("");
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [isRetrying, setIsRetrying] = useState(false);
 
   const {
     categories,
@@ -73,16 +74,29 @@ const Prompts = () => {
     }
   };
 
-  const handleRetryConnection = () => {
+  const handleRetryConnection = async () => {
+    setIsRetrying(true);
     setConnectionError(null);
-    loadCategories();
-    loadStructures();
-    toast.info("Tentando reconectar ao banco de dados...");
+    
+    try {
+      toast.info("Tentando reconectar ao banco de dados...");
+      
+      // Try to load both categories and structures
+      await Promise.all([
+        loadCategories(),
+        loadStructures()
+      ]);
+      
+      toast.success("Conexão restabelecida com sucesso!");
+    } catch (error) {
+      console.error("Erro ao reconectar:", error);
+      toast.error("Falha ao reconectar. Tente novamente em alguns momentos.");
+    } finally {
+      setIsRetrying(false);
+    }
   };
 
   useEffect(() => {
-    // Esta parte será removida porque já estamos inicializando o carregamento no usePromptManager
-    // loadCategories();
     loadStructures();
   }, [loadStructures]);
 
@@ -118,8 +132,10 @@ const Prompts = () => {
                 size="sm" 
                 className="self-start flex items-center gap-2"
                 onClick={handleRetryConnection}
+                disabled={isRetrying}
               >
-                <RefreshCw className="h-4 w-4" /> Tentar novamente
+                <RefreshCw className={`h-4 w-4 ${isRetrying ? 'animate-spin' : ''}`} /> 
+                {isRetrying ? 'Tentando reconectar...' : 'Tentar novamente'}
               </Button>
             </AlertDescription>
           </Alert>
