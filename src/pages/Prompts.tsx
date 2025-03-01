@@ -81,9 +81,10 @@ const Prompts = () => {
   };
 
   useEffect(() => {
-    loadCategories();
+    // Esta parte será removida porque já estamos inicializando o carregamento no usePromptManager
+    // loadCategories();
     loadStructures();
-  }, [loadCategories, loadStructures]);
+  }, [loadStructures]);
 
   useEffect(() => {
     if (categoriesLoadError || structuresLoadError) {
@@ -93,7 +94,7 @@ const Prompts = () => {
     }
   }, [categoriesLoadError, structuresLoadError]);
 
-  if (categoriesLoading) {
+  if (categoriesLoading && !connectionError) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-gray-500">Carregando...</p>

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CategoryHeader } from "./category/CategoryHeader";
 import { CategoryContent } from "./category/CategoryContent";
 import {
@@ -57,6 +57,11 @@ export const CategoryTree = ({
   const selectedCategory = selectedSubcategory 
     ? category.subcategories?.find(sub => sub.id === selectedSubcategory) 
     : undefined;
+
+  // Reset subcategory selection when parent category changes
+  useEffect(() => {
+    setSelectedSubcategory(undefined);
+  }, [category.id]);
   
   return (
     <div className="space-y-2">

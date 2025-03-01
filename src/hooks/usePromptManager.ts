@@ -1,4 +1,5 @@
 
+import { useEffect } from "react";
 import { useCategories } from "./useCategories";
 import { usePrompts } from "./usePrompts";
 import { useBulkActions } from "./useBulkActions";
@@ -49,6 +50,11 @@ export const usePromptManager = (): PromptManager => {
     togglePromptSelection,
     toggleSelectAll
   } = useSelection(categories, setCategories);
+
+  // Iniciamos o carregamento automático dos dados
+  useEffect(() => {
+    loadCategories();
+  }, [loadCategories]);
 
   return {
     categories,

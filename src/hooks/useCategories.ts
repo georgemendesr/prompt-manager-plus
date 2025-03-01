@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { Category } from "@/types/prompt";
 import { toast } from "sonner";
 import { fetchCategories, fetchPrompts, fetchComments } from "@/services/categoryService";
@@ -30,7 +30,6 @@ export const useCategories = () => {
       if (categoriesResult.error) {
         console.error('Erro ao carregar categorias:', categoriesResult.error);
         setLoadError(categoriesResult.error.message || 'Erro ao carregar categorias');
-        setCategories([]);
         if (!initialized) {
           toast.error('Erro ao carregar categorias');
         }
@@ -40,7 +39,6 @@ export const useCategories = () => {
       if (promptsResult.error || commentsResult.error) {
         console.error('Erro ao carregar dados:', promptsResult.error || commentsResult.error);
         setLoadError((promptsResult.error || commentsResult.error)?.message || 'Erro ao carregar dados');
-        setCategories([]);
         if (!initialized) {
           toast.error('Erro ao carregar dados');
         }
@@ -97,7 +95,6 @@ export const useCategories = () => {
     } catch (error: any) {
       console.error('Erro ao carregar dados:', error);
       setLoadError(error?.message || 'Erro de conexão com o banco de dados');
-      setCategories([]);
       
       // Only show toast on first error
       if (!loadError) {

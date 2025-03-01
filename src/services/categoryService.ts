@@ -1,22 +1,36 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export const fetchCategories = async () => {
-  return await supabase
-    .from('categories')
-    .select('id, name, parent_id, created_at');
+  try {
+    return await supabase
+      .from('categories')
+      .select('id, name, parent_id, created_at');
+  } catch (error) {
+    console.error('Erro ao buscar categorias:', error);
+    return { data: null, error };
+  }
 };
 
 export const fetchPrompts = async () => {
-  return await supabase
-    .from('prompts')
-    .select('id, text, category_id, rating, background_color, created_at');
+  try {
+    return await supabase
+      .from('prompts')
+      .select('id, text, category_id, rating, background_color, created_at');
+  } catch (error) {
+    console.error('Erro ao buscar prompts:', error);
+    return { data: null, error };
+  }
 };
 
 export const fetchComments = async () => {
-  return await supabase
-    .from('comments')
-    .select('id, prompt_id, text, created_at');
+  try {
+    return await supabase
+      .from('comments')
+      .select('id, prompt_id, text, created_at');
+  } catch (error) {
+    console.error('Erro ao buscar comentários:', error);
+    return { data: null, error };
+  }
 };
 
 export const addCategoryToDb = async (name: string, parentId?: string) => {
