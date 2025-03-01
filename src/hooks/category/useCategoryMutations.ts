@@ -91,13 +91,18 @@ export const useCategoryMutations = (
   const deleteCategory = async (id: string) => {
     try {
       console.log('Iniciando deleção da categoria:', id);
-      const { error, promptsCount } = await deleteCategoryFromDb(id);
+      
+      // Verifica se a categoria tem prompts
+      const categoryHasPrompts = hasPromptsInCategory(categories, id);
+      
+      if (categoryHasPrompts) {
+        toast.error('Não é possível deletar uma categoria que contém prompts');
+        return false;
+      }
+      
+      const { error } = await deleteCategoryFromDb(id);
 
       if (error) {
-        if (promptsCount) {
-          toast.error('Não é possível deletar uma categoria que contém prompts');
-          return false;
-        }
         console.error('Erro ao deletar categoria:', error);
         throw error;
       }
@@ -153,6 +158,33 @@ export const useCategoryMutations = (
       toast.error('Erro ao deletar categoria');
       return false;
     }
+  };
+
+  // Função auxiliar para verificar se uma categoria tem prompts
+  const hasPromptsInCategory = (categories: Category[], categoryId: string): boolean => {
+    // Encontra a categoria pelo ID
+    let foundCategory: Category | null = null;
+    
+    const findCategory = (cats: Category[]): void => {
+      for (const cat of cats) {
+        if (cat.id === categoryId) {
+          foundCategory = cat;
+          return;
+        }
+        
+        if (cat.subcategories?.length) {
+          findCategory(cat.subcategories);
+          if (foundCategory) return;
+        }
+      }
+    };
+    
+    findCategory(categories);
+    
+    if (!foundCategory) return false;
+    
+    return foundCategory.prompts.length > 0 || 
+           (foundCategory.subcategories?.some(sub => hasPromptsInCategory([sub], sub.id)) || false);
   };
 
   return {

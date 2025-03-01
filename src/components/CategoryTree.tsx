@@ -46,8 +46,8 @@ export const CategoryTree = ({
   searchTerm = "",
   setSearchTerm = () => {},
 }: CategoryTreeProps) => {
-  // Apenas expande o primeiro nível (nível 0), todos os outros níveis começam recolhidos
-  const [expanded, setExpanded] = useState(level === 0);
+  // Começamos com todas as categorias expandidas para melhor usabilidade
+  const [expanded, setExpanded] = useState(true);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | undefined>(undefined);
   const [subcategoryError, setSubcategoryError] = useState<string | null>(null);
   
