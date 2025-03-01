@@ -1,7 +1,15 @@
 
 import { Category } from "@/types/prompt";
 import { toast } from "sonner";
-import { addCategoryToDb, updateCategoryInDb, deleteCategoryFromDb, fetchCategories, fetchPrompts, fetchComments } from "@/services/categoryService";
+import { 
+  addCategoryToDb, 
+  updateCategoryInDb, 
+  deleteCategoryFromDb, 
+  fetchCategories, 
+  fetchPrompts, 
+  fetchComments,
+  forceDeleteCategoryById
+} from "@/services/categoryService";
 import { buildCategoryTree } from "@/utils/categoryTreeUtils";
 
 type SetCategoriesFunction = React.Dispatch<React.SetStateAction<Category[]>>;
@@ -92,14 +100,20 @@ export const useCategoryMutations = (
     try {
       console.log('Iniciando deleção da categoria:', id);
       
-      // Removemos a verificação que impedia a deleção de categorias com prompts
-      // Agora vamos permitir a deleção e lidar com os prompts no backend
-      
+      // Primeiro tentamos o método tradicional
       const { error, promptsCount } = await deleteCategoryFromDb(id);
 
       if (error) {
-        console.error('Erro ao deletar categoria:', error);
-        throw error;
+        console.error('Erro ao deletar categoria, tentando força bruta:', error);
+        
+        // Se falhar, tentamos o método de força bruta que limpa todas as conexões
+        const forceResult = await forceDeleteCategoryById(id);
+        
+        if (forceResult.error) {
+          throw forceResult.error;
+        }
+        
+        console.log('Categoria deletada com força bruta:', forceResult);
       }
 
       // Força o recarregamento completo das categorias para garantir sincronização

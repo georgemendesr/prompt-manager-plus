@@ -25,11 +25,12 @@ export interface PromptManager {
 }
 
 // Maximum number of retries for loading data
-const MAX_RETRIES = 5;
+const MAX_RETRIES = 8; // Aumentado para maior resiliência
 
 export const usePromptManager = (): PromptManager => {
   const [retryCount, setRetryCount] = useState(0);
   const [retryTimer, setRetryTimer] = useState<NodeJS.Timeout | null>(null);
+  const [operationInProgress, setOperationInProgress] = useState(false);
 
   const {
     categories,
@@ -37,9 +38,9 @@ export const usePromptManager = (): PromptManager => {
     loading,
     loadError,
     loadCategories: originalLoadCategories,
-    addCategory,
-    editCategory,
-    deleteCategory
+    addCategory: originalAddCategory,
+    editCategory: originalEditCategory,
+    deleteCategory: originalDeleteCategory
   } = useCategories();
 
   const {
@@ -61,6 +62,7 @@ export const usePromptManager = (): PromptManager => {
   // Enhanced load categories function with retry logic
   const loadCategoriesWithRetry = useCallback(async () => {
     try {
+      setOperationInProgress(true);
       await originalLoadCategories();
       // Reset retry count on success
       setRetryCount(0);
@@ -70,14 +72,15 @@ export const usePromptManager = (): PromptManager => {
         clearTimeout(retryTimer);
         setRetryTimer(null);
       }
+      setOperationInProgress(false);
     } catch (error) {
-      console.error("Error loading categories:", error);
+      console.error("Erro ao carregar categorias:", error);
       
       if (retryCount < MAX_RETRIES) {
         // Exponential backoff: wait longer between each retry
         const delay = Math.min(1000 * Math.pow(2, retryCount), 30000);
         
-        console.log(`Retrying in ${delay/1000} seconds... (Attempt ${retryCount + 1}/${MAX_RETRIES})`);
+        console.log(`Tentando novamente em ${delay/1000} segundos... (Tentativa ${retryCount + 1}/${MAX_RETRIES})`);
         
         // Set up retry timer with exponential backoff
         const timer = setTimeout(() => {
@@ -88,9 +91,77 @@ export const usePromptManager = (): PromptManager => {
         setRetryTimer(timer);
       } else {
         toast.error("Falha ao conectar ao banco de dados após várias tentativas.");
+        setOperationInProgress(false);
       }
     }
   }, [originalLoadCategories, retryCount, retryTimer]);
+
+  // Wrap operations with retry and blocking logic
+  const addCategory = async (name: string, parentId?: string) => {
+    if (operationInProgress) {
+      toast.error("Operação em andamento. Aguarde um momento.");
+      return false;
+    }
+    
+    try {
+      setOperationInProgress(true);
+      const result = await originalAddCategory(name, parentId);
+      return result;
+    } catch (error) {
+      console.error("Erro ao adicionar categoria:", error);
+      toast.error("Falha ao adicionar categoria. Tente novamente.");
+      return false;
+    } finally {
+      setOperationInProgress(false);
+    }
+  };
+
+  const editCategory = async (id: string, newName: string, newParentId?: string) => {
+    if (operationInProgress) {
+      toast.error("Operação em andamento. Aguarde um momento.");
+      return false;
+    }
+    
+    try {
+      setOperationInProgress(true);
+      const result = await originalEditCategory(id, newName, newParentId);
+      return result;
+    } catch (error) {
+      console.error("Erro ao editar categoria:", error);
+      toast.error("Falha ao editar categoria. Tente novamente.");
+      return false;
+    } finally {
+      setOperationInProgress(false);
+    }
+  };
+
+  const deleteCategory = async (id: string) => {
+    if (operationInProgress) {
+      toast.error("Operação em andamento. Aguarde um momento.");
+      return false;
+    }
+    
+    try {
+      setOperationInProgress(true);
+      toast.loading("Excluindo categoria e seus dados...");
+      
+      const result = await originalDeleteCategory(id);
+      
+      // Se foi bem-sucedido, recarrega as categorias para garantir sincronização
+      if (result) {
+        await loadCategoriesWithRetry();
+      }
+      
+      return result;
+    } catch (error) {
+      console.error("Erro ao deletar categoria:", error);
+      toast.error("Falha ao deletar categoria. Tente novamente.");
+      return false;
+    } finally {
+      toast.dismiss();
+      setOperationInProgress(false);
+    }
+  };
 
   // Cleanup timer on unmount
   useEffect(() => {

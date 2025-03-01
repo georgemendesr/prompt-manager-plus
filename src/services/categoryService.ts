@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export const fetchCategories = async () => {
@@ -177,7 +176,64 @@ export const deleteCategoryFromDb = async (id: string) => {
   }
 };
 
-// Novas funções para gerenciar prompts
+export const forceDeleteCategoryById = async (id: string) => {
+  try {
+    // Obter todas as subcategorias
+    const subcategoryIds = await getAllSubcategoriesIds(id);
+    const allCategoryIds = [...subcategoryIds, id];
+    console.log('Força bruta: Tentando deletar categorias:', allCategoryIds);
+
+    // 1. Primeiro remover todos os comentários de prompts nestas categorias
+    const { data: prompts } = await supabase
+      .from('prompts')
+      .select('id')
+      .in('category_id', allCategoryIds);
+
+    if (prompts && prompts.length > 0) {
+      const promptIds = prompts.map(p => p.id);
+      console.log('Força bruta: Removendo comentários para prompts:', promptIds);
+
+      // Remover comentários primeiro
+      await supabase
+        .from('comments')
+        .delete()
+        .in('prompt_id', promptIds);
+    }
+
+    // 2. Remover todos os prompts
+    console.log('Força bruta: Removendo prompts das categorias');
+    await supabase
+      .from('prompts')
+      .delete()
+      .in('category_id', allCategoryIds);
+
+    // 3. Remover as subcategorias de baixo para cima
+    for (const subId of subcategoryIds.reverse()) {
+      console.log('Força bruta: Removendo subcategoria:', subId);
+      await supabase
+        .from('categories')
+        .delete()
+        .eq('id', subId);
+    }
+
+    // 4. Finalmente remover a categoria principal
+    console.log('Força bruta: Removendo categoria principal:', id);
+    const { error } = await supabase
+      .from('categories')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      throw error;
+    }
+
+    return { data: true, error: null };
+  } catch (error) {
+    console.error('Erro na remoção força bruta:', error);
+    return { data: null, error };
+  }
+};
+
 export const deletePromptFromDb = async (id: string) => {
   try {
     // Primeiro deletamos todos os comentários associados ao prompt
