@@ -63,6 +63,13 @@ export const CategoryTree = ({
     setSelectedSubcategory(undefined);
   }, [category.id]);
   
+  // Automatically expand when a subcategory is selected
+  useEffect(() => {
+    if (selectedSubcategory) {
+      setExpanded(true);
+    }
+  }, [selectedSubcategory]);
+  
   return (
     <div className="space-y-2">
       <div className={`

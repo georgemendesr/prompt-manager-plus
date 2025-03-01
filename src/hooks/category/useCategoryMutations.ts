@@ -92,15 +92,10 @@ export const useCategoryMutations = (
     try {
       console.log('Iniciando deleção da categoria:', id);
       
-      // Verifica se a categoria tem prompts
-      const categoryHasPrompts = hasPromptsInCategory(categories, id);
+      // Removemos a verificação que impedia a deleção de categorias com prompts
+      // Agora vamos permitir a deleção e lidar com os prompts no backend
       
-      if (categoryHasPrompts) {
-        toast.error('Não é possível deletar uma categoria que contém prompts');
-        return false;
-      }
-      
-      const { error } = await deleteCategoryFromDb(id);
+      const { error, promptsCount } = await deleteCategoryFromDb(id);
 
       if (error) {
         console.error('Erro ao deletar categoria:', error);
@@ -150,41 +145,19 @@ export const useCategoryMutations = (
       const categoriesWithPrompts = addPromptsToCategories(categoryTree);
       setCategories(categoriesWithPrompts);
       
-      console.log('Categoria deletada com sucesso');
-      toast.success('Categoria removida com sucesso!');
+      let successMessage = 'Categoria removida com sucesso!';
+      if (promptsCount > 0) {
+        successMessage = `Categoria e ${promptsCount} prompts removidos com sucesso!`;
+      }
+      
+      console.log(successMessage);
+      toast.success(successMessage);
       return true;
     } catch (error) {
       console.error('Erro ao deletar categoria:', error);
       toast.error('Erro ao deletar categoria');
       return false;
     }
-  };
-
-  // Função auxiliar para verificar se uma categoria tem prompts
-  const hasPromptsInCategory = (categories: Category[], categoryId: string): boolean => {
-    // Encontra a categoria pelo ID
-    let foundCategory: Category | null = null;
-    
-    const findCategory = (cats: Category[]): void => {
-      for (const cat of cats) {
-        if (cat.id === categoryId) {
-          foundCategory = cat;
-          return;
-        }
-        
-        if (cat.subcategories?.length) {
-          findCategory(cat.subcategories);
-          if (foundCategory) return;
-        }
-      }
-    };
-    
-    findCategory(categories);
-    
-    if (!foundCategory) return false;
-    
-    return foundCategory.prompts.length > 0 || 
-           (foundCategory.subcategories?.some(sub => hasPromptsInCategory([sub], sub.id)) || false);
   };
 
   return {

@@ -78,6 +78,63 @@ export const getAllSubcategoriesIds = async (categoryId: string): Promise<string
   }
 };
 
+export const getPromptsInCategories = async (categoryIds: string[]): Promise<number> => {
+  if (categoryIds.length === 0) return 0;
+  
+  try {
+    const { data, error } = await supabase
+      .from('prompts')
+      .select('id', { count: 'exact' })
+      .in('category_id', categoryIds);
+      
+    if (error) throw error;
+    
+    return data?.length || 0;
+  } catch (error) {
+    console.error('Erro ao verificar prompts nas categorias:', error);
+    return 0;
+  }
+};
+
+export const deletePromptsInCategories = async (categoryIds: string[]): Promise<{error: any | null}> => {
+  if (categoryIds.length === 0) return { error: null };
+  
+  try {
+    // Get all prompts in these categories
+    const { data: prompts, error: fetchError } = await supabase
+      .from('prompts')
+      .select('id')
+      .in('category_id', categoryIds);
+      
+    if (fetchError) throw fetchError;
+    
+    if (prompts && prompts.length > 0) {
+      // Delete all comments for these prompts first
+      const promptIds = prompts.map(p => p.id);
+      
+      const { error: commentsError } = await supabase
+        .from('comments')
+        .delete()
+        .in('prompt_id', promptIds);
+        
+      if (commentsError) throw commentsError;
+      
+      // Then delete the prompts
+      const { error: promptsError } = await supabase
+        .from('prompts')
+        .delete()
+        .in('category_id', categoryIds);
+        
+      if (promptsError) throw promptsError;
+    }
+    
+    return { error: null };
+  } catch (error) {
+    console.error('Erro ao deletar prompts nas categorias:', error);
+    return { error };
+  }
+};
+
 export const deleteCategoryFromDb = async (id: string) => {
   try {
     // Primeiro, obtém todos os IDs das subcategorias recursivamente
@@ -87,19 +144,33 @@ export const deleteCategoryFromDb = async (id: string) => {
     const allCategoryIds = [...subcategoryIds, id];
     
     console.log('Tentando deletar categorias:', allCategoryIds);
+    
+    // Verifica quantos prompts estão nas categorias
+    const promptsCount = await getPromptsInCategories(allCategoryIds);
+    console.log(`Encontrados ${promptsCount} prompts nas categorias a serem deletadas`);
+    
+    // Se houver prompts, deleta-os primeiro
+    if (promptsCount > 0) {
+      const { error: deletePromptsError } = await deletePromptsInCategories(allCategoryIds);
+      if (deletePromptsError) {
+        console.error('Erro ao deletar prompts:', deletePromptsError);
+        throw deletePromptsError;
+      }
+      console.log(`${promptsCount} prompts deletados com sucesso`);
+    }
 
-    // Deleta a categoria e todas as suas subcategorias
+    // Agora deleta a categoria e todas as suas subcategorias
     const { error } = await supabase
       .from('categories')
       .delete()
       .in('id', allCategoryIds);
 
     if (error) {
-      console.error('Erro do Supabase ao deletar:', error);
+      console.error('Erro do Supabase ao deletar categorias:', error);
       throw error;
     }
 
-    return { data: null, error: null, promptsCount: 0 };
+    return { data: null, error: null, promptsCount };
   } catch (error) {
     console.error('Erro ao deletar categorias:', error);
     return { data: null, error, promptsCount: 0 };
