@@ -3,7 +3,7 @@ import { useCallback, useState, useEffect } from "react";
 import { useRetry } from "../utils/useRetry";
 import { toast } from "sonner";
 
-export const useCategoryLoader = (originalLoadCategories: () => Promise<void>) => {
+export const useCategoryLoader = (originalLoadCategories: () => Promise<void | null>) => {
   const [loadError, setLoadError] = useState<string | null>(null);
   const { executeWithRetry, retryCount } = useRetry({
     onFailure: (error) => {
