@@ -1,4 +1,3 @@
-
 import { Category } from "@/types/prompt";
 import { toast } from "sonner";
 import { 
@@ -100,23 +99,26 @@ export const useCategoryMutations = (
     try {
       console.log('Iniciando deleção da categoria:', id);
       
-      // Primeiro tentamos o método tradicional
-      const { error, promptsCount } = await deleteCategoryFromDb(id);
-
-      if (error) {
-        console.error('Erro ao deletar categoria, tentando força bruta:', error);
+      // Show loading toast
+      toast.loading("Excluindo categoria e seus dados...");
+      
+      // Try force delete first - more reliable approach
+      console.log('Utilizando método direto de força bruta para deleção');
+      const forceResult = await forceDeleteCategoryById(id);
+      
+      if (forceResult.error) {
+        console.error('Erro na remoção força bruta:', forceResult.error);
+        // If force delete fails, try regular delete as fallback
+        console.log('Tentando método tradicional de deleção como fallback');
+        const { error, promptsCount } = await deleteCategoryFromDb(id);
         
-        // Se falhar, tentamos o método de força bruta que limpa todas as conexões
-        const forceResult = await forceDeleteCategoryById(id);
-        
-        if (forceResult.error) {
-          throw forceResult.error;
+        if (error) {
+          throw error;
         }
-        
-        console.log('Categoria deletada com força bruta:', forceResult);
       }
 
       // Força o recarregamento completo das categorias para garantir sincronização
+      console.log('Deleção bem-sucedida, recarregando dados...');
       const [categoriesResult, promptsResult, commentsResult] = await Promise.all([
         fetchCategories(),
         fetchPrompts(),
@@ -159,17 +161,13 @@ export const useCategoryMutations = (
       const categoriesWithPrompts = addPromptsToCategories(categoryTree);
       setCategories(categoriesWithPrompts);
       
-      let successMessage = 'Categoria removida com sucesso!';
-      if (promptsCount > 0) {
-        successMessage = `Categoria e ${promptsCount} prompts removidos com sucesso!`;
-      }
-      
-      console.log(successMessage);
-      toast.success(successMessage);
+      toast.dismiss();
+      toast.success('Categoria removida com sucesso!');
       return true;
     } catch (error) {
       console.error('Erro ao deletar categoria:', error);
-      toast.error('Erro ao deletar categoria');
+      toast.dismiss();
+      toast.error('Erro ao deletar categoria. Atualize a página e tente novamente.');
       return false;
     }
   };

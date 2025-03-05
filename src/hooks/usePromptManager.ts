@@ -145,17 +145,42 @@ export const usePromptManager = (): PromptManager => {
       setOperationInProgress(true);
       toast.loading("Excluindo categoria e seus dados...");
       
-      const result = await originalDeleteCategory(id);
+      // Attempt to delete category with multiple retries if needed
+      let success = false;
+      let attempts = 0;
+      const maxAttempts = 3;
       
-      // Se foi bem-sucedido, recarrega as categorias para garantir sincronização
-      if (result) {
-        await loadCategoriesWithRetry();
+      while (!success && attempts < maxAttempts) {
+        attempts++;
+        console.log(`Tentativa ${attempts} de ${maxAttempts} para deletar categoria ${id}`);
+        
+        try {
+          const result = await originalDeleteCategory(id);
+          if (result) {
+            success = true;
+            console.log('Categoria deletada com sucesso');
+          } else {
+            // Wait before retry
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
+          }
+        } catch (deleteError) {
+          console.error(`Erro na tentativa ${attempts}:`, deleteError);
+          // Wait before retry
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
+        }
       }
       
-      return result;
+      if (!success) {
+        throw new Error(`Falha ao deletar categoria após ${maxAttempts} tentativas`);
+      }
+      
+      // Força recarregamento das categorias para garantir sincronização
+      await loadCategoriesWithRetry();
+      
+      return true;
     } catch (error) {
       console.error("Erro ao deletar categoria:", error);
-      toast.error("Falha ao deletar categoria. Tente novamente.");
+      toast.error("Falha ao deletar categoria. Tente novamente após atualizar a página.");
       return false;
     } finally {
       toast.dismiss();

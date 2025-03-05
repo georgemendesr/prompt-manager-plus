@@ -178,45 +178,66 @@ export const deleteCategoryFromDb = async (id: string) => {
 
 export const forceDeleteCategoryById = async (id: string) => {
   try {
-    // Obter todas as subcategorias
+    // 1. Find all subcategories recursively
     const subcategoryIds = await getAllSubcategoriesIds(id);
-    const allCategoryIds = [...subcategoryIds, id];
+    const allCategoryIds = [id, ...subcategoryIds];
+    
     console.log('Força bruta: Tentando deletar categorias:', allCategoryIds);
 
-    // 1. Primeiro remover todos os comentários de prompts nestas categorias
-    const { data: prompts } = await supabase
+    // 2. Find all prompts in these categories
+    const { data: prompts, error: promptsError } = await supabase
       .from('prompts')
-      .select('id')
+      .select('id, category_id')
       .in('category_id', allCategoryIds);
+    
+    if (promptsError) {
+      console.error('Erro ao buscar prompts para deleção:', promptsError);
+    }
+    
+    const promptIds = prompts ? prompts.map(p => p.id) : [];
+    console.log(`Força bruta: Encontrados ${promptIds.length} prompts para remoção`);
 
-    if (prompts && prompts.length > 0) {
-      const promptIds = prompts.map(p => p.id);
-      console.log('Força bruta: Removendo comentários para prompts:', promptIds);
-
-      // Remover comentários primeiro
-      await supabase
+    // 3. Delete all comments for these prompts
+    if (promptIds.length > 0) {
+      console.log('Força bruta: Removendo comentários para prompts');
+      const { error: commentsError } = await supabase
         .from('comments')
         .delete()
         .in('prompt_id', promptIds);
+      
+      if (commentsError) {
+        console.error('Erro ao deletar comentários:', commentsError);
+      }
+      
+      // 4. Delete the prompts themselves
+      console.log('Força bruta: Removendo prompts');
+      const { error: promptsDeleteError } = await supabase
+        .from('prompts')
+        .delete()
+        .in('id', promptIds);
+        
+      if (promptsDeleteError) {
+        console.error('Erro ao deletar prompts:', promptsDeleteError);
+      }
     }
 
-    // 2. Remover todos os prompts
-    console.log('Força bruta: Removendo prompts das categorias');
-    await supabase
-      .from('prompts')
-      .delete()
-      .in('category_id', allCategoryIds);
-
-    // 3. Remover as subcategorias de baixo para cima
+    // 5. Delete subcategories from bottom up (children first)
     for (const subId of subcategoryIds.reverse()) {
       console.log('Força bruta: Removendo subcategoria:', subId);
-      await supabase
+      const { error: subDeleteError } = await supabase
         .from('categories')
         .delete()
         .eq('id', subId);
+        
+      if (subDeleteError) {
+        console.error(`Erro ao deletar subcategoria ${subId}:`, subDeleteError);
+      }
+      
+      // Give a small delay between operations to avoid race conditions
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
 
-    // 4. Finalmente remover a categoria principal
+    // 6. Finally delete the main category
     console.log('Força bruta: Removendo categoria principal:', id);
     const { error } = await supabase
       .from('categories')
@@ -224,12 +245,13 @@ export const forceDeleteCategoryById = async (id: string) => {
       .eq('id', id);
 
     if (error) {
+      console.error('Erro ao deletar categoria principal:', error);
       throw error;
     }
 
     return { data: true, error: null };
   } catch (error) {
-    console.error('Erro na remoção força bruta:', error);
+    console.error('Erro crítico na remoção força bruta:', error);
     return { data: null, error };
   }
 };
