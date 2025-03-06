@@ -9,7 +9,6 @@ export const useCategoryFetcher = () => {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
 
   const loadCategories = useCallback(async () => {
     try {
@@ -29,6 +28,7 @@ export const useCategoryFetcher = () => {
         if (!initialized) {
           toast.error('Erro ao carregar categorias');
         }
+        setLoading(false);
         return null;
       }
 
@@ -38,6 +38,7 @@ export const useCategoryFetcher = () => {
         if (!initialized) {
           toast.error('Erro ao carregar dados');
         }
+        setLoading(false);
         return null;
       }
 
@@ -85,9 +86,6 @@ export const useCategoryFetcher = () => {
         setInitialized(true);
       }
       
-      // Reset retry count on successful load
-      setRetryCount(0);
-      
       setLoading(false);
       return categoriesWithPrompts;
     } catch (error: any) {
@@ -95,20 +93,18 @@ export const useCategoryFetcher = () => {
       setLoadError(error?.message || 'Erro de conexão com o banco de dados');
       
       // Only show toast on first error
-      if (!loadError) {
+      if (!initialized) {
         toast.error('Erro ao conectar com o banco de dados');
       }
       
       setLoading(false);
       return null;
     }
-  }, [initialized, loadError]);
+  }, [initialized]);
 
   return {
     loading,
     loadError,
-    loadCategories,
-    retryCount,
-    setRetryCount
+    loadCategories
   };
 };

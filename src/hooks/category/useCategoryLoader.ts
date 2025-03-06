@@ -3,9 +3,10 @@ import { useCallback, useState, useEffect } from "react";
 import { useRetry } from "../utils/useRetry";
 import { toast } from "sonner";
 
-export const useCategoryLoader = (originalLoadCategories: () => Promise<void | null>) => {
+export const useCategoryLoader = (originalLoadCategories: () => Promise<void | any>) => {
   const [loadError, setLoadError] = useState<string | null>(null);
   const { executeWithRetry, retryCount } = useRetry({
+    maxRetries: 3, // Reduce max retries to avoid excessive attempts
     onFailure: (error) => {
       console.error("Erro ao carregar categorias:", error);
       setLoadError(error instanceof Error ? error.message : "Erro ao conectar ao banco de dados");
@@ -21,21 +22,15 @@ export const useCategoryLoader = (originalLoadCategories: () => Promise<void | n
     );
   }, [executeWithRetry, originalLoadCategories]);
 
-  // Auto retry on error
+  // Initial load - only once
   useEffect(() => {
-    if (loadError && retryCount < 5) {
-      const timer = setTimeout(() => {
-        loadCategoriesWithRetry();
-      }, 3000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [loadError, loadCategoriesWithRetry, retryCount]);
-
-  // Initial load
-  useEffect(() => {
-    loadCategoriesWithRetry();
-  }, [loadCategoriesWithRetry]);
+    const loadInitialData = async () => {
+      await loadCategoriesWithRetry();
+    };
+    
+    loadInitialData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
 
   return {
     loadError,

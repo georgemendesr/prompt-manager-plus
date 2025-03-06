@@ -6,7 +6,7 @@ import { useCategoryFetcher } from "./category/useCategoryFetcher";
 
 export const useCategories = () => {
   const [categories, setCategories] = useState<Category[]>([]);
-  const { loading, loadError, loadCategories: fetchCategoriesData, retryCount, setRetryCount } = useCategoryFetcher();
+  const { loading, loadError, loadCategories: fetchCategoriesData } = useCategoryFetcher();
   const { addCategory, editCategory, deleteCategory } = useCategoryMutations(categories, setCategories);
 
   const loadCategories = async () => {
@@ -16,21 +16,11 @@ export const useCategories = () => {
     }
   };
 
-  // Auto-retry mechanism
-  useEffect(() => {
-    if (loadError && retryCount < 3) {
-      const timer = setTimeout(() => {
-        console.log(`Tentativa ${retryCount + 1} de recarregar categorias...`);
-        setRetryCount(prev => prev + 1);
-        loadCategories();
-      }, 3000 * (retryCount + 1)); // Backoff exponential
-      
-      return () => clearTimeout(timer);
-    }
-  }, [loadError, retryCount, setRetryCount]);
+  // We removed the auto-retry mechanism from here since it's now handled by useCategoryLoader
 
   useEffect(() => {
     loadCategories();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {
