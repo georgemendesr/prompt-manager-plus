@@ -55,6 +55,7 @@ export const useCategoryOperations = ({
     }
   }, [operationInProgress, originalEditCategory]);
 
+  // Simplified deleteCategory function that doesn't use retries and directly calls the service
   const deleteCategory = useCallback(async (id: string) => {
     if (operationInProgress) {
       toast.error("Operação em andamento. Aguarde um momento.");
@@ -66,14 +67,17 @@ export const useCategoryOperations = ({
       toast.loading("Excluindo categoria...");
       
       // Call the original delete function directly
+      console.log("Iniciando processo de exclusão para categoria ID:", id);
       const success = await originalDeleteCategory(id);
       
       if (success) {
+        console.log("Categoria excluída com sucesso, recarregando dados...");
         // Force reload categories for UI consistency
         await loadCategories();
         toast.success("Categoria excluída com sucesso!");
         return true;
       } else {
+        console.error("Falha ao excluir categoria com ID:", id);
         toast.error("Falha ao excluir categoria. Tente novamente.");
         return false;
       }
