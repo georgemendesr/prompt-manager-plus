@@ -3,7 +3,6 @@ import { toast } from "sonner";
 import { 
   addCategoryToDb, 
   updateCategoryInDb, 
-  deleteCategoryFromDb, 
   fetchCategories, 
   fetchPrompts, 
   fetchComments,
@@ -79,7 +78,6 @@ export const useCategoryMutations = (
 
       if (error) throw error;
 
-      // Recarrega todas as categorias
       const { data: updatedCategories, error: fetchError } = await fetchCategories();
       if (fetchError) throw fetchError;
 
@@ -97,28 +95,17 @@ export const useCategoryMutations = (
 
   const deleteCategory = async (id: string) => {
     try {
-      console.log('Iniciando deleção da categoria:', id);
+      console.log('Starting category deletion process for ID:', id);
       
-      // Show loading toast
       toast.loading("Excluindo categoria e seus dados...");
       
-      // Try force delete first - more reliable approach
-      console.log('Utilizando método direto de força bruta para deleção');
-      const forceResult = await forceDeleteCategoryById(id);
+      const result = await forceDeleteCategoryById(id);
       
-      if (forceResult.error) {
-        console.error('Erro na remoção força bruta:', forceResult.error);
-        // If force delete fails, try regular delete as fallback
-        console.log('Tentando método tradicional de deleção como fallback');
-        const { error, promptsCount } = await deleteCategoryFromDb(id);
-        
-        if (error) {
-          throw error;
-        }
+      if (!result.success) {
+        throw result.error;
       }
 
-      // Força o recarregamento completo das categorias para garantir sincronização
-      console.log('Deleção bem-sucedida, recarregando dados...');
+      console.log('Category deleted successfully, reloading data...');
       const [categoriesResult, promptsResult, commentsResult] = await Promise.all([
         fetchCategories(),
         fetchPrompts(),
@@ -129,10 +116,8 @@ export const useCategoryMutations = (
         throw categoriesResult.error || promptsResult.error || commentsResult.error;
       }
 
-      // Reconstrói a árvore de categorias
       const categoryTree = buildCategoryTree(categoriesResult.data || []);
 
-      // Adiciona os prompts às categorias reconstruídas
       const addPromptsToCategories = (categories: Category[]) => {
         return categories.map(category => {
           const categoryPrompts = (promptsResult.data || [])
@@ -165,9 +150,9 @@ export const useCategoryMutations = (
       toast.success('Categoria removida com sucesso!');
       return true;
     } catch (error) {
-      console.error('Erro ao deletar categoria:', error);
+      console.error('Error deleting category:', error);
       toast.dismiss();
-      toast.error('Erro ao deletar categoria. Atualize a página e tente novamente.');
+      toast.error('Erro ao deletar categoria. Tente novamente.');
       return false;
     }
   };

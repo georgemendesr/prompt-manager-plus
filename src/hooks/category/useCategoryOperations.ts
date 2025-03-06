@@ -1,6 +1,5 @@
 
-import { useCallback } from "react";
-import { useRetry } from "../utils/useRetry";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
 interface UseCategoryOperationsProps {
@@ -16,27 +15,45 @@ export const useCategoryOperations = ({
   originalDeleteCategory,
   loadCategories
 }: UseCategoryOperationsProps) => {
-  const { executeWithRetry, operationInProgress } = useRetry();
+  const [operationInProgress, setOperationInProgress] = useState(false);
 
   const addCategory = useCallback(async (name: string, parentId?: string) => {
-    return executeWithRetry(
-      async () => {
-        const result = await originalAddCategory(name, parentId);
-        return result;
-      },
-      "adicionar categoria"
-    ) || false;
-  }, [executeWithRetry, originalAddCategory]);
+    if (operationInProgress) {
+      toast.error("Operação em andamento. Aguarde um momento.");
+      return false;
+    }
+    
+    try {
+      setOperationInProgress(true);
+      const result = await originalAddCategory(name, parentId);
+      return result;
+    } catch (error) {
+      console.error("Erro ao adicionar categoria:", error);
+      toast.error("Erro ao adicionar categoria");
+      return false;
+    } finally {
+      setOperationInProgress(false);
+    }
+  }, [operationInProgress, originalAddCategory]);
 
   const editCategory = useCallback(async (id: string, newName: string, newParentId?: string) => {
-    return executeWithRetry(
-      async () => {
-        const result = await originalEditCategory(id, newName, newParentId);
-        return result;
-      },
-      "editar categoria"
-    ) || false;
-  }, [executeWithRetry, originalEditCategory]);
+    if (operationInProgress) {
+      toast.error("Operação em andamento. Aguarde um momento.");
+      return false;
+    }
+    
+    try {
+      setOperationInProgress(true);
+      const result = await originalEditCategory(id, newName, newParentId);
+      return result;
+    } catch (error) {
+      console.error("Erro ao editar categoria:", error);
+      toast.error("Erro ao editar categoria");
+      return false;
+    } finally {
+      setOperationInProgress(false);
+    }
+  }, [operationInProgress, originalEditCategory]);
 
   const deleteCategory = useCallback(async (id: string) => {
     if (operationInProgress) {
@@ -45,46 +62,27 @@ export const useCategoryOperations = ({
     }
     
     try {
-      toast.loading("Excluindo categoria e seus dados...");
+      setOperationInProgress(true);
+      toast.loading("Excluindo categoria...");
       
-      // Attempt to delete category with multiple retries if needed
-      let success = false;
-      let attempts = 0;
-      const maxAttempts = 3;
+      // Call the original delete function directly
+      const success = await originalDeleteCategory(id);
       
-      while (!success && attempts < maxAttempts) {
-        attempts++;
-        console.log(`Tentativa ${attempts} de ${maxAttempts} para deletar categoria ${id}`);
-        
-        try {
-          const result = await originalDeleteCategory(id);
-          if (result) {
-            success = true;
-            console.log('Categoria deletada com sucesso');
-          } else {
-            // Wait before retry
-            await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
-          }
-        } catch (deleteError) {
-          console.error(`Erro na tentativa ${attempts}:`, deleteError);
-          // Wait before retry
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
-        }
+      if (success) {
+        // Force reload categories for UI consistency
+        await loadCategories();
+        toast.success("Categoria excluída com sucesso!");
+        return true;
+      } else {
+        toast.error("Falha ao excluir categoria. Tente novamente.");
+        return false;
       }
-      
-      if (!success) {
-        throw new Error(`Falha ao deletar categoria após ${maxAttempts} tentativas`);
-      }
-      
-      // Força recarregamento das categorias para garantir sincronização
-      await loadCategories();
-      
-      return true;
     } catch (error) {
-      console.error("Erro ao deletar categoria:", error);
-      toast.error("Falha ao deletar categoria. Tente novamente após atualizar a página.");
+      console.error("Erro crítico ao deletar categoria:", error);
+      toast.error("Erro ao excluir categoria. Atualize a página e tente novamente.");
       return false;
     } finally {
+      setOperationInProgress(false);
       toast.dismiss();
     }
   }, [operationInProgress, originalDeleteCategory, loadCategories]);
