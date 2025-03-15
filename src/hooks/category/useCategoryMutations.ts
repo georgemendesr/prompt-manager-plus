@@ -95,64 +95,88 @@ export const useCategoryMutations = (
 
   const deleteCategory = async (id: string) => {
     try {
-      console.log('Starting category deletion process for ID:', id);
+      console.log('🔄 Iniciando processo de exclusão da categoria ID:', id);
       
-      toast.loading("Excluindo categoria e seus dados...");
+      // Use ID único para o toast para não haver duplicação
+      toast.loading("Excluindo categoria e seus dados...", { id: "delete-category-toast" });
       
+      console.log('🔄 Chamando forceDeleteCategoryById para ID:', id);
       const result = await forceDeleteCategoryById(id);
       
       if (!result.success) {
+        console.error('❌ Falha retornada por forceDeleteCategoryById:', result.error);
         throw result.error;
       }
 
-      console.log('Category deleted successfully, reloading data...');
-      const [categoriesResult, promptsResult, commentsResult] = await Promise.all([
-        fetchCategories(),
-        fetchPrompts(),
-        fetchComments()
-      ]);
-
-      if (categoriesResult.error || promptsResult.error || commentsResult.error) {
-        throw categoriesResult.error || promptsResult.error || commentsResult.error;
-      }
-
-      const categoryTree = buildCategoryTree(categoriesResult.data || []);
-
-      const addPromptsToCategories = (categories: Category[]) => {
-        return categories.map(category => {
-          const categoryPrompts = (promptsResult.data || [])
-            .filter(prompt => prompt.category_id === category.id)
-            .map(prompt => ({
-              id: prompt.id,
-              text: prompt.text,
-              category: category.name,
-              rating: prompt.rating,
-              backgroundColor: prompt.background_color,
-              comments: (commentsResult.data || [])
-                .filter(comment => comment.prompt_id === prompt.id)
-                .map(comment => comment.text),
-              createdAt: new Date(prompt.created_at),
-              selected: false
-            }));
-
-          return {
-            ...category,
-            prompts: categoryPrompts,
-            subcategories: category.subcategories ? addPromptsToCategories(category.subcategories) : []
-          };
-        });
-      };
-
-      const categoriesWithPrompts = addPromptsToCategories(categoryTree);
-      setCategories(categoriesWithPrompts);
+      console.log('✅ Categoria excluída com sucesso, recarregando dados...');
       
-      toast.dismiss();
-      toast.success('Categoria removida com sucesso!');
-      return true;
+      try {
+        const [categoriesResult, promptsResult, commentsResult] = await Promise.all([
+          fetchCategories(),
+          fetchPrompts(),
+          fetchComments()
+        ]);
+
+        if (categoriesResult.error) {
+          console.error('❌ Erro ao recarregar categorias:', categoriesResult.error);
+          throw categoriesResult.error;
+        }
+        
+        if (promptsResult.error) {
+          console.error('❌ Erro ao recarregar prompts:', promptsResult.error);
+          throw promptsResult.error;
+        }
+        
+        if (commentsResult.error) {
+          console.error('❌ Erro ao recarregar comentários:', commentsResult.error);
+          throw commentsResult.error;
+        }
+
+        const categoryTree = buildCategoryTree(categoriesResult.data || []);
+        console.log('✅ Árvore de categorias reconstruída com sucesso');
+
+        const addPromptsToCategories = (categories: Category[]) => {
+          return categories.map(category => {
+            const categoryPrompts = (promptsResult.data || [])
+              .filter(prompt => prompt.category_id === category.id)
+              .map(prompt => ({
+                id: prompt.id,
+                text: prompt.text,
+                category: category.name,
+                rating: prompt.rating,
+                backgroundColor: prompt.background_color,
+                comments: (commentsResult.data || [])
+                  .filter(comment => comment.prompt_id === prompt.id)
+                  .map(comment => comment.text),
+                createdAt: new Date(prompt.created_at),
+                selected: false
+              }));
+
+            return {
+              ...category,
+              prompts: categoryPrompts,
+              subcategories: category.subcategories ? addPromptsToCategories(category.subcategories) : []
+            };
+          });
+        };
+
+        const categoriesWithPrompts = addPromptsToCategories(categoryTree);
+        setCategories(categoriesWithPrompts);
+        
+        console.log('✅ Dados recarregados com sucesso após exclusão');
+        toast.dismiss("delete-category-toast");
+        toast.success('Categoria removida com sucesso!');
+        return true;
+      } catch (reloadError) {
+        console.error('❌ Erro ao recarregar dados após exclusão:', reloadError);
+        toast.dismiss("delete-category-toast");
+        toast.error('Categoria foi excluída, mas houve um erro ao atualizar a interface. Por favor, atualize a página.');
+        return true; // Retorna true porque a categoria foi excluída, apenas a atualização da UI falhou
+      }
     } catch (error) {
-      console.error('Error deleting category:', error);
-      toast.dismiss();
-      toast.error('Erro ao deletar categoria. Tente novamente.');
+      console.error('❌ Erro ao excluir categoria:', error);
+      toast.dismiss("delete-category-toast");
+      toast.error('Erro ao excluir categoria. Tente novamente.');
       return false;
     }
   };

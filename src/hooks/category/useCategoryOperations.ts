@@ -55,7 +55,7 @@ export const useCategoryOperations = ({
     }
   }, [operationInProgress, originalEditCategory]);
 
-  // Simplified deleteCategory function that doesn't use retries and directly calls the service
+  // Implementação simplificada da função de exclusão - sem lógica de tentativas repetidas
   const deleteCategory = useCallback(async (id: string) => {
     if (operationInProgress) {
       toast.error("Operação em andamento. Aguarde um momento.");
@@ -64,30 +64,28 @@ export const useCategoryOperations = ({
     
     try {
       setOperationInProgress(true);
-      toast.loading("Excluindo categoria...");
+      toast.loading("Excluindo categoria...", { id: "delete-category" });
       
-      // Call the original delete function directly
-      console.log("Iniciando processo de exclusão para categoria ID:", id);
+      console.log("🚀 Iniciando exclusão da categoria ID:", id);
       const success = await originalDeleteCategory(id);
       
       if (success) {
-        console.log("Categoria excluída com sucesso, recarregando dados...");
-        // Force reload categories for UI consistency
+        console.log("✅ Categoria excluída com sucesso, recarregando dados...");
+        // Recarregar categorias para consistência da UI
         await loadCategories();
-        toast.success("Categoria excluída com sucesso!");
+        toast.success("Categoria excluída com sucesso!", { id: "delete-category" });
         return true;
       } else {
-        console.error("Falha ao excluir categoria com ID:", id);
-        toast.error("Falha ao excluir categoria. Tente novamente.");
+        console.error("❌ Falha ao excluir categoria com ID:", id);
+        toast.error("Falha ao excluir categoria. Tente novamente.", { id: "delete-category" });
         return false;
       }
     } catch (error) {
-      console.error("Erro crítico ao deletar categoria:", error);
-      toast.error("Erro ao excluir categoria. Atualize a página e tente novamente.");
+      console.error("❌ Erro crítico ao deletar categoria:", error);
+      toast.error("Erro ao excluir categoria. Atualize a página e tente novamente.", { id: "delete-category" });
       return false;
     } finally {
       setOperationInProgress(false);
-      toast.dismiss();
     }
   }, [operationInProgress, originalDeleteCategory, loadCategories]);
 
