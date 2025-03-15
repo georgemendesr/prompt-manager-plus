@@ -55,7 +55,6 @@ export const useCategoryOperations = ({
     }
   }, [operationInProgress, originalEditCategory]);
 
-  // Implementação simplificada da função de exclusão - sem lógica de tentativas repetidas
   const deleteCategory = useCallback(async (id: string) => {
     if (operationInProgress) {
       toast.error("Operação em andamento. Aguarde um momento.");
@@ -64,20 +63,23 @@ export const useCategoryOperations = ({
     
     try {
       setOperationInProgress(true);
-      toast.loading("Excluindo categoria...", { id: "delete-category" });
       
-      console.log("🚀 Iniciando exclusão da categoria ID:", id);
+      // Usar um id único para cada operação de exclusão
+      const toastId = `delete-category-${id}`;
+      toast.loading("Excluindo categoria...", { id: toastId });
+      
+      console.log(`🚀 Iniciando exclusão da categoria ID: ${id}`);
       const success = await originalDeleteCategory(id);
       
       if (success) {
         console.log("✅ Categoria excluída com sucesso, recarregando dados...");
         // Recarregar categorias para consistência da UI
         await loadCategories();
-        toast.success("Categoria excluída com sucesso!", { id: "delete-category" });
+        toast.success("Categoria excluída com sucesso!", { id: toastId });
         return true;
       } else {
-        console.error("❌ Falha ao excluir categoria com ID:", id);
-        toast.error("Falha ao excluir categoria. Tente novamente.", { id: "delete-category" });
+        console.error(`❌ Falha ao excluir categoria com ID: ${id}`);
+        toast.error("Falha ao excluir categoria. Tente novamente.", { id: toastId });
         return false;
       }
     } catch (error) {
