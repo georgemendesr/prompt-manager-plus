@@ -64,8 +64,8 @@ export const useCategoryOperations = ({
     try {
       setOperationInProgress(true);
       
-      // Usar um id único para cada operação de exclusão
-      const toastId = `delete-category-${id}`;
+      // Use a unique ID for each delete operation
+      const toastId = `delete-category-${id}-${Date.now()}`;
       toast.loading("Excluindo categoria...", { id: toastId });
       
       console.log(`🚀 Iniciando exclusão da categoria ID: ${id}`);
@@ -73,7 +73,7 @@ export const useCategoryOperations = ({
       
       if (success) {
         console.log("✅ Categoria excluída com sucesso, recarregando dados...");
-        // Recarregar categorias para consistência da UI
+        // Reload categories for UI consistency
         await loadCategories();
         toast.success("Categoria excluída com sucesso!", { id: toastId });
         return true;
@@ -84,7 +84,7 @@ export const useCategoryOperations = ({
       }
     } catch (error) {
       console.error("❌ Erro crítico ao deletar categoria:", error);
-      toast.error("Erro ao excluir categoria. Atualize a página e tente novamente.", { id: "delete-category" });
+      toast.error("Erro ao excluir categoria. Atualize a página e tente novamente.", { id: `delete-category-error-${Date.now()}` });
       return false;
     } finally {
       setOperationInProgress(false);

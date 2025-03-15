@@ -1,3 +1,4 @@
+
 import { Category } from "@/types/prompt";
 import { toast } from "sonner";
 import { 
@@ -95,22 +96,26 @@ export const useCategoryMutations = (
 
   const deleteCategory = async (id: string) => {
     try {
-      console.log('🔄 Iniciando processo de exclusão da categoria ID:', id);
+      // Generate a unique timestamp-based ID for this deletion
+      const operationId = Date.now().toString();
+      console.log(`🔄 [${operationId}] Iniciando processo de exclusão da categoria ID: ${id}`);
       
-      const toastId = `delete-category-${id}`;
+      const toastId = `delete-category-${id}-${operationId}`;
       toast.loading("Excluindo categoria e seus dados...", { id: toastId });
       
-      console.log('🔄 Chamando forceDeleteCategoryById para ID:', id);
+      console.log(`🔄 [${operationId}] Chamando forceDeleteCategoryById para ID: ${id}`);
       const result = await forceDeleteCategoryById(id);
       
       if (!result.success) {
-        console.error('❌ Falha retornada por forceDeleteCategoryById:', result.error);
+        console.error(`❌ [${operationId}] Falha retornada por forceDeleteCategoryById:`, result.error);
         toast.error("Falha ao excluir categoria. Por favor, tente novamente.", { id: toastId });
         return false;
       }
 
-      console.log('✅ Categoria excluída com sucesso, recarregando dados...');
+      console.log(`✅ [${operationId}] Categoria excluída com sucesso, recarregando dados...`);
       
+      // Reload all required data
+      console.log(`🔄 [${operationId}] Recarregando categorias, prompts e comentários...`);
       const [categoriesResult, promptsResult, commentsResult] = await Promise.all([
         fetchCategories(),
         fetchPrompts(),
@@ -118,75 +123,22 @@ export const useCategoryMutations = (
       ]);
       
       if (categoriesResult.error) {
-        console.error('❌ Erro ao recarregar categorias:', categoriesResult.error);
+        console.error(`❌ [${operationId}] Erro ao recarregar categorias:`, categoriesResult.error);
         toast.error("Categoria excluída, mas houve um erro ao atualizar os dados.", { id: toastId });
-        return true;
+        return true; // Still return true since category was deleted
       }
       
+      console.log(`✅ [${operationId}] Dados recarregados, reconstruindo árvore de categorias...`);
       const categoryTree = buildCategoryTree(categoriesResult.data || []);
+      setCategories(categoryTree);
       
-      const categoriesWithData = categoryTree.map(category => {
-        const categoryPrompts = (promptsResult.data || [])
-          .filter(prompt => prompt.category_id === category.id)
-          .map(prompt => {
-            const promptComments = (commentsResult.data || [])
-              .filter(comment => comment.prompt_id === prompt.id)
-              .map(comment => comment.text);
-            
-            return {
-              id: prompt.id,
-              text: prompt.text,
-              category: category.name,
-              rating: prompt.rating,
-              backgroundColor: prompt.background_color,
-              comments: promptComments,
-              createdAt: new Date(prompt.created_at),
-              selected: false
-            };
-          });
-        
-        const processSubcategories = (subcats: Category[]) => {
-          return subcats.map(subcat => {
-            const subcatPrompts = (promptsResult.data || [])
-              .filter(prompt => prompt.category_id === subcat.id)
-              .map(prompt => {
-                const promptComments = (commentsResult.data || [])
-                  .filter(comment => comment.prompt_id === prompt.id)
-                  .map(comment => comment.text);
-                
-                return {
-                  id: prompt.id,
-                  text: prompt.text,
-                  category: subcat.name,
-                  rating: prompt.rating,
-                  backgroundColor: prompt.background_color,
-                  comments: promptComments,
-                  createdAt: new Date(prompt.created_at),
-                  selected: false
-                };
-              });
-            
-            return {
-              ...subcat,
-              prompts: subcatPrompts,
-              subcategories: subcat.subcategories ? processSubcategories(subcat.subcategories) : []
-            };
-          });
-        };
-        
-        return {
-          ...category,
-          prompts: categoryPrompts,
-          subcategories: category.subcategories ? processSubcategories(category.subcategories) : []
-        };
-      });
-      
-      setCategories(categoriesWithData);
       toast.success('Categoria removida com sucesso!', { id: toastId });
+      console.log(`✅ [${operationId}] Processo completo de exclusão finalizado com sucesso!`);
       return true;
     } catch (error) {
-      console.error('❌ Erro ao excluir categoria:', error);
-      toast.error('Erro ao excluir categoria. Tente novamente.');
+      const errorId = Date.now().toString();
+      console.error(`❌ [${errorId}] Erro ao excluir categoria:`, error);
+      toast.error('Erro ao excluir categoria. Tente novamente.', { id: `error-${errorId}` });
       return false;
     }
   };
