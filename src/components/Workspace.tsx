@@ -6,6 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
 import { WorkspaceForm } from "./workspace/WorkspaceForm";
 import { WorkspaceList } from "./workspace/WorkspaceList";
+import { Button } from "./ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FileTransfer } from "./workspace/FileTransfer";
 
 export const Workspace = () => {
   const [items, setItems] = useState<WorkspaceItem[]>([]);
@@ -137,14 +140,27 @@ export const Workspace = () => {
 
   return (
     <div className="space-y-4">
-      <WorkspaceForm onAdd={addItem} />
-      <WorkspaceList
-        items={items}
-        expandedItems={expandedItems}
-        onToggleExpand={toggleExpand}
-        onCopy={copyToClipboard}
-        onRemove={removeItem}
-      />
+      <Tabs defaultValue="notes" className="w-full">
+        <TabsList className="mb-4 w-full">
+          <TabsTrigger value="notes">Notas</TabsTrigger>
+          <TabsTrigger value="files">Transferir Arquivos</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="notes">
+          <WorkspaceForm onAdd={addItem} />
+          <WorkspaceList
+            items={items}
+            expandedItems={expandedItems}
+            onToggleExpand={toggleExpand}
+            onCopy={copyToClipboard}
+            onRemove={removeItem}
+          />
+        </TabsContent>
+
+        <TabsContent value="files">
+          <FileTransfer />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
