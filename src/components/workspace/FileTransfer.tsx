@@ -95,19 +95,18 @@ export const FileTransfer = () => {
         const file = selectedFiles[i];
         const filePath = `${user?.id}/${file.name}`;
 
-        // Upload com progresso
+        // Upload - observe que não usamos mais onUploadProgress (que estava causando o erro)
         const { error } = await supabase.storage
           .from('file-transfer')
           .upload(filePath, file, {
             cacheControl: '3600',
-            upsert: true,
-            onUploadProgress: (progress) => {
-              const percentComplete = (progress.uploadedBytes / file.size) * 100;
-              setProgress(percentComplete);
-            }
+            upsert: true
           });
 
         if (error) throw error;
+        
+        // Incremento manual de progresso já que não temos mais o onUploadProgress
+        setProgress(((i + 1) / selectedFiles.length) * 100);
       }
 
       toast.success("Arquivo(s) enviado(s) com sucesso!");

@@ -10,16 +10,18 @@ import { usePromptManager } from "@/hooks/usePromptManager";
 import { useStructures } from "@/hooks/useStructures";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, RefreshCw } from "lucide-react";
+import { AlertCircle, RefreshCw, WifiOff } from "lucide-react";
 import { updatePromptInDb, deletePromptFromDb } from "@/services/categoryService";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 const Prompts = () => {
   const { signOut } = useAuth();
   const [globalSearchTerm, setGlobalSearchTerm] = useState("");
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
+  const [networkStatus, setNetworkStatus] = useState<'online' | 'offline'>('online');
 
   const {
     categories,
@@ -47,6 +49,32 @@ const Prompts = () => {
     editStructure,
     deleteStructure
   } = useStructures();
+
+  // Monitor online/offline status
+  useEffect(() => {
+    const handleOnline = () => {
+      setNetworkStatus('online');
+      toast.success("Conexão com a internet restaurada!");
+      
+      // Try reloading data when back online
+      if (connectionError) {
+        handleRetryConnection();
+      }
+    };
+    
+    const handleOffline = () => {
+      setNetworkStatus('offline');
+      toast.error("Sem conexão com a internet");
+    };
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [connectionError]);
 
   const editPrompt = async (id: string, newText: string) => {
     try {
@@ -80,6 +108,13 @@ const Prompts = () => {
     
     try {
       toast.info("Tentando reconectar ao banco de dados...");
+      
+      // Simple ping test to check connection
+      const { error } = await supabase.from('structures').select('id').limit(1);
+      
+      if (error) {
+        throw error;
+      }
       
       // Try to load both categories and structures
       await Promise.all([
@@ -123,20 +158,30 @@ const Prompts = () => {
         
         {connectionError && (
           <Alert variant="destructive" className="my-4">
-            <AlertCircle className="h-4 w-4" />
+            <WifiOff className="h-4 w-4 mr-2" />
             <AlertTitle>Erro de conexão</AlertTitle>
             <AlertDescription className="flex flex-col gap-2">
-              <p>Não foi possível conectar ao banco de dados: {connectionError}</p>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="self-start flex items-center gap-2"
-                onClick={handleRetryConnection}
-                disabled={isRetrying}
-              >
-                <RefreshCw className={`h-4 w-4 ${isRetrying ? 'animate-spin' : ''}`} /> 
-                {isRetrying ? 'Tentando reconectar...' : 'Tentar novamente'}
-              </Button>
+              <p>{networkStatus === 'offline' 
+                ? "Você está offline. Verifique sua conexão com a internet." 
+                : `Não foi possível conectar ao banco de dados: ${connectionError}`}
+              </p>
+              <div className="flex items-center gap-2 mt-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="self-start flex items-center gap-2"
+                  onClick={handleRetryConnection}
+                  disabled={isRetrying || networkStatus === 'offline'}
+                >
+                  <RefreshCw className={`h-4 w-4 ${isRetrying ? 'animate-spin' : ''}`} /> 
+                  {isRetrying ? 'Tentando reconectar...' : 'Tentar novamente'}
+                </Button>
+                {networkStatus === 'offline' && (
+                  <span className="text-sm text-red-500">
+                    Aguarde até que sua conexão seja restaurada
+                  </span>
+                )}
+              </div>
             </AlertDescription>
           </Alert>
         )}
