@@ -1,9 +1,8 @@
 
 import { supabase } from "../base/supabaseService";
 
-// Improved implementation with simplified process and better error handling
 export const forceDeleteCategoryById = async (id: string) => {
-  console.log(`🔄 INICIANDO EXCLUSÃO FORÇADA DA CATEGORIA: ${id}`);
+  console.log(`🔄 [${Date.now()}] INICIANDO EXCLUSÃO FORÇADA DA CATEGORIA: ${id}`);
   
   try {
     // 1. Get category info for logging
@@ -27,10 +26,8 @@ export const forceDeleteCategoryById = async (id: string) => {
     // All category IDs to process (main + subcategories)
     const allCategoryIds = [id, ...subcategories.map(c => c.id)];
     
-    // 3. Find all prompts in these categories first - we need their IDs to delete comments
-    console.log('🔍 Buscando todos os prompts nas categorias...');
+    // 3. Find all prompts in all categories - needed to delete comments
     let allPromptIds: string[] = [];
-    
     for (const categoryId of allCategoryIds) {
       const { data: prompts, error: promptsError } = await supabase
         .from('prompts')
@@ -48,32 +45,32 @@ export const forceDeleteCategoryById = async (id: string) => {
       }
     }
     
-    // 4. Delete all comments for all prompts in one operation if we have any
+    // 4. Delete all comments for all prompts first
     if (allPromptIds.length > 0) {
-      console.log(`🗑️ Excluindo todos os ${allPromptIds.length} comentários de prompts...`);
-      const { error: commentsError } = await supabase
+      console.log(`🗑️ Excluindo todos os comentários de ${allPromptIds.length} prompts...`);
+      const { error: commentsDeleteError } = await supabase
         .from('comments')
         .delete()
         .in('prompt_id', allPromptIds);
         
-      if (commentsError) {
-        console.error('❌ Erro ao excluir comentários:', commentsError);
-        return { success: false, error: commentsError };
+      if (commentsDeleteError) {
+        console.error('❌ Erro ao excluir comentários:', commentsDeleteError);
+        return { success: false, error: commentsDeleteError };
       }
       console.log('✅ Comentários excluídos com sucesso');
     }
     
-    // 5. Delete all prompts in all categories in one operation
-    console.log('🗑️ Excluindo todos os prompts das categorias...');
+    // 5. Delete all prompts in all categories - do this one by one to avoid potential issues
+    console.log('🗑️ Excluindo prompts de todas as categorias...');
     for (const categoryId of allCategoryIds) {
-      const { error: promptsError } = await supabase
+      const { error: promptsDeleteError } = await supabase
         .from('prompts')
         .delete()
         .eq('category_id', categoryId);
         
-      if (promptsError) {
-        console.error(`❌ Erro ao excluir prompts da categoria ${categoryId}:`, promptsError);
-        return { success: false, error: promptsError };
+      if (promptsDeleteError) {
+        console.error(`❌ Erro ao excluir prompts da categoria ${categoryId}:`, promptsDeleteError);
+        return { success: false, error: promptsDeleteError };
       }
     }
     console.log('✅ Prompts excluídos com sucesso');
@@ -86,14 +83,14 @@ export const forceDeleteCategoryById = async (id: string) => {
       
       for (const subcat of sortedSubcategories) {
         console.log(`🗑️ Excluindo subcategoria: ${subcat.name} (ID: ${subcat.id}) no nível ${subcat.depth}`);
-        const { error: deleteError } = await supabase
+        const { error: subcatDeleteError } = await supabase
           .from('categories')
           .delete()
           .eq('id', subcat.id);
           
-        if (deleteError) {
-          console.error(`❌ Erro ao excluir subcategoria ${subcat.id}:`, deleteError);
-          return { success: false, error: deleteError };
+        if (subcatDeleteError) {
+          console.error(`❌ Erro ao excluir subcategoria ${subcat.id}:`, subcatDeleteError);
+          return { success: false, error: subcatDeleteError };
         }
       }
       console.log('✅ Todas as subcategorias foram excluídas com sucesso');
@@ -101,14 +98,14 @@ export const forceDeleteCategoryById = async (id: string) => {
     
     // 7. Finally delete the main category
     console.log(`🗑️ Excluindo categoria principal: ${categoryData?.name} (ID: ${id})`);
-    const { error: mainCategoryError } = await supabase
+    const { error: mainCategoryDeleteError } = await supabase
       .from('categories')
       .delete()
       .eq('id', id);
       
-    if (mainCategoryError) {
-      console.error('❌ Erro ao excluir categoria principal:', mainCategoryError);
-      return { success: false, error: mainCategoryError };
+    if (mainCategoryDeleteError) {
+      console.error('❌ Erro ao excluir categoria principal:', mainCategoryDeleteError);
+      return { success: false, error: mainCategoryDeleteError };
     }
     
     console.log('✅ PROCESSO DE EXCLUSÃO CONCLUÍDO COM SUCESSO!');
@@ -123,7 +120,7 @@ export const forceDeleteCategoryById = async (id: string) => {
 async function getAllSubcategoriesRecursive(categoryId: string, depth = 0): Promise<Array<{id: string, name: string, depth: number}>> {
   const { data: subcategories, error } = await supabase
     .from('categories')
-    .select('id, name, parent_id')
+    .select('id, name')
     .eq('parent_id', categoryId);
   
   if (error) {
