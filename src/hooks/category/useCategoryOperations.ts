@@ -56,38 +56,66 @@ export const useCategoryOperations = ({
   }, [operationInProgress, originalEditCategory]);
 
   const deleteCategory = useCallback(async (id: string) => {
+    // Prevent multiple operations running at once
     if (operationInProgress) {
-      toast.error("Operação em andamento. Aguarde um momento.");
+      toast.error("Já existe uma operação em andamento. Aguarde um momento.");
       return false;
     }
     
     try {
+      // Set operation flag immediately
       setOperationInProgress(true);
       
-      // Create a truly unique ID for each delete operation using timestamp and random value
-      const uniqueId = `delete-category-${id}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      // Generate unique operation ID with timestamp and multiple random parts for guaranteed uniqueness
+      const timestamp = Date.now();
+      const randomPart1 = Math.random().toString(36).substring(2, 9);
+      const randomPart2 = Math.random().toString(36).substring(2, 9);
+      const uniqueId = `delete-category-${id}-${timestamp}-${randomPart1}-${randomPart2}`;
       
+      // Show loading toast immediately
       toast.loading("Excluindo categoria...", { id: uniqueId });
-      console.log(`🚀 Iniciando exclusão da categoria ID: ${id} com operação ${uniqueId}`);
       
-      const success = await originalDeleteCategory(id);
+      // Add detailed logging throughout the process
+      console.log(`🚀 [${timestamp}] INÍCIO: Exclusão da categoria ID: ${id} (Operação: ${uniqueId})`);
       
+      // Call the deletion function with increased timeout
+      const success = await Promise.race([
+        originalDeleteCategory(id),
+        new Promise<boolean>((_, reject) => 
+          setTimeout(() => reject(new Error("Timeout excedido")), 30000)
+        )
+      ]) as boolean;
+      
+      // Handle success case
       if (success) {
-        console.log(`✅ Categoria excluída com sucesso, recarregando dados para operação ${uniqueId}`);
+        console.log(`✅ [${timestamp}] SUCESSO: Categoria excluída (ID: ${id}, Operação: ${uniqueId})`);
+        console.log(`🔄 [${timestamp}] Recarregando dados após exclusão bem-sucedida...`);
+        
+        // Reload categories data
         await loadCategories();
+        
+        // Show success message
         toast.success("Categoria excluída com sucesso!", { id: uniqueId });
         return true;
       } else {
-        console.error(`❌ Falha ao excluir categoria com ID: ${id} na operação ${uniqueId}`);
-        toast.error("Falha ao excluir categoria. Tente novamente.", { id: uniqueId });
+        // Handle failure case
+        console.error(`❌ [${timestamp}] FALHA: Não foi possível excluir categoria (ID: ${id}, Operação: ${uniqueId})`);
+        toast.error("Não foi possível excluir a categoria. Tente novamente.", { id: uniqueId });
         return false;
       }
     } catch (error) {
-      const errorId = `error-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-      console.error(`❌ Erro crítico ao deletar categoria (${errorId}):`, error);
-      toast.error("Erro ao excluir categoria. Atualize a página e tente novamente.", { id: errorId });
+      // Handle error case with detailed logging
+      const errorTimestamp = Date.now();
+      const errorId = `error-${errorTimestamp}-${Math.random().toString(36).substring(2, 9)}`;
+      
+      console.error(`❌ [${errorTimestamp}] ERRO CRÍTICO (${errorId}):`, error);
+      console.error(`Detalhes do erro (${errorId}):`, JSON.stringify(error, null, 2));
+      
+      toast.error("Erro ao excluir categoria. Tente novamente mais tarde.", { id: errorId });
       return false;
     } finally {
+      // Always reset operation state
+      console.log(`🏁 Finalizando operação de exclusão para categoria ID: ${id}`);
       setOperationInProgress(false);
     }
   }, [operationInProgress, originalDeleteCategory, loadCategories]);
