@@ -3,6 +3,8 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
 import { toast } from "sonner";
+import { useRetry } from "@/hooks/utils/useRetry";
+import { isNetworkError } from "@/hooks/utils/errorUtils";
 
 export interface FileInfo {
   id: string;
@@ -41,6 +43,14 @@ export const FileTransferProvider = ({ children }: { children: ReactNode }) => {
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  
+  // Use retry hook for file operations
+  const { executeWithRetry } = useRetry({
+    maxRetries: 3,
+    initialDelay: 1000,
+    maxDelay: 5000,
+    retryOnNetworkError: true
+  });
 
   useEffect(() => {
     if (user) {
@@ -48,48 +58,66 @@ export const FileTransferProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [user]);
 
-  const loadFiles = async () => {
+  const ensureBucketExists = async () => {
     try {
-      setLoading(true);
-      
-      // Verificar se o bucket existe, senão criar
+      // Check if bucket exists, if not create it
       const { data: buckets } = await supabase.storage.listBuckets();
       const fileTransferBucket = buckets?.find(b => b.name === 'file-transfer');
       
       if (!fileTransferBucket) {
-        // O bucket não existe, tentar criá-lo via API
+        // Bucket doesn't exist, try to create it via API
         await supabase.storage.createBucket('file-transfer', {
           public: false,
           fileSizeLimit: 50 * 1024 * 1024 // 50MB limit
         });
+        console.log('Created new file-transfer bucket');
       }
+      return true;
+    } catch (error) {
+      console.error('Error ensuring bucket exists:', error);
+      return false;
+    }
+  };
+
+  const loadFiles = async () => {
+    if (!user) return;
+    
+    try {
+      setLoading(true);
       
-      // Listar arquivos do usuário
-      const { data, error } = await supabase.storage
-        .from('file-transfer')
-        .list(user?.id || '');
+      // Use retry logic for loading files
+      await executeWithRetry(async () => {
+        // Ensure bucket exists
+        const bucketExists = await ensureBucketExists();
+        if (!bucketExists) throw new Error('Could not access storage bucket');
+        
+        // List user's files
+        const { data, error } = await supabase.storage
+          .from('file-transfer')
+          .list(user.id || '');
 
-      if (error) throw error;
+        if (error) throw error;
 
-      if (data) {
-        const filesWithUrls = await Promise.all(
-          data.map(async (file) => {
-            const { data: urlData } = await supabase.storage
-              .from('file-transfer')
-              .createSignedUrl(`${user?.id}/${file.name}`, 3600); // 1 hour expiry
+        if (data) {
+          const filesWithUrls = await Promise.all(
+            data.map(async (file) => {
+              const { data: urlData } = await supabase.storage
+                .from('file-transfer')
+                .createSignedUrl(`${user.id}/${file.name}`, 3600); // 1 hour expiry
 
-            return {
-              id: file.id,
-              name: file.name,
-              size: file.metadata?.size || 0,
-              created_at: file.created_at,
-              url: urlData?.signedUrl || ''
-            };
-          })
-        );
+              return {
+                id: file.id,
+                name: file.name,
+                size: file.metadata?.size || 0,
+                created_at: file.created_at,
+                url: urlData?.signedUrl || ''
+              };
+            })
+          );
 
-        setFiles(filesWithUrls);
-      }
+          setFiles(filesWithUrls);
+        }
+      }, "Carregar Arquivos");
     } catch (error) {
       console.error('Erro ao carregar arquivos:', error);
       toast.error("Erro ao carregar arquivos");
@@ -99,36 +127,62 @@ export const FileTransferProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const uploadFiles = async (selectedFiles: FileList) => {
-    try {
-      if (!selectedFiles || selectedFiles.length === 0 || !user) return;
+    if (!selectedFiles || selectedFiles.length === 0 || !user) return;
 
+    try {
       setUploading(true);
       setProgress(0);
+      
+      // Ensure bucket exists before uploading
+      const bucketExists = await ensureBucketExists();
+      if (!bucketExists) {
+        throw new Error('Could not access storage bucket');
+      }
 
       // Upload files one by one
       for (let i = 0; i < selectedFiles.length; i++) {
         const file = selectedFiles[i];
         const filePath = `${user.id}/${file.name}`;
-
-        // Upload
-        const { error } = await supabase.storage
-          .from('file-transfer')
-          .upload(filePath, file, {
-            cacheControl: '3600',
-            upsert: true
-          });
-
-        if (error) throw error;
         
-        // Incremento manual de progresso
-        setProgress(((i + 1) / selectedFiles.length) * 100);
-      }
+        try {
+          // Attempt upload with retry logic
+          await executeWithRetry(async () => {
+            const { error } = await supabase.storage
+              .from('file-transfer')
+              .upload(filePath, file, {
+                cacheControl: '3600',
+                upsert: true
+              });
 
+            if (error) throw error;
+          }, `Upload ${file.name}`);
+          
+          // Update progress after each successful file upload
+          setProgress(((i + 1) / selectedFiles.length) * 100);
+        } catch (error) {
+          // Handle individual file upload errors
+          console.error(`Error uploading ${file.name}:`, error);
+          
+          // Show specific error for this file but continue with others
+          if (isNetworkError(error)) {
+            toast.error(`Falha na conexão ao enviar "${file.name}". Verifique sua internet.`);
+          } else {
+            toast.error(`Erro ao enviar "${file.name}": ${(error as Error).message || 'Erro desconhecido'}`);
+          }
+        }
+      }
+      
       toast.success("Arquivo(s) enviado(s) com sucesso!");
-      await loadFiles(); // Recarregar a lista de arquivos
+      await loadFiles(); // Reload the file list
     } catch (error) {
       console.error('Erro ao enviar arquivo:', error);
-      toast.error("Erro ao enviar arquivo");
+      
+      // Show appropriate error message based on error type
+      if (isNetworkError(error)) {
+        toast.error("Falha na conexão. Verifique sua internet e tente novamente.");
+      } else {
+        toast.error(`Erro ao enviar arquivo: ${(error as Error).message || 'Erro desconhecido'}`);
+      }
     } finally {
       setUploading(false);
       setProgress(0);
@@ -136,16 +190,19 @@ export const FileTransferProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const deleteFile = async (fileName: string) => {
+    if (!user) return;
+    
     try {
-      if (!user) return;
+      await executeWithRetry(async () => {
+        const { error } = await supabase.storage
+          .from('file-transfer')
+          .remove([`${user.id}/${fileName}`]);
+
+        if (error) throw error;
+
+        setFiles(prev => prev.filter(file => file.name !== fileName));
+      }, "Excluir Arquivo");
       
-      const { error } = await supabase.storage
-        .from('file-transfer')
-        .remove([`${user.id}/${fileName}`]);
-
-      if (error) throw error;
-
-      setFiles(prev => prev.filter(file => file.name !== fileName));
       toast.success("Arquivo excluído com sucesso!");
     } catch (error) {
       console.error('Erro ao excluir arquivo:', error);
