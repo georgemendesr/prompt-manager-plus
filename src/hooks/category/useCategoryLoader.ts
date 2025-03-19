@@ -11,17 +11,17 @@ export const useCategoryLoader = (originalLoadCategories: () => Promise<void | a
     maxDelay: 10000, // Max 10s delay
     retryOnNetworkError: true,
     onFailure: (error) => {
-      console.error("Erro ao carregar categorias após várias tentativas:", error);
+      console.error("Error loading categories after multiple attempts:", error);
       const errorMsg = error instanceof Error 
         ? error.message 
-        : "Erro ao conectar ao banco de dados";
+        : "Error connecting to database";
       
       setLoadError(error instanceof Error 
-        ? `Erro de conexão: ${error.message}` 
-        : "Erro ao conectar ao banco de dados. Verifique sua conexão com a internet."
+        ? `Connection error: ${error.message}` 
+        : "Error connecting to database. Check your internet connection."
       );
       
-      toast.error("Falha ao conectar ao banco de dados após várias tentativas.");
+      toast.error("Failed to connect to database after multiple attempts.");
     }
   });
 
@@ -29,7 +29,7 @@ export const useCategoryLoader = (originalLoadCategories: () => Promise<void | a
     setLoadError(null);
     return executeWithRetry(
       async () => await originalLoadCategories(),
-      "carregar categorias"
+      "load categories"
     );
   }, [executeWithRetry, originalLoadCategories]);
 

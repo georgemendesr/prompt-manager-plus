@@ -1,6 +1,8 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
+import { isNetworkError } from "./errorUtils";
+import { useBackoffCalculator } from "./useBackoffCalculator";
 
 interface UseRetryOptions {
   maxRetries?: number;
@@ -24,6 +26,11 @@ export const useRetry = ({
   const [operationInProgress, setOperationInProgress] = useState(false);
   const [lastError, setLastError] = useState<any>(null);
 
+  const { calculateBackoff } = useBackoffCalculator({ 
+    initialDelay, 
+    maxDelay 
+  });
+
   // Reset retry count function
   const resetRetryCount = useCallback(() => {
     setRetryCount(0);
@@ -36,24 +43,65 @@ export const useRetry = ({
     }
   }, [retryTimer]);
 
-  // Is network error check
-  const isNetworkError = useCallback((error: any) => {
-    return (
-      error?.message?.includes('Failed to fetch') || 
-      error?.message?.includes('Network error') ||
-      error?.message?.includes('network') ||
-      error?.code === 'ECONNABORTED' ||
-      error?.name === 'AbortError'
-    );
-  }, []);
+  // Handle operation success
+  const handleSuccess = useCallback((result: any) => {
+    console.log("Operation succeeded!");
+    resetRetryCount();
+    
+    if (onSuccess) {
+      onSuccess();
+    }
+    
+    return result;
+  }, [onSuccess, resetRetryCount]);
 
-  // Execute with retry logic
-  const executeWithRetry = useCallback(async (
+  // Handle operation failure
+  const handleFailure = useCallback((error: any, operation: () => Promise<any>, operationName: string) => {
+    console.error(`Error executing ${operationName}:`, error);
+    setLastError(error);
+    
+    // Determine if retry is appropriate
+    const shouldRetry = (retryOnNetworkError && isNetworkError(error)) || 
+                         (!isNetworkError(error) && retryCount < maxRetries);
+    
+    if (shouldRetry && retryCount < maxRetries) {
+      const delay = calculateBackoff(retryCount);
+      
+      console.log(`Retrying ${operationName} in ${Math.floor(delay/1000)} seconds... (Attempt ${retryCount + 1}/${maxRetries})`);
+      
+      // Set up retry timer with calculated backoff
+      const timer = setTimeout(() => {
+        setRetryCount(prev => prev + 1);
+        executeOperation(operation, operationName);
+      }, delay);
+      
+      setRetryTimer(timer);
+      
+      toast.error(`Error connecting. Retrying in ${Math.floor(delay/1000)}s (${retryCount + 1}/${maxRetries})...`);
+      return null;
+    } else {
+      const errorMessage = isNetworkError(error) 
+        ? `Connection error when trying to ${operationName.toLowerCase()}. Check your internet connection.`
+        : `Error ${operationName.toLowerCase()}: ${error.message || 'Unknown error'}`;
+        
+      toast.error(errorMessage);
+      
+      if (onFailure) {
+        onFailure(error);
+      }
+      
+      setOperationInProgress(false);
+      return null;
+    }
+  }, [maxRetries, retryCount, onFailure, calculateBackoff, retryOnNetworkError]);
+
+  // Execute operation with retry logic
+  const executeOperation = useCallback(async (
     operation: () => Promise<any>,
-    operationName: string = "Operation"
+    operationName: string
   ) => {
-    if (operationInProgress) {
-      console.log(`${operationName} operation already in progress, skipping retry`);
+    if (operationInProgress && retryTimer === null) {
+      console.log(`${operationName} operation already in progress, skipping`);
       return null;
     }
     
@@ -62,61 +110,20 @@ export const useRetry = ({
       console.log(`Executing ${operationName}...`);
       const result = await operation();
       
-      console.log(`${operationName} succeeded!`);
-      resetRetryCount();
-      
-      if (onSuccess) {
-        onSuccess();
-      }
-      
-      return result;
+      setOperationInProgress(false);
+      return handleSuccess(result);
     } catch (error: any) {
-      console.error(`Erro ao executar ${operationName}:`, error);
-      setLastError(error);
-      
-      // Only retry on network errors if retryOnNetworkError is true
-      // or retry for other errors if not a network error
-      const shouldRetry = (retryOnNetworkError && isNetworkError(error)) || 
-                         (!isNetworkError(error) && retryCount < maxRetries);
-      
-      if (shouldRetry && retryCount < maxRetries) {
-        // Exponential backoff with jitter: base delay + random jitter
-        const baseDelay = Math.min(initialDelay * Math.pow(2, retryCount), maxDelay);
-        const jitter = Math.random() * 1000; // add up to 1s of jitter
-        const delay = baseDelay + jitter;
-        
-        console.log(`Tentando novamente ${operationName} em ${Math.floor(delay/1000)} segundos... (Tentativa ${retryCount + 1}/${maxRetries})`);
-        
-        // Set up retry timer with exponential backoff
-        const timer = setTimeout(() => {
-          setRetryCount(prev => prev + 1);
-          executeWithRetry(operation, operationName);
-        }, delay);
-        
-        setRetryTimer(timer);
-        
-        toast.error(`Erro de conexão. Tentando novamente em ${Math.floor(delay/1000)}s (${retryCount + 1}/${maxRetries})...`);
-        return null;
-      } else {
-        const errorMessage = isNetworkError(error) 
-          ? `Erro de conexão ao ${operationName.toLowerCase()}. Verifique sua conexão com a internet.`
-          : `Erro ao ${operationName.toLowerCase()}: ${error.message || 'Erro desconhecido'}`;
-          
-        toast.error(errorMessage);
-        
-        if (onFailure) {
-          onFailure(error);
-        }
-        
-        return null;
-      }
-    } finally {
-      // Only set operationInProgress to false if we're not retrying
-      if (retryTimer === null) {
-        setOperationInProgress(false);
-      }
+      return handleFailure(error, operation, operationName);
     }
-  }, [maxRetries, initialDelay, maxDelay, onSuccess, onFailure, operationInProgress, resetRetryCount, retryCount, retryTimer, isNetworkError, retryOnNetworkError]);
+  }, [operationInProgress, retryTimer, handleSuccess, handleFailure]);
+
+  // Main public method to execute with retry
+  const executeWithRetry = useCallback((
+    operation: () => Promise<any>,
+    operationName: string = "Operation"
+  ) => {
+    return executeOperation(operation, operationName);
+  }, [executeOperation]);
 
   // Cancel any ongoing retry attempts
   const cancelRetry = useCallback(() => {
