@@ -5,10 +5,11 @@ import { useAuth } from "@/components/AuthProvider";
 import { toast } from "sonner";
 import { isNetworkError } from "@/hooks/utils/errorUtils";
 import * as fileTransferService from "@/services/fileTransfer/fileTransferService";
-import { FileInfo } from "@/types/fileTransfer";
+import { FileInfo, FailedUpload } from "@/types/fileTransfer";
 
 export function useFileOperations() {
   const [files, setFiles] = useState<FileInfo[]>([]);
+  const [failedUploads, setFailedUploads] = useState<FailedUpload[]>([]);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -41,6 +42,34 @@ export function useFileOperations() {
     }
   };
 
+  const uploadSingleFile = async (file: File): Promise<boolean> => {
+    if (!user) return false;
+    
+    try {
+      await fileTransferService.uploadFile(file, user.id!);
+      return true;
+    } catch (error) {
+      console.error(`Error uploading ${file.name}:`, error);
+      
+      // Store the failed upload
+      setFailedUploads(prev => [...prev, { 
+        file, 
+        error: isNetworkError(error) 
+          ? "Falha na conexão" 
+          : ((error as Error).message || 'Erro desconhecido')
+      }]);
+      
+      // Show specific error for this file
+      if (isNetworkError(error)) {
+        toast.error(`Falha na conexão ao enviar "${file.name}". Verifique sua internet.`);
+      } else {
+        toast.error(`Erro ao enviar "${file.name}": ${(error as Error).message || 'Erro desconhecido'}`);
+      }
+      
+      return false;
+    }
+  };
+
   const uploadFiles = async (selectedFiles: FileList) => {
     if (!selectedFiles || selectedFiles.length === 0 || !user) return;
 
@@ -54,33 +83,35 @@ export function useFileOperations() {
         throw new Error('Could not access storage bucket');
       }
 
-      // Upload files one by one
-      for (let i = 0; i < selectedFiles.length; i++) {
-        const file = selectedFiles[i];
-        
-        try {
-          // Attempt upload with retry logic
-          await executeWithRetry(async () => {
-            await fileTransferService.uploadFile(file, user.id!);
-          }, `Upload ${file.name}`);
-          
-          // Update progress after each successful file upload
-          setProgress(((i + 1) / selectedFiles.length) * 100);
-        } catch (error) {
-          // Handle individual file upload errors
-          console.error(`Error uploading ${file.name}:`, error);
-          
-          // Show specific error for this file but continue with others
-          if (isNetworkError(error)) {
-            toast.error(`Falha na conexão ao enviar "${file.name}". Verifique sua internet.`);
-          } else {
-            toast.error(`Erro ao enviar "${file.name}": ${(error as Error).message || 'Erro desconhecido'}`);
-          }
-        }
-      }
+      // Clear previous failed uploads before starting new ones
+      setFailedUploads([]);
       
-      toast.success("Arquivo(s) enviado(s) com sucesso!");
-      await loadFiles(); // Reload the file list
+      let uploadedCount = 0;
+      const totalFiles = selectedFiles.length;
+      
+      // Upload files one by one
+      for (let i = 0; i < totalFiles; i++) {
+        const file = selectedFiles[i];
+        const success = await uploadSingleFile(file);
+        
+        if (success) {
+          uploadedCount++;
+        }
+        
+        // Update progress after each file upload attempt
+        setProgress(((i + 1) / totalFiles) * 100);
+      }
+
+      if (uploadedCount > 0) {
+        if (uploadedCount === totalFiles) {
+          toast.success(`${totalFiles > 1 ? 'Arquivos enviados' : 'Arquivo enviado'} com sucesso!`);
+        } else {
+          toast.success(`${uploadedCount} de ${totalFiles} arquivos enviados com sucesso.`);
+        }
+        await loadFiles(); // Reload the file list
+      } else if (totalFiles > 0) {
+        toast.error(`Nenhum arquivo foi enviado. Tente novamente.`);
+      }
     } catch (error) {
       console.error('Erro ao enviar arquivo:', error);
       
@@ -90,6 +121,57 @@ export function useFileOperations() {
       } else {
         toast.error(`Erro ao enviar arquivo: ${(error as Error).message || 'Erro desconhecido'}`);
       }
+    } finally {
+      setUploading(false);
+      setProgress(0);
+    }
+  };
+
+  const retryFailedUploads = async () => {
+    if (failedUploads.length === 0 || !user) return;
+    
+    try {
+      setUploading(true);
+      setProgress(0);
+      
+      // Ensure bucket exists before retrying uploads
+      const bucketExists = await fileTransferService.ensureBucketExists();
+      if (!bucketExists) {
+        throw new Error('Could not access storage bucket');
+      }
+      
+      const filesToRetry = [...failedUploads];
+      setFailedUploads([]); // Clear failed uploads list before retrying
+      
+      let uploadedCount = 0;
+      const totalFiles = filesToRetry.length;
+      
+      // Retry each failed upload
+      for (let i = 0; i < totalFiles; i++) {
+        const { file } = filesToRetry[i];
+        const success = await uploadSingleFile(file);
+        
+        if (success) {
+          uploadedCount++;
+        }
+        
+        // Update progress after each file upload attempt
+        setProgress(((i + 1) / totalFiles) * 100);
+      }
+      
+      if (uploadedCount > 0) {
+        if (uploadedCount === totalFiles) {
+          toast.success(`Todas as ${totalFiles} tentativas de reenvio foram bem-sucedidas!`);
+        } else {
+          toast.success(`${uploadedCount} de ${totalFiles} arquivos reenviados com sucesso.`);
+        }
+        await loadFiles(); // Reload the file list
+      } else {
+        toast.error(`Falha no reenvio. Tente novamente mais tarde.`);
+      }
+    } catch (error) {
+      console.error('Erro ao reenviar arquivos:', error);
+      toast.error(`Erro ao reenviar arquivos: ${(error as Error).message || 'Erro desconhecido'}`);
     } finally {
       setUploading(false);
       setProgress(0);
@@ -134,11 +216,13 @@ export function useFileOperations() {
 
   return {
     files,
+    failedUploads,
     loading,
     uploading,
     progress,
     loadFiles,
     uploadFiles,
+    retryFailedUploads,
     deleteFile,
     downloadFile: fileTransferService.downloadFile,
     shareFile: shareFileWithUser,
