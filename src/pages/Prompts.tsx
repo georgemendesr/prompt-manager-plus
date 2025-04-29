@@ -1,27 +1,22 @@
+
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { PromptsHeader } from "@/components/prompts/PromptsHeader";
-import { PromptsSection } from "@/components/prompts/PromptsSection";
-import { StructureList } from "@/components/structures/StructureList";
-import { Workspace } from "@/components/Workspace";
+import { ConnectionAlert } from "@/components/prompts/ConnectionAlert";
+import { PromptsTabs } from "@/components/prompts/PromptsTabs";
+import { PromptsLoading } from "@/components/prompts/PromptsLoading";
 import { AIChat } from "@/components/ai/AIChat";
 import { usePromptManager } from "@/hooks/usePromptManager";
 import { useStructures } from "@/hooks/useStructures";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, RefreshCw, WifiOff } from "lucide-react";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { updatePromptInDb, deletePromptFromDb } from "@/services/categoryService";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 
 const Prompts = () => {
   const { signOut } = useAuth();
   const [globalSearchTerm, setGlobalSearchTerm] = useState("");
   const [connectionError, setConnectionError] = useState<string | null>(null);
-  const [isRetrying, setIsRetrying] = useState(false);
-  const [networkStatus, setNetworkStatus] = useState<'online' | 'offline'>('online');
-
+  
   const {
     categories,
     loading: categoriesLoading,
@@ -49,32 +44,8 @@ const Prompts = () => {
     editStructure,
     deleteStructure
   } = useStructures();
-
-  // Monitor online/offline status
-  useEffect(() => {
-    const handleOnline = () => {
-      setNetworkStatus('online');
-      toast.success("Conexão com a internet restaurada!");
-      
-      // Try reloading data when back online
-      if (connectionError) {
-        handleRetryConnection();
-      }
-    };
-    
-    const handleOffline = () => {
-      setNetworkStatus('offline');
-      toast.error("Sem conexão com a internet");
-    };
-    
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-    
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, [connectionError]);
+  
+  const { networkStatus, isRetrying, handleRetryConnection } = useNetworkStatus();
 
   const editPrompt = async (id: string, newText: string) => {
     try {
@@ -102,39 +73,22 @@ const Prompts = () => {
     }
   };
 
-  const handleRetryConnection = async () => {
-    setIsRetrying(true);
-    setConnectionError(null);
-    
-    try {
-      toast.info("Tentando reconectar ao banco de dados...");
-      
-      // Simple ping test to check connection
-      const { error } = await supabase.from('structures').select('id').limit(1);
-      
-      if (error) {
-        throw error;
-      }
-      
-      // Try to load both categories and structures
+  const handleRetry = async () => {
+    await handleRetryConnection(async () => {
       await Promise.all([
         loadCategories(),
         loadStructures()
       ]);
-      
-      toast.success("Conexão restabelecida com sucesso!");
-    } catch (error) {
-      console.error("Erro ao reconectar:", error);
-      toast.error("Falha ao reconectar. Tente novamente em alguns momentos.");
-    } finally {
-      setIsRetrying(false);
-    }
+      setConnectionError(null);
+    });
   };
 
+  // Carregar estruturas quando o componente montar
   useEffect(() => {
     loadStructures();
   }, [loadStructures]);
 
+  // Atualizar o estado de erro de conexão quando os erros mudarem
   useEffect(() => {
     if (categoriesLoadError || structuresLoadError) {
       setConnectionError(categoriesLoadError || structuresLoadError);
@@ -143,12 +97,9 @@ const Prompts = () => {
     }
   }, [categoriesLoadError, structuresLoadError]);
 
+  // Se estiver carregando e não houver erro de conexão, mostrar tela de carregamento
   if (categoriesLoading && !connectionError) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Carregando...</p>
-      </div>
-    );
+    return <PromptsLoading />;
   }
 
   return (
@@ -156,80 +107,37 @@ const Prompts = () => {
       <div className="max-w-7xl mx-auto">
         <PromptsHeader onSignOut={signOut} />
         
-        {connectionError && (
-          <Alert variant="destructive" className="my-4">
-            <WifiOff className="h-4 w-4 mr-2" />
-            <AlertTitle>Erro de conexão</AlertTitle>
-            <AlertDescription className="flex flex-col gap-2">
-              <p>{networkStatus === 'offline' 
-                ? "Você está offline. Verifique sua conexão com a internet." 
-                : `Não foi possível conectar ao banco de dados: ${connectionError}`}
-              </p>
-              <div className="flex items-center gap-2 mt-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="self-start flex items-center gap-2"
-                  onClick={handleRetryConnection}
-                  disabled={isRetrying || networkStatus === 'offline'}
-                >
-                  <RefreshCw className={`h-4 w-4 ${isRetrying ? 'animate-spin' : ''}`} /> 
-                  {isRetrying ? 'Tentando reconectar...' : 'Tentar novamente'}
-                </Button>
-                {networkStatus === 'offline' && (
-                  <span className="text-sm text-red-500">
-                    Aguarde até que sua conexão seja restaurada
-                  </span>
-                )}
-              </div>
-            </AlertDescription>
-          </Alert>
-        )}
+        <ConnectionAlert 
+          connectionError={connectionError}
+          networkStatus={networkStatus}
+          isRetrying={isRetrying}
+          onRetry={handleRetry}
+        />
         
-        <Tabs defaultValue="prompts" className="w-full">
-          <TabsList className="bg-white/60 backdrop-blur-sm mb-4 sm:mb-6 w-full flex">
-            <TabsTrigger value="prompts" className="flex-1">Prompts</TabsTrigger>
-            <TabsTrigger value="estrutura" className="flex-1">Estrutura</TabsTrigger>
-            <TabsTrigger value="workspace" className="flex-1">Workspace</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="prompts" className="mt-4 sm:mt-6">
-            <PromptsSection 
-              categories={categories}
-              addCategory={addCategory}
-              bulkImportPrompts={bulkImportPrompts}
-              ratePrompt={ratePrompt}
-              addComment={addComment}
-              editPrompt={editPrompt}
-              deletePrompt={deletePrompt}
-              movePrompt={movePrompt}
-              togglePromptSelection={togglePromptSelection}
-              toggleSelectAll={toggleSelectAll}
-              deleteSelectedPrompts={deleteSelectedPrompts}
-              editCategory={editCategory}
-              deleteCategory={deleteCategory}
-              searchTerm={globalSearchTerm}
-              setSearchTerm={setGlobalSearchTerm}
-              exportPrompts={exportPrompts}
-            />
-          </TabsContent>
-
-          <TabsContent value="estrutura" className="mt-4 sm:mt-6">
-            <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 sm:p-6">
-              <StructureList 
-                structures={structures} 
-                loadError={structuresLoadError}
-                onAddStructure={addStructure} 
-                onEditStructure={editStructure} 
-                onDeleteStructure={deleteStructure} 
-              />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="workspace" className="mt-4 sm:mt-6">
-            <Workspace />
-          </TabsContent>
-        </Tabs>
+        <PromptsTabs
+          categories={categories}
+          structuresLoading={structuresLoading}
+          structuresLoadError={structuresLoadError}
+          globalSearchTerm={globalSearchTerm}
+          setGlobalSearchTerm={setGlobalSearchTerm}
+          onAddCategory={addCategory}
+          onEditCategory={editCategory}
+          onDeleteCategory={deleteCategory}
+          onRatePrompt={ratePrompt}
+          onAddComment={addComment}
+          onEditPrompt={editPrompt}
+          onDeletePrompt={deletePrompt}
+          onMovePrompt={movePrompt}
+          onTogglePromptSelection={togglePromptSelection}
+          onToggleSelectAll={toggleSelectAll}
+          onDeleteSelectedPrompts={deleteSelectedPrompts}
+          onBulkImportPrompts={bulkImportPrompts}
+          onExportPrompts={exportPrompts}
+          structures={structures}
+          onAddStructure={addStructure}
+          onEditStructure={editStructure}
+          onDeleteStructure={deleteStructure}
+        />
       </div>
       <AIChat />
     </div>
