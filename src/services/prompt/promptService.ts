@@ -1,4 +1,3 @@
-
 import { supabase } from "../base/supabaseService";
 
 export const fetchPrompts = async () => {
@@ -117,4 +116,27 @@ export const updatePromptInDb = async (id: string, text: string) => {
     console.error('Erro ao atualizar prompt:', error);
     return { data: null, error };
   }
+};
+
+// Função para converter prompts para formato CSV
+export const convertPromptsToCSV = (prompts: Array<{
+  text: string;
+  category: string;
+  rating: number;
+  comments: string[];
+  createdAt: string;
+}>): string => {
+  // Headers
+  let csv = "Texto,Categoria,Avaliação,Comentários,Data de Criação\n";
+  
+  // Adicionar cada linha
+  prompts.forEach(prompt => {
+    // Escapar aspas nos campos de texto e comentários
+    const escapedText = prompt.text.replace(/"/g, '""');
+    const escapedComments = prompt.comments.join(" | ").replace(/"/g, '""');
+    
+    csv += `"${escapedText}","${prompt.category}",${prompt.rating},"${escapedComments}","${prompt.createdAt}"\n`;
+  });
+  
+  return csv;
 };

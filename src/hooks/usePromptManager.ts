@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useCategories } from "./useCategories";
 import { usePrompts } from "./usePrompts";
@@ -5,7 +6,7 @@ import { useBulkActions } from "./useBulkActions";
 import { useSelection } from "./useSelection";
 import { useCategoryOperations } from "./category/useCategoryOperations";
 import { useCategoryLoader } from "./category/useCategoryLoader";
-import type { Category } from "@/types/prompt";
+import type { Category, Prompt } from "@/types/prompt";
 
 export interface PromptManager {
   categories: Category[];
@@ -22,6 +23,7 @@ export interface PromptManager {
   deleteSelectedPrompts: (categoryName: string) => Promise<void>;
   togglePromptSelection: (promptId: string, selected: boolean) => void;
   toggleSelectAll: (categoryName: string, selected: boolean) => void;
+  exportPrompts: () => void;
 }
 
 export const usePromptManager = (): PromptManager => {
@@ -67,6 +69,65 @@ export const usePromptManager = (): PromptManager => {
     toggleSelectAll
   } = useSelection(categories, setCategories);
 
+  // New export functionality
+  const exportPrompts = () => {
+    try {
+      // Collect all prompts from all categories
+      const allPrompts: Array<{
+        text: string;
+        category: string;
+        rating: number;
+        comments: string[];
+        createdAt: string;
+      }> = [];
+      
+      const collectPromptsRecursive = (cats: Category[], parentPath: string = "") => {
+        cats.forEach(category => {
+          const categoryPath = parentPath ? `${parentPath} > ${category.name}` : category.name;
+          
+          // Add prompts from this category
+          category.prompts.forEach(prompt => {
+            allPrompts.push({
+              text: prompt.text,
+              category: categoryPath,
+              rating: prompt.rating,
+              comments: prompt.comments,
+              createdAt: prompt.createdAt.toISOString(),
+            });
+          });
+          
+          // Recursively process subcategories
+          if (category.subcategories && category.subcategories.length > 0) {
+            collectPromptsRecursive(category.subcategories, categoryPath);
+          }
+        });
+      };
+      
+      collectPromptsRecursive(categories);
+      
+      // Create JSON data
+      const jsonData = JSON.stringify(allPrompts, null, 2);
+      
+      // Create and download file
+      const blob = new Blob([jsonData], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Create filename with date
+      const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+      link.download = `prompts-export-${date}.json`;
+      
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Erro ao exportar prompts:', error);
+    }
+  };
+
   return {
     categories,
     loading,
@@ -81,6 +142,7 @@ export const usePromptManager = (): PromptManager => {
     bulkImportPrompts,
     deleteSelectedPrompts,
     togglePromptSelection,
-    toggleSelectAll
+    toggleSelectAll,
+    exportPrompts
   };
 };

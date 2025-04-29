@@ -3,6 +3,8 @@ import { AddCategory } from "@/components/AddCategory";
 import { BulkImport } from "@/components/BulkImport";
 import { CategoryTree } from "@/components/CategoryTree";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
 import type { Category } from "@/types/prompt";
 
 interface PromptsSectionProps {
@@ -21,6 +23,7 @@ interface PromptsSectionProps {
   deleteCategory: (id: string) => Promise<boolean>;
   searchTerm: string;
   setSearchTerm: (value: string) => void;
+  exportPrompts: () => void;
 }
 
 export const PromptsSection = ({ 
@@ -38,7 +41,8 @@ export const PromptsSection = ({
   editCategory,
   deleteCategory,
   searchTerm,
-  setSearchTerm
+  setSearchTerm,
+  exportPrompts
 }: PromptsSectionProps) => {
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -46,10 +50,20 @@ export const PromptsSection = ({
         <div className="flex flex-wrap gap-2">
           <AddCategory onAdd={addCategory} categories={categories} />
           {categories.length > 0 && (
-            <BulkImport
-              categories={categories}
-              onImport={bulkImportPrompts}
-            />
+            <>
+              <BulkImport
+                categories={categories}
+                onImport={bulkImportPrompts}
+              />
+              <Button 
+                onClick={exportPrompts} 
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Exportar Prompts
+              </Button>
+            </>
           )}
         </div>
       </div>

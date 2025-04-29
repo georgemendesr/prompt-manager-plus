@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { PromptsHeader } from "@/components/prompts/PromptsHeader";
@@ -37,7 +36,8 @@ const Prompts = () => {
     bulkImportPrompts,
     deleteSelectedPrompts,
     togglePromptSelection,
-    toggleSelectAll
+    toggleSelectAll,
+    exportPrompts
   } = usePromptManager();
 
   const {
@@ -210,6 +210,7 @@ const Prompts = () => {
               deleteCategory={deleteCategory}
               searchTerm={globalSearchTerm}
               setSearchTerm={setGlobalSearchTerm}
+              exportPrompts={exportPrompts}
             />
           </TabsContent>
 
