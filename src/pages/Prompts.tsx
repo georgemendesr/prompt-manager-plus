@@ -16,6 +16,7 @@ const Prompts = () => {
   const { signOut } = useAuth();
   const [globalSearchTerm, setGlobalSearchTerm] = useState("");
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [initialCategoriesDeleted, setInitialCategoriesDeleted] = useState(false);
   
   const {
     categories,
@@ -46,6 +47,38 @@ const Prompts = () => {
   } = useStructures();
   
   const { networkStatus, isRetrying, handleRetryConnection } = useNetworkStatus();
+
+  useEffect(() => {
+    // Run once when categories are loaded and deletion hasn't been performed yet
+    if (categories.length > 0 && !initialCategoriesDeleted && !categoriesLoading) {
+      const deleteInitialCategories = async () => {
+        const categoriesToDelete = ['Emocionantes II', 'Revisão'];
+        let success = true;
+        
+        for (const categoryName of categoriesToDelete) {
+          const category = categories.find(cat => cat.name === categoryName);
+          if (category) {
+            console.log(`Attempting to delete category: ${categoryName} (ID: ${category.id})`);
+            const result = await deleteCategory(category.id);
+            if (!result) {
+              console.error(`Failed to delete category: ${categoryName}`);
+              success = false;
+              break;
+            }
+          }
+        }
+        
+        if (success) {
+          setInitialCategoriesDeleted(true);
+          toast.success("Categorias especificadas foram removidas com sucesso!");
+        } else {
+          toast.error("Houve um problema ao remover uma ou mais categorias.");
+        }
+      };
+      
+      deleteInitialCategories();
+    }
+  }, [categories, categoriesLoading, initialCategoriesDeleted, deleteCategory]);
 
   const editPrompt = async (id: string, newText: string) => {
     try {
