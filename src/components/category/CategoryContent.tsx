@@ -41,7 +41,13 @@ export const CategoryContent = ({
   );
 
   // Ordenamos os prompts por pontuação, do maior para o menor
-  const orderedPrompts = [...filteredPrompts].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+  const orderedPrompts = [...filteredPrompts]
+    .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+    // Atribuímos o ranking a cada prompt após a ordenação
+    .map((prompt, index) => ({
+      ...prompt,
+      rank: index + 1
+    }));
 
   return (
     <div className="space-y-6">

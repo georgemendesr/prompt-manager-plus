@@ -1,8 +1,8 @@
-
 import { useState } from "react";
 import { toast } from "sonner";
 import { Card } from "./ui/card";
 import { Checkbox } from "./ui/checkbox";
+import { Award, Trophy, Star } from "lucide-react";
 import type { Prompt, MusicStructure, Category } from "@/types/prompt";
 import { RatingButtons } from "./prompt/RatingButtons";
 import { CommentSection } from "./prompt/CommentSection";
@@ -63,20 +63,61 @@ export const PromptCard = ({
     prompt.comments.filter(comment => !comment.startsWith('#'))
   );
 
+  // Determina a classe de estilo com base na classificação e pontuação
+  const getRankingClass = () => {
+    // Se o prompt já tem uma cor de fundo definida, mantemos ela
+    if (prompt.backgroundColor && prompt.backgroundColor !== "bg-blue-50/30") {
+      return `${prompt.backgroundColor} backdrop-blur-sm`;
+    }
+    
+    // Aplicar cores baseadas no ranking
+    if (prompt.rank === 1) {
+      return "bg-gradient-to-r from-amber-100 to-yellow-100 shadow-md shadow-amber-100/50 ring-2 ring-amber-300";
+    }
+    if (prompt.rank === 2) {
+      return "bg-gradient-to-r from-gray-100 to-slate-100 shadow-md shadow-gray-100/50 ring-2 ring-gray-300";
+    }
+    if (prompt.rank === 3) {
+      return "bg-gradient-to-r from-orange-50 to-amber-50 shadow-md shadow-orange-100/50 ring-2 ring-orange-200";
+    }
+    if (prompt.rating >= 10) {
+      return "bg-gradient-to-r from-purple-50 to-indigo-50 shadow-md shadow-purple-100/50 ring-1 ring-purple-200";
+    }
+    
+    // Estilo padrão para outros prompts
+    return `${bgColor} backdrop-blur-sm`;
+  };
+
+  // Determina o ícone de ranking
+  const getRankIcon = () => {
+    if (prompt.rank === 1) return <Trophy className="h-4 w-4 text-amber-500" />;
+    if (prompt.rank === 2) return <Trophy className="h-4 w-4 text-gray-400" />;
+    if (prompt.rank === 3) return <Trophy className="h-4 w-4 text-orange-400" />;
+    if (prompt.rating >= 10) return <Star className="h-4 w-4 text-purple-400" />;
+    return null;
+  };
+
   // Ajusta a classe CSS com base na pontuação
   const getScoreClass = (score: number) => {
-    if (score > 5) return 'ring-2 ring-green-400 shadow-lg shadow-green-100 bg-gradient-to-r from-green-50 to-emerald-50';
-    if (score > 0) return 'ring-1 ring-blue-300 shadow-md shadow-blue-50 bg-gradient-to-r from-blue-50 to-sky-50';
-    if (score < 0) return 'ring-1 ring-red-300 shadow-md shadow-red-50 bg-gradient-to-r from-red-50 to-pink-50';
+    if (score > 5) return 'shadow-lg shadow-green-100';
+    if (score > 0) return 'shadow-md shadow-blue-50';
+    if (score < 0) return 'shadow-md shadow-red-50';
     return 'border-b';
   };
 
-  const cardClasses = `${bgColor} backdrop-blur-sm relative sm:text-xs text-xs p-2 ${getScoreClass(prompt.rating)}`;
+  const rankingClass = getRankingClass();
+  const rankIcon = getRankIcon();
+  const scoreClass = getScoreClass(prompt.rating);
+
+  const cardClasses = `relative sm:text-xs text-xs p-2 ${rankingClass} ${scoreClass}`;
 
   return (
     <Card className={cardClasses}>
       <div className="flex flex-col space-y-1">
         <div className="flex items-start gap-1">
+          {rankIcon && (
+            <div className="mt-1 mr-1">{rankIcon}</div>
+          )}
           <div className="flex-grow">
             <PromptText 
               text={prompt.text}
