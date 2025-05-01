@@ -63,11 +63,15 @@ export const PromptCard = ({
     prompt.comments.filter(comment => !comment.startsWith('#'))
   );
 
-  const cardClasses = `${bgColor} backdrop-blur-sm relative sm:text-xs text-xs p-2 ${
-    prompt.rating > 0 
-      ? 'ring-2 ring-yellow-400 shadow-lg shadow-yellow-100 bg-gradient-to-r from-yellow-50 to-amber-50' 
-      : 'border-b'
-  }`;
+  // Ajusta a classe CSS com base na pontuação
+  const getScoreClass = (score: number) => {
+    if (score > 5) return 'ring-2 ring-green-400 shadow-lg shadow-green-100 bg-gradient-to-r from-green-50 to-emerald-50';
+    if (score > 0) return 'ring-1 ring-blue-300 shadow-md shadow-blue-50 bg-gradient-to-r from-blue-50 to-sky-50';
+    if (score < 0) return 'ring-1 ring-red-300 shadow-md shadow-red-50 bg-gradient-to-r from-red-50 to-pink-50';
+    return 'border-b';
+  };
+
+  const cardClasses = `${bgColor} backdrop-blur-sm relative sm:text-xs text-xs p-2 ${getScoreClass(prompt.rating)}`;
 
   return (
     <Card className={cardClasses}>
@@ -88,11 +92,6 @@ export const PromptCard = ({
             onAddComment={(comment) => onAddComment(prompt.id, comment)}
           />
           <div className="flex items-center gap-1">
-            {prompt.rating > 0 && (
-              <div className="w-4 h-4 bg-yellow-400 flex items-center justify-center rounded-full">
-                <span className="text-white text-[10px] font-bold">★</span>
-              </div>
-            )}
             <RatingButtons 
               rating={prompt.rating}
               onRate={(increment) => onRate(prompt.id, increment)}

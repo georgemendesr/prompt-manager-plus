@@ -1,13 +1,15 @@
+
 export type Prompt = {
   id: string;
   text: string;
   category: string;
-  rating: number;
+  rating: number; // Manteremos para compatibilidade, mas agora usaremos como score
   comments: string[];
   createdAt: Date;
   selected?: boolean;
   isEditing?: boolean;
   backgroundColor?: string;
+  score?: number; // Nova propriedade para pontuação de votos
 };
 
 export type Category = {

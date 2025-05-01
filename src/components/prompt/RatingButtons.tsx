@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Star } from "lucide-react";
+import { ThumbsUp, ThumbsDown } from "lucide-react";
 
 interface RatingButtonsProps {
   rating: number;
@@ -9,22 +9,27 @@ interface RatingButtonsProps {
 }
 
 export const RatingButtons = ({ rating, onRate, backgroundColor }: RatingButtonsProps) => {
-  const handleClick = () => {
-    const shouldIncrement = rating === 0;
-    console.log('RatingButtons click:', { currentRating: rating, shouldIncrement });
-    onRate(shouldIncrement);
-  };
-
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={handleClick}
-      className={`h-6 w-6 hover:text-yellow-500 transition-colors ${
-        rating > 0 ? 'text-yellow-500' : 'text-gray-400'
-      }`}
-    >
-      <Star className="h-3.5 w-3.5" />
-    </Button>
+    <div className="flex items-center space-x-1">
+      <div className="text-xs font-medium mx-1">{rating}</div>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => onRate(true)}
+        className="h-6 w-6 hover:text-green-500 transition-colors"
+        title="Votar positivamente"
+      >
+        <ThumbsUp className="h-3.5 w-3.5" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => onRate(false)}
+        className="h-6 w-6 hover:text-red-500 transition-colors"
+        title="Votar negativamente"
+      >
+        <ThumbsDown className="h-3.5 w-3.5" />
+      </Button>
+    </div>
   );
 };

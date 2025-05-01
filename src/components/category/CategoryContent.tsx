@@ -40,12 +40,8 @@ export const CategoryContent = ({
     )
   );
 
-  // Depois separamos em favoritos e não favoritos
-  const favoritedPrompts = filteredPrompts.filter(p => p.rating > 0);
-  const unfavoritedPrompts = filteredPrompts.filter(p => p.rating === 0);
-
-  // Combinamos os arrays mantendo a ordem (favoritos primeiro)
-  const orderedPrompts = [...favoritedPrompts, ...unfavoritedPrompts];
+  // Ordenamos os prompts por pontuação, do maior para o menor
+  const orderedPrompts = [...filteredPrompts].sort((a, b) => (b.rating || 0) - (a.rating || 0));
 
   return (
     <div className="space-y-6">

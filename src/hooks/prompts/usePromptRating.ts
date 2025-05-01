@@ -42,8 +42,9 @@ export const usePromptRating = (
       console.log('Prompt encontrado:', prompt);
       console.log('Na categoria:', category.name);
 
-      // Define o novo rating como 0 ou 1 baseado no increment
-      const newRating = increment ? 1 : 0;
+      // Calcula a nova pontuação baseado no increment (true = +1, false = -1)
+      const changeAmount = increment ? 1 : -1;
+      const newRating = (prompt.rating || 0) + changeAmount;
 
       console.log('Atualizando rating:', { promptId, newRating });
 
@@ -55,7 +56,7 @@ export const usePromptRating = (
 
       if (error) {
         console.error('Erro ao atualizar rating:', error);
-        toast.error('Erro ao atualizar marcação');
+        toast.error('Erro ao atualizar pontuação');
         return;
       }
 
@@ -67,14 +68,12 @@ export const usePromptRating = (
             p.id === promptId ? { ...p, rating: newRating } : p
           );
 
-          // Separamos os prompts em favoritados e não favoritados
-          const favoritedPrompts = updatedPrompts.filter(p => p.rating > 0);
-          const unfavoritedPrompts = updatedPrompts.filter(p => p.rating === 0);
+          // Ordenamos os prompts por pontuação, do maior para o menor
+          const sortedPrompts = [...updatedPrompts].sort((a, b) => (b.rating || 0) - (a.rating || 0));
 
-          // Mantemos a ordem relativa dentro de cada grupo
           return {
             ...cat,
-            prompts: [...favoritedPrompts, ...unfavoritedPrompts],
+            prompts: sortedPrompts,
             subcategories: cat.subcategories 
               ? updateCategoriesRecursively(cat.subcategories)
               : []
@@ -83,10 +82,10 @@ export const usePromptRating = (
       };
 
       setCategories(updateCategoriesRecursively(categories));
-      toast.success(increment ? 'Prompt favoritado!' : 'Prompt desfavoritado!');
+      toast.success(increment ? 'Voto positivo registrado!' : 'Voto negativo registrado!');
     } catch (error) {
-      console.error('Erro ao atualizar marcação:', error);
-      toast.error('Erro ao atualizar marcação');
+      console.error('Erro ao atualizar pontuação:', error);
+      toast.error('Erro ao atualizar pontuação');
     }
   };
 
