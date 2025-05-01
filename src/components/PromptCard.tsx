@@ -85,8 +85,8 @@ export const PromptCard = ({
       return "bg-gradient-to-r from-purple-50 to-indigo-50 shadow-md shadow-purple-100/50 ring-1 ring-purple-200";
     }
     
-    // Estilo padrão para outros prompts
-    return `${bgColor} backdrop-blur-sm`;
+    // Estilo padrão para outros prompts - usando cinza bem claro, próximo do branco
+    return "bg-gray-50/70 backdrop-blur-sm";
   };
 
   // Determina o ícone de ranking
