@@ -11,8 +11,10 @@ interface RatingButtonsProps {
 export const RatingButtons = ({ rating, onRate, backgroundColor }: RatingButtonsProps) => {
   // Determina a cor do texto da pontuação com base no valor
   const getRatingTextColor = (score: number) => {
-    if (score > 10) return "text-purple-600 font-bold";
-    if (score > 5) return "text-green-600 font-bold";
+    if (score >= 20) return "text-amber-600 font-bold";
+    if (score >= 15) return "text-orange-600 font-bold";
+    if (score >= 10) return "text-purple-600 font-bold";
+    if (score >= 5) return "text-green-600 font-bold";
     if (score > 0) return "text-blue-600";
     if (score < 0) return "text-red-600";
     return "text-gray-500";

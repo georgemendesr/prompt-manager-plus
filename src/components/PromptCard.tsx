@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { toast } from "sonner";
 import { Card } from "./ui/card";
@@ -71,13 +72,13 @@ export const PromptCard = ({
     }
     
     // Aplicar cores baseadas no ranking
-    if (prompt.rank === 1) {
+    if (prompt.rank && prompt.rank <= 5) {
       return "bg-gradient-to-r from-amber-100 to-yellow-100 shadow-md shadow-amber-100/50 ring-2 ring-amber-300";
     }
-    if (prompt.rank === 2) {
+    if (prompt.rank && prompt.rank > 5 && prompt.rank <= 8) {
       return "bg-gradient-to-r from-gray-100 to-slate-100 shadow-md shadow-gray-100/50 ring-2 ring-gray-300";
     }
-    if (prompt.rank === 3) {
+    if (prompt.rank && prompt.rank > 8 && prompt.rank <= 10) {
       return "bg-gradient-to-r from-orange-50 to-amber-50 shadow-md shadow-orange-100/50 ring-2 ring-orange-200";
     }
     if (prompt.rating >= 10) {
@@ -90,9 +91,9 @@ export const PromptCard = ({
 
   // Determina o ícone de ranking
   const getRankIcon = () => {
-    if (prompt.rank === 1) return <Trophy className="h-4 w-4 text-amber-500" />;
-    if (prompt.rank === 2) return <Trophy className="h-4 w-4 text-gray-400" />;
-    if (prompt.rank === 3) return <Trophy className="h-4 w-4 text-orange-400" />;
+    if (prompt.rank && prompt.rank <= 5) return <Trophy className="h-4 w-4 text-amber-500" />;
+    if (prompt.rank && prompt.rank > 5 && prompt.rank <= 8) return <Trophy className="h-4 w-4 text-gray-400" />;
+    if (prompt.rank && prompt.rank > 8 && prompt.rank <= 10) return <Trophy className="h-4 w-4 text-orange-400" />;
     if (prompt.rating >= 10) return <Star className="h-4 w-4 text-purple-400" />;
     return null;
   };
