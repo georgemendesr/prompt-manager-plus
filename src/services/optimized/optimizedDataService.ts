@@ -72,9 +72,6 @@ export const buildOptimizedCategoryTree = (
   categories: DatabaseCategory[], 
   promptsWithComments: DatabasePrompt[]
 ): Category[] => {
-  // Criar mapa de categorias para acesso rápido
-  const categoryMap = new Map(categories.map(cat => [cat.id, cat]));
-  
   // Agrupar prompts por categoria
   const promptsByCategory = new Map<string, DatabasePrompt[]>();
   promptsWithComments.forEach(prompt => {
@@ -94,7 +91,7 @@ export const buildOptimizedCategoryTree = (
         return {
           id: category.id,
           name: category.name,
-          parentId: category.parent_id,
+          parentId: category.parent_id || undefined,
           prompts: categoryPrompts.map(prompt => ({
             id: prompt.id,
             text: prompt.text,

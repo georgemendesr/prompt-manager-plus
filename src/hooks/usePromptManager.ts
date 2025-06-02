@@ -3,7 +3,9 @@ import { useOptimizedData } from "./optimized/useOptimizedData";
 import { useBulkActions } from "./useBulkActions";
 import { useSelection } from "./useSelection";
 import { useCategoryOperations } from "./category/useCategoryOperations";
-import type { Category, Prompt } from "@/types/prompt";
+import { useCategories } from "./useCategories";
+import { usePrompts } from "./usePrompts";
+import type { Category } from "@/types/prompt";
 
 export interface PromptManager {
   categories: Category[];
@@ -24,38 +26,40 @@ export interface PromptManager {
 }
 
 export const usePromptManager = (): PromptManager => {
+  // Use optimized data hook
   const {
-    categories,
+    categories: optimizedCategories,
+    loading: optimizedLoading,
+    error: optimizedError,
+    refetch: optimizedRefetch,
+    ratePrompt: optimizedRatePrompt,
+    addComment: optimizedAddComment,
+    invalidateData
+  } = useOptimizedData();
+
+  // Fallback to original hooks
+  const {
+    categories: fallbackCategories,
     setCategories,
-    loading,
-    loadCategories: originalLoadCategories,
-    addCategory: originalAddCategory,
-    editCategory: originalEditCategory,
-    deleteCategory: originalDeleteCategory
+    loading: fallbackLoading,
+    loadCategories: fallbackLoadCategories,
+    addCategory: fallbackAddCategory,
+    editCategory: fallbackEditCategory,
+    deleteCategory: fallbackDeleteCategory
   } = useCategories();
-  
-  // Use category loader with retry logic
-  const { loadError, loadCategories } = useCategoryLoader(originalLoadCategories);
-  
-  // Use category operations with retry
-  const {
-    addCategory,
-    editCategory,
-    deleteCategory
-  } = useCategoryOperations({
-    originalAddCategory,
-    originalEditCategory,
-    originalDeleteCategory,
-    loadCategories
-  });
 
-  // Existing hooks
   const {
-    ratePrompt,
-    addComment,
+    ratePrompt: fallbackRatePrompt,
+    addComment: fallbackAddComment,
     movePrompt
-  } = usePrompts(categories, setCategories);
+  } = usePrompts(fallbackCategories, setCategories);
 
+  // Use optimized data if available, fallback otherwise
+  const categories = optimizedCategories.length > 0 ? optimizedCategories : fallbackCategories;
+  const loading = optimizedLoading || fallbackLoading;
+  const loadError = optimizedError;
+
+  // Existing hooks with current state
   const {
     bulkImportPrompts,
     deleteSelectedPrompts
@@ -66,10 +70,49 @@ export const usePromptManager = (): PromptManager => {
     toggleSelectAll
   } = useSelection(categories, setCategories);
 
-  // New export functionality
+  // Category operations with cache invalidation
+  const {
+    addCategory: categoryAddCategory,
+    editCategory: categoryEditCategory,
+    deleteCategory: categoryDeleteCategory
+  } = useCategoryOperations({
+    originalAddCategory: fallbackAddCategory,
+    originalEditCategory: fallbackEditCategory,
+    originalDeleteCategory: fallbackDeleteCategory,
+    loadCategories: () => {
+      invalidateData();
+      return fallbackLoadCategories();
+    }
+  });
+
+  // Optimized functions with fallback
+  const ratePrompt = async (promptId: string, increment: boolean) => {
+    if (optimizedCategories.length > 0) {
+      optimizedRatePrompt(promptId, increment);
+    } else {
+      await fallbackRatePrompt(promptId, increment);
+    }
+  };
+
+  const addComment = async (promptId: string, comment: string) => {
+    if (optimizedCategories.length > 0) {
+      optimizedAddComment(promptId, comment);
+    } else {
+      await fallbackAddComment(promptId, comment);
+    }
+  };
+
+  const loadCategories = async () => {
+    if (optimizedCategories.length > 0) {
+      await optimizedRefetch();
+    } else {
+      await fallbackLoadCategories();
+    }
+  };
+
+  // Export functionality
   const exportPrompts = () => {
     try {
-      // Collect all prompts from all categories
       const allPrompts: Array<{
         text: string;
         category: string;
@@ -82,7 +125,6 @@ export const usePromptManager = (): PromptManager => {
         cats.forEach(category => {
           const categoryPath = parentPath ? `${parentPath} > ${category.name}` : category.name;
           
-          // Add prompts from this category
           category.prompts.forEach(prompt => {
             allPrompts.push({
               text: prompt.text,
@@ -93,7 +135,6 @@ export const usePromptManager = (): PromptManager => {
             });
           });
           
-          // Recursively process subcategories
           if (category.subcategories && category.subcategories.length > 0) {
             collectPromptsRecursive(category.subcategories, categoryPath);
           }
@@ -102,20 +143,15 @@ export const usePromptManager = (): PromptManager => {
       
       collectPromptsRecursive(categories);
       
-      // Create JSON data
       const jsonData = JSON.stringify(allPrompts, null, 2);
-      
-      // Create and download file
       const blob = new Blob([jsonData], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       
-      // Create filename with date
-      const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+      const date = new Date().toISOString().split('T')[0];
       link.download = `prompts-export-${date}.json`;
       
-      // Trigger download
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -130,9 +166,9 @@ export const usePromptManager = (): PromptManager => {
     loading,
     loadError,
     loadCategories,
-    addCategory,
-    editCategory,
-    deleteCategory,
+    addCategory: categoryAddCategory,
+    editCategory: categoryEditCategory,
+    deleteCategory: categoryDeleteCategory,
     ratePrompt,
     addComment,
     movePrompt,
