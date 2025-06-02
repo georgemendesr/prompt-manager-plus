@@ -27,7 +27,17 @@ interface DatabaseCategory {
 // Função otimizada que faz uma única consulta com JOINs
 export const fetchAllDataOptimized = async () => {
   try {
-    console.log('Carregando dados otimizados...');
+    console.log('🔄 Carregando dados otimizados...');
+    
+    // Test connection first
+    const { error: connectionError } = await supabase
+      .from('categories')
+      .select('count', { count: 'exact', head: true });
+    
+    if (connectionError) {
+      console.error('❌ Erro de conexão com o banco:', connectionError);
+      throw new Error(`Falha na conexão: ${connectionError.message}`);
+    }
     
     // Query única para buscar categorias, prompts e comentários
     const [categoriesResult, promptsWithCommentsResult] = await Promise.all([
@@ -52,17 +62,37 @@ export const fetchAllDataOptimized = async () => {
         .order('created_at', { ascending: false })
     ]);
 
-    if (categoriesResult.error) throw categoriesResult.error;
-    if (promptsWithCommentsResult.error) throw promptsWithCommentsResult.error;
+    if (categoriesResult.error) {
+      console.error('❌ Erro ao carregar categorias:', categoriesResult.error);
+      throw new Error(`Erro ao carregar categorias: ${categoriesResult.error.message}`);
+    }
+    
+    if (promptsWithCommentsResult.error) {
+      console.error('❌ Erro ao carregar prompts:', promptsWithCommentsResult.error);
+      throw new Error(`Erro ao carregar prompts: ${promptsWithCommentsResult.error.message}`);
+    }
 
     const categories = categoriesResult.data || [];
     const promptsWithComments = promptsWithCommentsResult.data || [];
 
-    console.log(`Dados carregados: ${categories.length} categorias, ${promptsWithComments.length} prompts`);
+    console.log(`✅ Dados carregados: ${categories.length} categorias, ${promptsWithComments.length} prompts`);
 
     return { categories, promptsWithComments };
   } catch (error) {
-    console.error('Erro ao carregar dados otimizados:', error);
+    console.error('❌ Erro ao carregar dados otimizados:', error);
+    
+    // Check if it's a network error
+    if (error instanceof Error) {
+      if (error.message.includes('fetch') || 
+          error.message.includes('network') || 
+          error.message.includes('Failed to connect')) {
+        throw new Error('Sem conexão com a internet. Verifique sua conexão e tente novamente.');
+      }
+      if (error.message.includes('timeout')) {
+        throw new Error('Timeout na conexão. O servidor pode estar sobrecarregado.');
+      }
+    }
+    
     throw error;
   }
 };
@@ -113,29 +143,43 @@ export const buildOptimizedCategoryTree = (
 // Funções para updates otimistas individuais
 export const updatePromptRatingOptimistic = async (promptId: string, increment: boolean) => {
   try {
+    console.log(`🔄 Atualizando rating do prompt ${promptId} (${increment ? '+1' : '-1'})`);
+    
     const { error } = await supabase.rpc('update_prompt_rating', {
       prompt_id: promptId,
       increment_value: increment ? 1 : -1
     });
     
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Erro ao atualizar rating:', error);
+      throw new Error(`Erro ao atualizar rating: ${error.message}`);
+    }
+    
+    console.log('✅ Rating atualizado com sucesso');
     return true;
   } catch (error) {
-    console.error('Erro ao atualizar rating:', error);
+    console.error('❌ Erro ao atualizar rating:', error);
     throw error;
   }
 };
 
 export const addCommentOptimistic = async (promptId: string, commentText: string) => {
   try {
+    console.log(`🔄 Adicionando comentário ao prompt ${promptId}`);
+    
     const { error } = await supabase
       .from('comments')
       .insert([{ prompt_id: promptId, text: commentText }]);
     
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Erro ao adicionar comentário:', error);
+      throw new Error(`Erro ao adicionar comentário: ${error.message}`);
+    }
+    
+    console.log('✅ Comentário adicionado com sucesso');
     return true;
   } catch (error) {
-    console.error('Erro ao adicionar comentário:', error);
+    console.error('❌ Erro ao adicionar comentário:', error);
     throw error;
   }
 };
