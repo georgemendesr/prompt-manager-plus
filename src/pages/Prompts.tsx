@@ -10,9 +10,10 @@ import { usePromptManager } from "@/hooks/usePromptManager";
 import { useStructures } from "@/hooks/useStructures";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { updatePromptInDb, deletePromptFromDb } from "@/services/categoryService";
+import { QueryProvider } from "@/providers/QueryProvider";
 import { toast } from "sonner";
 
-const Prompts = () => {
+const PromptsContent = () => {
   const { signOut } = useAuth();
   const [globalSearchTerm, setGlobalSearchTerm] = useState("");
   const [connectionError, setConnectionError] = useState<string | null>(null);
@@ -47,16 +48,19 @@ const Prompts = () => {
   
   const { networkStatus, isRetrying, handleRetryConnection } = useNetworkStatus();
 
+  // Simplified edit/delete functions that don't trigger full reload
   const editPrompt = async (id: string, newText: string) => {
     try {
       const { error } = await updatePromptInDb(id, newText);
       if (error) throw error;
 
-      loadCategories();
+      // Only reload if optimistic update fails
       toast.success("Prompt atualizado com sucesso!");
     } catch (error) {
       console.error('Erro ao editar prompt:', error);
       toast.error("Erro ao editar prompt");
+      // Reload on error
+      loadCategories();
     }
   };
 
@@ -65,6 +69,7 @@ const Prompts = () => {
       const { error } = await deletePromptFromDb(id);
       if (error) throw error;
 
+      // Trigger reload for delete operations
       loadCategories();
       toast.success("Prompt excluído com sucesso!");
     } catch (error) {
@@ -83,12 +88,12 @@ const Prompts = () => {
     });
   };
 
-  // Carregar estruturas quando o componente montar
+  // Load structures when component mounts
   useEffect(() => {
     loadStructures();
   }, [loadStructures]);
 
-  // Atualizar o estado de erro de conexão quando os erros mudarem
+  // Update connection error state
   useEffect(() => {
     if (categoriesLoadError || structuresLoadError) {
       setConnectionError(categoriesLoadError || structuresLoadError);
@@ -97,7 +102,7 @@ const Prompts = () => {
     }
   }, [categoriesLoadError, structuresLoadError]);
 
-  // Se estiver carregando e não houver erro de conexão, mostrar tela de carregamento
+  // Show loading screen only if loading and no connection error
   if (categoriesLoading && !connectionError) {
     return <PromptsLoading />;
   }
@@ -141,6 +146,14 @@ const Prompts = () => {
       </div>
       <AIChat />
     </div>
+  );
+};
+
+const Prompts = () => {
+  return (
+    <QueryProvider>
+      <PromptsContent />
+    </QueryProvider>
   );
 };
 

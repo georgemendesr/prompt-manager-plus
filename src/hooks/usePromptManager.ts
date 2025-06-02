@@ -1,11 +1,8 @@
-
-import { useState } from "react";
-import { useCategories } from "./useCategories";
-import { usePrompts } from "./usePrompts";
+import { useState, useEffect } from "react";
+import { useOptimizedData } from "./optimized/useOptimizedData";
 import { useBulkActions } from "./useBulkActions";
 import { useSelection } from "./useSelection";
 import { useCategoryOperations } from "./category/useCategoryOperations";
-import { useCategoryLoader } from "./category/useCategoryLoader";
 import type { Category, Prompt } from "@/types/prompt";
 
 export interface PromptManager {

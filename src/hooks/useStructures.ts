@@ -8,14 +8,13 @@ export const useStructures = () => {
   const [structures, setStructures] = useState<MusicStructure[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
 
   const loadStructures = async () => {
     try {
       setLoading(true);
       setLoadError(null);
       
-      console.log('Iniciando carregamento de estruturas musicais...');
+      console.log('Carregando estruturas musicais...');
       
       const { data, error } = await supabase
         .from('structures')
@@ -27,30 +26,21 @@ export const useStructures = () => {
         throw error;
       }
       
-      console.log(`${data?.length || 0} estruturas carregadas com sucesso`);
+      console.log(`${data?.length || 0} estruturas carregadas`);
       setStructures(data || []);
     } catch (error: any) {
       console.error('Erro ao carregar estruturas:', error);
       setLoadError(error?.message || 'Erro de conexão');
-      // Fallback para dados vazios
       setStructures([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Adiciona retentativas automáticas se falhar o carregamento inicial
+  // Initial load only
   useEffect(() => {
-    if (loadError && retryCount < 3) {
-      const timer = setTimeout(() => {
-        console.log(`Tentativa ${retryCount + 1} de recarregar estruturas...`);
-        setRetryCount(prev => prev + 1);
-        loadStructures();
-      }, 2000 * (retryCount + 1)); // Backoff exponencial
-      
-      return () => clearTimeout(timer);
-    }
-  }, [loadError, retryCount]);
+    loadStructures();
+  }, []);
 
   const addStructure = async (structureOrStructures: MusicStructure | MusicStructure[]) => {
     try {
@@ -58,18 +48,25 @@ export const useStructures = () => {
         ? structureOrStructures 
         : [structureOrStructures];
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('structures')
         .insert(structuresToAdd.map(structure => ({
           name: structure.name,
           description: structure.description,
           tags: structure.tags,
           effect: structure.effect
-        })));
+        })))
+        .select();
 
       if (error) throw error;
 
-      loadStructures();
+      // Optimistic update instead of full reload
+      const newStructures = data.map(item => ({
+        ...item,
+        tags: item.tags || []
+      }));
+      
+      setStructures(prev => [...newStructures, ...prev]);
       toast.success(`${structuresToAdd.length} estrutura(s) adicionada(s) com sucesso!`);
     } catch (error: any) {
       console.error('Erro ao adicionar estrutura:', error);
@@ -91,18 +88,17 @@ export const useStructures = () => {
 
       if (error) throw error;
 
-      // Atualização otimista na interface
+      // Optimistic update
       setStructures(prev => 
         prev.map(s => s.id === id ? { ...s, ...structure } : s)
       );
       
       toast.success('Estrutura atualizada com sucesso!');
-      
-      // Recarregar para garantir sincronização
-      loadStructures();
     } catch (error: any) {
       console.error('Erro ao atualizar estrutura:', error);
       toast.error('Erro ao atualizar estrutura: ' + (error?.message || 'Erro de conexão'));
+      // Reload on error
+      loadStructures();
     }
   };
 
@@ -115,7 +111,7 @@ export const useStructures = () => {
 
       if (error) throw error;
 
-      // Atualização otimista na interface
+      // Optimistic update
       setStructures(prev => prev.filter(s => s.id !== id));
       toast.success('Estrutura removida com sucesso!');
     } catch (error: any) {
