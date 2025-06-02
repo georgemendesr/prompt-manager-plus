@@ -18,7 +18,12 @@ export const forceDeleteCategoryById = async (id: string) => {
       return { success: false, error: categoryError };
     }
     
-    const categoryName = categoryData?.name || 'Desconhecida';
+    if (!categoryData) {
+      console.log(`⚠️ [${operationId}] Categoria não encontrada (pode já ter sido excluída): ${id}`);
+      return { success: true, error: null }; // Consider it successful if already deleted
+    }
+    
+    const categoryName = categoryData.name;
     console.log(`📌 [${operationId}] Tentando excluir categoria: ${categoryName} (ID: ${id})`);
     
     // 2. Find all subcategories with their depth information (for proper deletion order)
@@ -138,8 +143,21 @@ export const forceDeleteCategoryById = async (id: string) => {
       console.log(`✅ [${operationId}] Subcategorias excluídas com sucesso: ${deletedSubcategoryIds.length}/${subcategories.length}`);
     }
     
-    // 5.4 Finally delete the main category
+    // 5.4 Finally delete the main category with additional verification
     console.log(`🗑️ [${operationId}] Excluindo categoria principal: ${categoryName} (ID: ${id})`);
+    
+    // First, verify the category still exists before attempting deletion
+    const { data: categoryExists } = await supabase
+      .from('categories')
+      .select('id')
+      .eq('id', id)
+      .maybeSingle();
+    
+    if (!categoryExists) {
+      console.log(`✅ [${operationId}] Categoria já foi excluída durante o processo`);
+      return { success: true, error: null };
+    }
+    
     const { error: mainCategoryDeleteError } = await supabase
       .from('categories')
       .delete()
@@ -150,7 +168,19 @@ export const forceDeleteCategoryById = async (id: string) => {
       return { success: false, error: mainCategoryDeleteError };
     }
     
-    console.log(`✅ [${operationId}] PROCESSO DE EXCLUSÃO CONCLUÍDO COM SUCESSO!`);
+    // 5.5 Final verification that the category was actually deleted
+    const { data: verifyDeletion } = await supabase
+      .from('categories')
+      .select('id')
+      .eq('id', id)
+      .maybeSingle();
+    
+    if (verifyDeletion) {
+      console.error(`❌ [${operationId}] FALHA: Categoria ainda existe após tentativa de exclusão!`);
+      return { success: false, error: new Error('Category still exists after deletion attempt') };
+    }
+    
+    console.log(`✅ [${operationId}] PROCESSO DE EXCLUSÃO CONCLUÍDO COM SUCESSO! Categoria verificadamente removida.`);
     return { success: true, error: null };
   } catch (error) {
     console.error(`❌ [${operationId}] ERRO CRÍTICO durante a exclusão da categoria:`, error);

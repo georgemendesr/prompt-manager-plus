@@ -78,11 +78,11 @@ export const useCategoryOperations = ({
       // Add detailed logging throughout the process
       console.log(`🚀 [${timestamp}] INÍCIO: Exclusão da categoria ID: ${id} (Operação: ${uniqueId})`);
       
-      // Call the deletion function with increased timeout
+      // Call the deletion function with increased timeout and better error handling
       const success = await Promise.race([
         originalDeleteCategory(id),
         new Promise<boolean>((_, reject) => 
-          setTimeout(() => reject(new Error("Timeout excedido")), 30000)
+          setTimeout(() => reject(new Error("Timeout excedido na exclusão")), 45000)
         )
       ]) as boolean;
       
@@ -91,7 +91,8 @@ export const useCategoryOperations = ({
         console.log(`✅ [${timestamp}] SUCESSO: Categoria excluída (ID: ${id}, Operação: ${uniqueId})`);
         console.log(`🔄 [${timestamp}] Recarregando dados após exclusão bem-sucedida...`);
         
-        // Reload categories data
+        // Force reload categories data with a small delay to ensure DB consistency
+        await new Promise(resolve => setTimeout(resolve, 1000));
         await loadCategories();
         
         // Show success message
@@ -111,7 +112,14 @@ export const useCategoryOperations = ({
       console.error(`❌ [${errorTimestamp}] ERRO CRÍTICO (${errorId}):`, error);
       console.error(`Detalhes do erro (${errorId}):`, JSON.stringify(error, null, 2));
       
-      toast.error("Erro ao excluir categoria. Tente novamente mais tarde.", { id: errorId });
+      // Force reload even on error to check current state
+      try {
+        await loadCategories();
+      } catch (reloadError) {
+        console.error(`❌ Erro ao recarregar dados após falha na exclusão:`, reloadError);
+      }
+      
+      toast.error("Erro ao excluir categoria. Dados recarregados para verificar estado atual.", { id: errorId });
       return false;
     } finally {
       // Always reset operation state
