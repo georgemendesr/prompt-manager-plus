@@ -54,19 +54,19 @@ export const useNetworkStatus = () => {
           console.log(`🔄 Tentativa ${attempt}/${maxAttempts} de conexão...`);
           
           // Simple ping test to check connection with timeout
-          const { error } = await Promise.race([
+          const result = await Promise.race([
             supabase.from('categories').select('id').limit(1),
             new Promise((_, reject) => 
               setTimeout(() => reject(new Error('Timeout na conexão')), 10000)
             )
-          ]);
+          ]) as any;
           
-          if (!error) {
+          if (!result.error) {
             connectionEstablished = true;
             console.log('✅ Conexão com o banco estabelecida');
             break;
           } else {
-            console.warn(`⚠️ Tentativa ${attempt} falhou:`, error);
+            console.warn(`⚠️ Tentativa ${attempt} falhou:`, result.error);
             if (attempt < maxAttempts) {
               await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2s between attempts
             }
