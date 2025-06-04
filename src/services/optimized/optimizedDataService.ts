@@ -1,6 +1,7 @@
 
 import { supabase } from "../base/supabaseService";
 import type { Category } from "@/types/prompt";
+import type { RawCategory } from "@/types/rawCategory";
 
 // Interface para os dados consolidados do banco
 interface DatabasePrompt {
@@ -18,12 +19,6 @@ interface DatabasePrompt {
   }> | null;
 }
 
-interface DatabaseCategory {
-  id: string;
-  name: string;
-  parent_id?: string | null;
-  created_at: string;
-}
 
 // Função otimizada que faz uma única consulta com JOINs
 export const fetchAllDataOptimized = async (
@@ -47,7 +42,7 @@ export const fetchAllDataOptimized = async (
     const [categoriesResult, promptsWithCommentsResult] = await Promise.all([
       // Buscar todas as categorias
       supabase
-        .from('categories')
+        .from<RawCategory>('categories')
         .select('id, name, parent_id, created_at')
         .order('created_at', { ascending: true }),
       
@@ -78,7 +73,7 @@ export const fetchAllDataOptimized = async (
       throw new Error(`Erro ao carregar prompts: ${promptsWithCommentsResult.error.message}`);
     }
 
-    const categories = categoriesResult.data || [];
+    const categories: RawCategory[] = categoriesResult.data || [];
     const promptsWithComments = promptsWithCommentsResult.data || [];
 
     console.log(`✅ Dados carregados: ${categories.length} categorias, ${promptsWithComments.length} prompts`);
@@ -105,7 +100,7 @@ export const fetchAllDataOptimized = async (
 
 // Função para construir a árvore de categorias com prompts
 export const buildOptimizedCategoryTree = (
-  categories: DatabaseCategory[], 
+  categories: RawCategory[],
   promptsWithComments: DatabasePrompt[]
 ): Category[] => {
   // Agrupar prompts por categoria
