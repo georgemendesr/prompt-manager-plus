@@ -1,4 +1,3 @@
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PromptsSection } from "@/components/prompts/PromptsSection";
 import { StructureList } from "@/components/structures/StructureList";
@@ -23,10 +22,10 @@ interface PromptsTabsProps {
   onTogglePromptSelection: (promptId: string, selected: boolean) => void;
   onToggleSelectAll: (categoryName: string, selected: boolean) => void;
   onDeleteSelectedPrompts: (categoryName: string) => Promise<void>;
-  onBulkImportPrompts: (prompts: string[], categoryName: string) => Promise<void>;
+  onBulkImportPrompts: (prompts: { text: string; tags: string[] }[], categoryName: string) => Promise<void>;
   onExportPrompts: () => void;
   structures: MusicStructure[];
-  onAddStructure: (structure: MusicStructure) => Promise<void>;
+  onAddStructure: (structure: MusicStructure | MusicStructure[]) => Promise<void>;
   onEditStructure: (id: string, structure: MusicStructure) => Promise<void>;
   onDeleteStructure: (id: string) => Promise<void>;
 }
