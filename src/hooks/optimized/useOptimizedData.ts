@@ -1,13 +1,18 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { fetchAllDataOptimized, buildOptimizedCategoryTree, updatePromptRatingOptimistic, addCommentOptimistic } from '@/services/optimized/optimizedDataService';
 import type { Category } from '@/types/prompt';
 
 const QUERY_KEY = ['optimized-data'];
+const PAGE_SIZE = 50;
 
 export const useOptimizedData = () => {
   const queryClient = useQueryClient();
+  const [page, setPage] = useState(0);
+
+  const currentQueryKey = [...QUERY_KEY, page];
 
   // Query principal com cache
   const {
@@ -16,9 +21,9 @@ export const useOptimizedData = () => {
     error,
     refetch
   } = useQuery({
-    queryKey: QUERY_KEY,
+    queryKey: currentQueryKey,
     queryFn: async () => {
-      const { categories, promptsWithComments } = await fetchAllDataOptimized();
+      const { categories, promptsWithComments } = await fetchAllDataOptimized(PAGE_SIZE, page * PAGE_SIZE);
       return buildOptimizedCategoryTree(categories, promptsWithComments);
     },
     staleTime: 5 * 60 * 1000, // 5 minutos
@@ -34,10 +39,10 @@ export const useOptimizedData = () => {
       updatePromptRatingOptimistic(promptId, increment),
     onMutate: async ({ promptId, increment }) => {
       // Cancel outgoing refetches
-      await queryClient.cancelQueries({ queryKey: QUERY_KEY });
+      await queryClient.cancelQueries({ queryKey: currentQueryKey });
 
       // Snapshot previous value
-      const previousData = queryClient.getQueryData<Category[]>(QUERY_KEY);
+      const previousData = queryClient.getQueryData<Category[]>(currentQueryKey);
 
       // Optimistically update
       if (previousData) {
@@ -53,7 +58,7 @@ export const useOptimizedData = () => {
           }));
         };
 
-        queryClient.setQueryData(QUERY_KEY, updatePromptInCategory(previousData));
+        queryClient.setQueryData(currentQueryKey, updatePromptInCategory(previousData));
       }
 
       return { previousData };
@@ -61,7 +66,7 @@ export const useOptimizedData = () => {
     onError: (err, variables, context) => {
       // Rollback on error
       if (context?.previousData) {
-        queryClient.setQueryData(QUERY_KEY, context.previousData);
+        queryClient.setQueryData(currentQueryKey, context.previousData);
       }
       toast.error('Erro ao avaliar prompt');
     },
@@ -75,8 +80,8 @@ export const useOptimizedData = () => {
     mutationFn: ({ promptId, comment }: { promptId: string; comment: string }) =>
       addCommentOptimistic(promptId, comment),
     onMutate: async ({ promptId, comment }) => {
-      await queryClient.cancelQueries({ queryKey: QUERY_KEY });
-      const previousData = queryClient.getQueryData<Category[]>(QUERY_KEY);
+      await queryClient.cancelQueries({ queryKey: currentQueryKey });
+      const previousData = queryClient.getQueryData<Category[]>(currentQueryKey);
 
       if (previousData) {
         const updatePromptInCategory = (categories: Category[]): Category[] => {
@@ -91,14 +96,14 @@ export const useOptimizedData = () => {
           }));
         };
 
-        queryClient.setQueryData(QUERY_KEY, updatePromptInCategory(previousData));
+        queryClient.setQueryData(currentQueryKey, updatePromptInCategory(previousData));
       }
 
       return { previousData };
     },
     onError: (err, variables, context) => {
       if (context?.previousData) {
-        queryClient.setQueryData(QUERY_KEY, context.previousData);
+        queryClient.setQueryData(currentQueryKey, context.previousData);
       }
       toast.error('Erro ao adicionar comentário');
     },
@@ -121,6 +126,9 @@ export const useOptimizedData = () => {
     commentMutation.mutate({ promptId, comment });
   };
 
+  const nextPage = () => setPage((p) => p + 1);
+  const previousPage = () => setPage((p) => Math.max(p - 1, 0));
+
   return {
     categories,
     loading: isLoading,
@@ -129,6 +137,9 @@ export const useOptimizedData = () => {
     ratePrompt,
     addComment,
     invalidateData,
+    nextPage,
+    previousPage,
+    currentPage: page,
     // Estados das mutations
     isRatingPrompt: ratingMutation.isPending,
     isAddingComment: commentMutation.isPending

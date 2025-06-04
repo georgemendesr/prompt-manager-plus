@@ -3,7 +3,6 @@ import { CategorySearch } from "./CategorySearch";
 import { CategoryActions } from "@/components/CategoryActions";
 import { PromptCard } from "@/components/PromptCard";
 import type { Category, Prompt } from "@/types/prompt";
-import { usePromptManager } from "@/hooks/usePromptManager";
 
 interface CategoryContentProps {
   category: Category;

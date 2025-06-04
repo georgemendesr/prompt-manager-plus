@@ -6,6 +6,7 @@ import { ConnectionAlert } from "@/components/prompts/ConnectionAlert";
 import { PromptsTabs } from "@/components/prompts/PromptsTabs";
 import { PromptsLoading } from "@/components/prompts/PromptsLoading";
 import { AIChat } from "@/components/ai/AIChat";
+import { Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationNext } from "@/components/ui/pagination";
 import { usePromptManager } from "@/hooks/usePromptManager";
 import { useStructures } from "@/hooks/useStructures";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
@@ -33,7 +34,10 @@ const PromptsContent = () => {
     deleteSelectedPrompts,
     togglePromptSelection,
     toggleSelectAll,
-    exportPrompts
+    exportPrompts,
+    nextPage,
+    previousPage,
+    currentPage
   } = usePromptManager();
 
   const {
@@ -143,6 +147,20 @@ const PromptsContent = () => {
           onEditStructure={editStructure}
           onDeleteStructure={deleteStructure}
         />
+
+        <Pagination className="mt-4">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious href="#" onClick={(e) => { e.preventDefault(); previousPage(); }} />
+            </PaginationItem>
+            <PaginationItem>
+              <span className="px-3 py-2 text-sm">Página {currentPage + 1}</span>
+            </PaginationItem>
+            <PaginationItem>
+              <PaginationNext href="#" onClick={(e) => { e.preventDefault(); nextPage(); }} />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       </div>
       <AIChat />
     </div>

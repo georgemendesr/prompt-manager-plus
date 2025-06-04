@@ -25,7 +25,7 @@ interface DatabaseCategory {
 }
 
 // Função otimizada que faz uma única consulta com JOINs
-export const fetchAllDataOptimized = async () => {
+export const fetchAllDataOptimized = async (limit = 50, offset = 0) => {
   try {
     console.log('🔄 Carregando dados otimizados...');
     
@@ -60,6 +60,7 @@ export const fetchAllDataOptimized = async () => {
           comments:comments(id, text, created_at)
         `)
         .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1)
     ]);
 
     if (categoriesResult.error) {
@@ -75,7 +76,7 @@ export const fetchAllDataOptimized = async () => {
     const categories = categoriesResult.data || [];
     const promptsWithComments = promptsWithCommentsResult.data || [];
 
-    console.log(`✅ Dados carregados: ${categories.length} categorias, ${promptsWithComments.length} prompts`);
+    console.log(`✅ Dados carregados: ${categories.length} categorias, ${promptsWithComments.length} prompts (limit: ${limit}, offset: ${offset})`);
 
     return { categories, promptsWithComments };
   } catch (error) {
