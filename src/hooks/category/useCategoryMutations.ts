@@ -10,6 +10,7 @@ import {
   forceDeleteCategoryById
 } from "@/services/categoryService";
 import { buildCategoryTree } from "@/utils/categoryTreeUtils";
+import type { RawCategory } from "@/types/rawCategory";
 
 type SetCategoriesFunction = React.Dispatch<React.SetStateAction<Category[]>>;
 
@@ -82,7 +83,7 @@ export const useCategoryMutations = (
       const { data: updatedCategories, error: fetchError } = await fetchCategories();
       if (fetchError) throw fetchError;
 
-      const categoryTree = buildCategoryTree(updatedCategories || []);
+      const categoryTree = buildCategoryTree(updatedCategories as RawCategory[] || []);
       setCategories(categoryTree);
       
       toast.success('Categoria atualizada com sucesso!');
@@ -129,7 +130,7 @@ export const useCategoryMutations = (
       }
       
       console.log(`✅ [${operationId}] Dados recarregados, reconstruindo árvore de categorias...`);
-      const categoryTree = buildCategoryTree(categoriesResult.data || []);
+      const categoryTree = buildCategoryTree(categoriesResult.data as RawCategory[] || []);
       setCategories(categoryTree);
       
       toast.success('Categoria removida com sucesso!', { id: toastId });
