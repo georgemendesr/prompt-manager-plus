@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Upload } from "lucide-react";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
+import { Input } from "./ui/input";
 import {
   Dialog,
   DialogContent,
@@ -15,12 +16,13 @@ import type { Category } from "@/types/prompt";
 
 interface BulkImportProps {
   categories: Category[];
-  onImport: (prompts: string[], categoryId: string) => void;
+  onImport: (prompts: { text: string; tags: string[] }[], categoryId: string) => void;
 }
 
 export const BulkImport = ({ categories, onImport }: BulkImportProps) => {
   const [text, setText] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  const [tags, setTags] = useState("");
   const [open, setOpen] = useState(false);
 
   const handleImport = () => {
@@ -31,7 +33,8 @@ export const BulkImport = ({ categories, onImport }: BulkImportProps) => {
       .filter(t => t && !t.includes("```") && t.length > 0); // Remove strings vazias e backticks
 
     if (prompts.length && categoryId) {
-      onImport(prompts, categoryId);
+      onImport(prompts.map(text => ({ text, tags: tags.split(",").map(t=>t.trim()).filter(t=>t) })), categoryId);
+      setTags("");
       setText("");
       setCategoryId("");
       setOpen(false);
@@ -80,6 +83,11 @@ export const BulkImport = ({ categories, onImport }: BulkImportProps) => {
             onChange={(e) => setText(e.target.value)}
             placeholder="Cole seus prompts aqui. Eles podem estar separados por quebras de linha, ```, ou espaços duplos"
             className="min-h-[200px] font-mono"
+          />
+          <Input
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            placeholder="Tags para todos os prompts (separadas por vírgula)"
           />
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setOpen(false)}>
