@@ -3,6 +3,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PromptsSection } from "@/components/prompts/PromptsSection";
 import { StructureList } from "@/components/structures/StructureList";
 import { Workspace } from "@/components/Workspace";
+import { Links } from "@/components/links/Links";
+import { Lyrics } from "@/components/lyrics/Lyrics";
 import { Category } from "@/types/prompt";
 
 interface PromptsTabsProps {
@@ -60,6 +62,8 @@ export const PromptsTabs = ({
         <TabsTrigger value="prompts" className="flex-1">Prompts</TabsTrigger>
         <TabsTrigger value="estrutura" className="flex-1">Estrutura</TabsTrigger>
         <TabsTrigger value="workspace" className="flex-1">Workspace</TabsTrigger>
+        <TabsTrigger value="links" className="flex-1">Links</TabsTrigger>
+        <TabsTrigger value="lyrics" className="flex-1">Letras</TabsTrigger>
       </TabsList>
 
       <TabsContent value="prompts" className="mt-4 sm:mt-6">
@@ -97,6 +101,14 @@ export const PromptsTabs = ({
 
       <TabsContent value="workspace" className="mt-4 sm:mt-6">
         <Workspace />
+      </TabsContent>
+
+      <TabsContent value="links" className="mt-4 sm:mt-6">
+        <Links />
+      </TabsContent>
+
+      <TabsContent value="lyrics" className="mt-4 sm:mt-6">
+        <Lyrics />
       </TabsContent>
     </Tabs>
   );
