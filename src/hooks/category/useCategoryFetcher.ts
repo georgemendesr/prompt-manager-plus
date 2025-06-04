@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { fetchCategories, fetchPrompts, fetchComments } from "@/services/categoryService";
 import { buildCategoryTree } from "@/utils/categoryTreeUtils";
 import type { Category } from "@/types/prompt";
+import type { CategoryRecord } from "@/types/category";
 
 export const useCategoryFetcher = () => {
   const [loading, setLoading] = useState(true);
@@ -52,7 +53,9 @@ export const useCategoryFetcher = () => {
         comments: commentsData.length
       });
 
-      const categoryTree = buildCategoryTree(categoriesData);
+      const categoryTree = buildCategoryTree(
+        categoriesData as CategoryRecord[]
+      );
 
       const addPromptsToCategories = (categories: Category[], allPrompts: any[]) => {
         return categories.map(category => {

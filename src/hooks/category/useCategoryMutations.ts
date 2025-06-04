@@ -1,5 +1,6 @@
 
 import { Category } from "@/types/prompt";
+import type { CategoryRecord } from "@/types/category";
 import { toast } from "sonner";
 import { 
   addCategoryToDb, 
@@ -82,7 +83,9 @@ export const useCategoryMutations = (
       const { data: updatedCategories, error: fetchError } = await fetchCategories();
       if (fetchError) throw fetchError;
 
-      const categoryTree = buildCategoryTree(updatedCategories || []);
+      const categoryTree = buildCategoryTree(
+        (updatedCategories || []) as CategoryRecord[]
+      );
       setCategories(categoryTree);
       
       toast.success('Categoria atualizada com sucesso!');
@@ -129,7 +132,9 @@ export const useCategoryMutations = (
       }
       
       console.log(`✅ [${operationId}] Dados recarregados, reconstruindo árvore de categorias...`);
-      const categoryTree = buildCategoryTree(categoriesResult.data || []);
+      const categoryTree = buildCategoryTree(
+        (categoriesResult.data || []) as CategoryRecord[]
+      );
       setCategories(categoryTree);
       
       toast.success('Categoria removida com sucesso!', { id: toastId });
