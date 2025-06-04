@@ -1,12 +1,18 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { fetchAllDataOptimized, buildOptimizedCategoryTree, updatePromptRatingOptimistic, addCommentOptimistic } from '@/services/optimized/optimizedDataService';
 import type { Category } from '@/types/prompt';
 
 const QUERY_KEY = ['optimized-data'];
 
-export const useOptimizedData = () => {
+export const useOptimizedData = (
+  initialLimit: number = 10,
+  initialOffset: number = 0
+) => {
+  const [limit] = useState(initialLimit);
+  const [offset, setOffset] = useState(initialOffset);
   const queryClient = useQueryClient();
 
   // Query principal com cache
@@ -16,9 +22,9 @@ export const useOptimizedData = () => {
     error,
     refetch
   } = useQuery({
-    queryKey: QUERY_KEY,
+    queryKey: [...QUERY_KEY, limit, offset],
     queryFn: async () => {
-      const { categories, promptsWithComments } = await fetchAllDataOptimized();
+      const { categories, promptsWithComments } = await fetchAllDataOptimized(limit, offset);
       return buildOptimizedCategoryTree(categories, promptsWithComments);
     },
     staleTime: 5 * 60 * 1000, // 5 minutos
@@ -121,6 +127,14 @@ export const useOptimizedData = () => {
     commentMutation.mutate({ promptId, comment });
   };
 
+  const nextPage = () => {
+    setOffset(current => current + limit);
+  };
+
+  const prevPage = () => {
+    setOffset(current => Math.max(current - limit, 0));
+  };
+
   return {
     categories,
     loading: isLoading,
@@ -129,6 +143,10 @@ export const useOptimizedData = () => {
     ratePrompt,
     addComment,
     invalidateData,
+    nextPage,
+    prevPage,
+    limit,
+    offset,
     // Estados das mutations
     isRatingPrompt: ratingMutation.isPending,
     isAddingComment: commentMutation.isPending
