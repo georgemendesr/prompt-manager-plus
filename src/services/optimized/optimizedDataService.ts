@@ -145,10 +145,24 @@ export const updatePromptRatingOptimistic = async (promptId: string, increment: 
   try {
     console.log(`🔄 Atualizando rating do prompt ${promptId} (${increment ? '+1' : '-1'})`);
     
-    const { error } = await supabase.rpc('update_prompt_rating', {
-      prompt_id: promptId,
-      increment_value: increment ? 1 : -1
-    });
+    // Instead of using RPC, update the rating directly
+    const { data: currentPrompt, error: fetchError } = await supabase
+      .from('prompts')
+      .select('rating')
+      .eq('id', promptId)
+      .single();
+    
+    if (fetchError) {
+      console.error('❌ Erro ao buscar prompt atual:', fetchError);
+      throw new Error(`Erro ao buscar prompt: ${fetchError.message}`);
+    }
+    
+    const newRating = currentPrompt.rating + (increment ? 1 : -1);
+    
+    const { error } = await supabase
+      .from('prompts')
+      .update({ rating: newRating })
+      .eq('id', promptId);
     
     if (error) {
       console.error('❌ Erro ao atualizar rating:', error);
