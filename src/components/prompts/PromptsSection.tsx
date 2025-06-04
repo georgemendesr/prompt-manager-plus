@@ -2,6 +2,7 @@
 import { AddCategory } from "@/components/AddCategory";
 import { BulkImport } from "@/components/BulkImport";
 import { CategoryTree } from "@/components/CategoryTree";
+import { AdminGuard } from "@/components/AdminGuard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
@@ -48,13 +49,17 @@ export const PromptsSection = ({
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap gap-2">
-          <AddCategory onAdd={addCategory} categories={categories} />
+          <AdminGuard showError={false}>
+            <AddCategory onAdd={addCategory} categories={categories} />
+          </AdminGuard>
           {categories.length > 0 && (
             <>
-              <BulkImport
-                categories={categories}
-                onImport={bulkImportPrompts}
-              />
+              <AdminGuard showError={false}>
+                <BulkImport
+                  categories={categories}
+                  onImport={bulkImportPrompts}
+                />
+              </AdminGuard>
               <Button 
                 onClick={exportPrompts} 
                 variant="outline"
@@ -70,7 +75,12 @@ export const PromptsSection = ({
 
       {categories.length === 0 ? (
         <div className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg">
-          Crie uma categoria para começar a adicionar prompts
+          <AdminGuard 
+            fallback="Nenhuma categoria disponível no momento."
+            showError={false}
+          >
+            Crie uma categoria para começar a adicionar prompts
+          </AdminGuard>
         </div>
       ) : (
         <Tabs defaultValue={categories[0]?.name} className="w-full">

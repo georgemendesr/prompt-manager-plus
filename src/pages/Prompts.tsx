@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
+import { SecurityProvider } from "@/components/SecurityProvider";
 import { PromptsHeader } from "@/components/prompts/PromptsHeader";
 import { ConnectionAlert } from "@/components/prompts/ConnectionAlert";
 import { PromptsTabs } from "@/components/prompts/PromptsTabs";
@@ -108,44 +109,46 @@ const PromptsContent = () => {
   }
 
   return (
-    <div className="container mx-auto p-2 sm:p-4 relative min-h-screen">
-      <div className="max-w-7xl mx-auto">
-        <PromptsHeader onSignOut={signOut} />
-        
-        <ConnectionAlert 
-          connectionError={connectionError}
-          networkStatus={networkStatus}
-          isRetrying={isRetrying}
-          onRetry={handleRetry}
-        />
-        
-        <PromptsTabs
-          categories={categories}
-          structuresLoading={structuresLoading}
-          structuresLoadError={structuresLoadError}
-          globalSearchTerm={globalSearchTerm}
-          setGlobalSearchTerm={setGlobalSearchTerm}
-          onAddCategory={addCategory}
-          onEditCategory={editCategory}
-          onDeleteCategory={deleteCategory}
-          onRatePrompt={ratePrompt}
-          onAddComment={addComment}
-          onEditPrompt={editPrompt}
-          onDeletePrompt={deletePrompt}
-          onMovePrompt={movePrompt}
-          onTogglePromptSelection={togglePromptSelection}
-          onToggleSelectAll={toggleSelectAll}
-          onDeleteSelectedPrompts={deleteSelectedPrompts}
-          onBulkImportPrompts={bulkImportPrompts}
-          onExportPrompts={exportPrompts}
-          structures={structures}
-          onAddStructure={addStructure}
-          onEditStructure={editStructure}
-          onDeleteStructure={deleteStructure}
-        />
+    <SecurityProvider>
+      <div className="container mx-auto p-2 sm:p-4 relative min-h-screen">
+        <div className="max-w-7xl mx-auto">
+          <PromptsHeader onSignOut={signOut} />
+          
+          <ConnectionAlert 
+            connectionError={connectionError}
+            networkStatus={networkStatus}
+            isRetrying={isRetrying}
+            onRetry={handleRetry}
+          />
+          
+          <PromptsTabs
+            categories={categories}
+            structuresLoading={structuresLoading}
+            structuresLoadError={structuresLoadError}
+            globalSearchTerm={globalSearchTerm}
+            setGlobalSearchTerm={setGlobalSearchTerm}
+            onAddCategory={addCategory}
+            onEditCategory={editCategory}
+            onDeleteCategory={deleteCategory}
+            onRatePrompt={ratePrompt}
+            onAddComment={addComment}
+            onEditPrompt={editPrompt}
+            onDeletePrompt={deletePrompt}
+            onMovePrompt={movePrompt}
+            onTogglePromptSelection={togglePromptSelection}
+            onToggleSelectAll={toggleSelectAll}
+            onDeleteSelectedPrompts={deleteSelectedPrompts}
+            onBulkImportPrompts={bulkImportPrompts}
+            onExportPrompts={exportPrompts}
+            structures={structures}
+            onAddStructure={addStructure}
+            onEditStructure={editStructure}
+            onDeleteStructure={deleteStructure}
+          />
+        </div>
+        <AIChat />
       </div>
-      <AIChat />
-    </div>
+    </SecurityProvider>
   );
 };
 
