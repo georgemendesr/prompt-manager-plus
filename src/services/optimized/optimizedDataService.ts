@@ -27,14 +27,30 @@ export const fetchAllDataOptimized = async (
   try {
     console.log(`🔄 Carregando dados otimizados... (limit: ${limit}, offset: ${offset})`);
     
-    // Test connection first
-    const { error: connectionError } = await supabase
-      .from('categories')
-      .select('count', { count: 'exact', head: true });
+    // Test connection first with timeout
+    const connectionTest = new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('Connection timeout - servidor pode estar sobrecarregado'));
+      }, 15000); // 15 second timeout
+      
+      supabase
+        .from('categories')
+        .select('count', { count: 'exact', head: true })
+        .then((result) => {
+          clearTimeout(timeout);
+          resolve(result);
+        })
+        .catch((error) => {
+          clearTimeout(timeout);
+          reject(error);
+        });
+    });
     
-    if (connectionError) {
-      console.error('❌ Erro de conexão com o banco:', connectionError);
-      throw new Error(`Falha na conexão: ${connectionError.message}`);
+    const connectionResult = await connectionTest as any;
+    
+    if (connectionResult.error) {
+      console.error('❌ Erro de conexão com o banco:', connectionResult.error);
+      throw new Error(`Falha na conexão: ${connectionResult.error.message}`);
     }
     
     // Query única para buscar categorias, prompts e comentários
@@ -48,8 +64,7 @@ export const fetchAllDataOptimized = async (
       // Buscar prompts com seus comentários em uma única query
       supabase
         .from('prompts')
-        .select(
-          `
+        .select(`
           id,
           text,
           category_id,
@@ -58,8 +73,7 @@ export const fetchAllDataOptimized = async (
           background_color,
           created_at,
           comments:comments(id, text, created_at)
-        `
-        )
+        `)
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1)
     ]);
@@ -83,19 +97,22 @@ export const fetchAllDataOptimized = async (
   } catch (error) {
     console.error('❌ Erro ao carregar dados otimizados:', error);
     
-    // Check if it's a network error
+    // Better error handling
     if (error instanceof Error) {
       if (error.message.includes('fetch') || 
           error.message.includes('network') || 
-          error.message.includes('Failed to connect')) {
+          error.message.includes('Failed to connect') ||
+          error.message.includes('Failed to fetch')) {
         throw new Error('Sem conexão com a internet. Verifique sua conexão e tente novamente.');
       }
-      if (error.message.includes('timeout')) {
+      if (error.message.includes('timeout') || error.message.includes('Connection timeout')) {
         throw new Error('Timeout na conexão. O servidor pode estar sobrecarregado.');
       }
+      // Re-throw the error message as is if it's already formatted
+      throw error;
     }
     
-    throw error;
+    throw new Error('Erro desconhecido ao carregar dados');
   }
 };
 
@@ -148,7 +165,7 @@ export const updatePromptRatingOptimistic = async (promptId: string, increment: 
   try {
     console.log(`🔄 Atualizando rating do prompt ${promptId} (${increment ? '+1' : '-1'})`);
     
-    // Instead of using RPC, update the rating directly
+    // Get current rating first
     const { data: currentPrompt, error: fetchError } = await supabase
       .from('prompts')
       .select('rating')
@@ -160,7 +177,7 @@ export const updatePromptRatingOptimistic = async (promptId: string, increment: 
       throw new Error(`Erro ao buscar prompt: ${fetchError.message}`);
     }
     
-    const newRating = currentPrompt.rating + (increment ? 1 : -1);
+    const newRating = Math.max(0, currentPrompt.rating + (increment ? 1 : -1));
     
     const { error } = await supabase
       .from('prompts')
@@ -193,21 +210,27 @@ export const addCommentOptimistic = async (promptId: string, commentText: string
       throw new Error(`Erro ao adicionar comentário: ${error.message}`);
     }
 
+    // Handle tags if comment starts with #
     if (commentText.startsWith('#')) {
       const { data: promptData, error: fetchError } = await supabase
         .from('prompts')
         .select('tags')
         .eq('id', promptId)
         .single();
+        
       if (fetchError) throw new Error(fetchError.message);
 
       const currentTags = promptData?.tags || [];
       const newTag = commentText.replace('#', '').trim();
-      const { error: tagError } = await supabase
-        .from('prompts')
-        .update({ tags: [...currentTags, newTag] })
-        .eq('id', promptId);
-      if (tagError) throw new Error(tagError.message);
+      
+      if (!currentTags.includes(newTag)) {
+        const { error: tagError } = await supabase
+          .from('prompts')
+          .update({ tags: [...currentTags, newTag] })
+          .eq('id', promptId);
+          
+        if (tagError) throw new Error(tagError.message);
+      }
     }
     
     console.log('✅ Comentário adicionado com sucesso');

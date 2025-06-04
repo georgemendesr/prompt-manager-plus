@@ -17,7 +17,7 @@ export const useOptimizedData = (
 
   const currentQueryKey = [...QUERY_KEY, limit, offset];
 
-  // Query principal com cache
+  // Query principal com cache e melhor tratamento de erro
   const {
     data: categories = [],
     isLoading,
@@ -26,14 +26,28 @@ export const useOptimizedData = (
   } = useQuery({
     queryKey: currentQueryKey,
     queryFn: async () => {
-      const { categories, promptsWithComments } = await fetchAllDataOptimized(limit, offset);
-      return buildOptimizedCategoryTree(categories, promptsWithComments);
+      try {
+        const { categories, promptsWithComments } = await fetchAllDataOptimized(limit, offset);
+        return buildOptimizedCategoryTree(categories, promptsWithComments);
+      } catch (error) {
+        console.error('Query error:', error);
+        throw error;
+      }
     },
     staleTime: 5 * 60 * 1000, // 5 minutos
-    gcTime: 10 * 60 * 1000, // 10 minutos (nova API)
-    retry: 1, // Reduzir tentativas de retry
-    retryDelay: 2000,
-    refetchOnWindowFocus: false
+    gcTime: 10 * 60 * 1000, // 10 minutos
+    retry: (failureCount, error) => {
+      // Don't retry on network errors, but retry on other errors
+      if (error?.message?.includes('Sem conexão') || 
+          error?.message?.includes('Failed to fetch') ||
+          error?.message?.includes('network')) {
+        return false;
+      }
+      return failureCount < 2;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: true
   });
 
   // Mutation otimística para rating
@@ -54,7 +68,7 @@ export const useOptimizedData = (
             ...category,
             prompts: category.prompts.map(prompt =>
               prompt.id === promptId
-                ? { ...prompt, rating: prompt.rating + (increment ? 1 : -1) }
+                ? { ...prompt, rating: Math.max(0, prompt.rating + (increment ? 1 : -1)) }
                 : prompt
             ),
             subcategories: category.subcategories ? updatePromptInCategory(category.subcategories) : []
