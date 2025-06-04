@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useOptimizedData } from "./optimized/useOptimizedData";
 import { useBulkActions } from "./useBulkActions";
@@ -39,8 +40,8 @@ export const usePromptManager = (): PromptManager => {
     addComment: optimizedAddComment,
     invalidateData,
     nextPage,
-    previousPage,
-    currentPage
+    previousPage, // This should now exist in useOptimizedData
+    currentPage   // This should now exist in useOptimizedData
   } = useOptimizedData();
 
   // Fallback to original hooks
