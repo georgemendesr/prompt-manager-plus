@@ -1,4 +1,5 @@
 import { supabase } from "../base/supabaseService";
+import { DatabaseError } from "@/types/error";
 
 export const fetchPrompts = async () => {
   try {
@@ -29,7 +30,9 @@ export const getPromptsInCategories = async (categoryIds: string[]): Promise<num
   }
 };
 
-export const deletePromptsInCategories = async (categoryIds: string[]): Promise<{error: any | null}> => {
+export const deletePromptsInCategories = async (
+  categoryIds: string[]
+): Promise<{ error: DatabaseError | null }> => {
   if (categoryIds.length === 0) return { error: null };
   
   try {
@@ -64,7 +67,7 @@ export const deletePromptsInCategories = async (categoryIds: string[]): Promise<
     return { error: null };
   } catch (error) {
     console.error('Erro ao deletar prompts nas categorias:', error);
-    return { error };
+    return { error: error as DatabaseError };
   }
 };
 
