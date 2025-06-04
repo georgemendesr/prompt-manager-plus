@@ -5,7 +5,7 @@ import type { RawCategory } from "@/types/rawCategory";
 export const fetchCategories = async () => {
   try {
     return await supabase
-      .from<RawCategory>('categories')
+      .from('categories')
       .select('id, name, parent_id, created_at');
   } catch (error) {
     console.error('Erro ao buscar categorias:', error);

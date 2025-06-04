@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import type { Link as LinkType } from "@/types/link";
 import { fetchLinks, deleteLinkFromDb } from "@/services/link/linkService";
@@ -14,14 +15,7 @@ export const Links = () => {
     if (error) {
       toast.error("Erro ao carregar links");
     } else if (data) {
-      setLinks(
-        data.map((l: any) => ({
-          id: l.id,
-          url: l.url,
-          description: l.description,
-          createdAt: l.created_at,
-        }))
-      );
+      setLinks(data);
     }
     setLoading(false);
   };
@@ -36,7 +30,18 @@ export const Links = () => {
       toast.error("Erro ao excluir link");
     } else {
       setLinks((prev) => prev.filter((l) => l.id !== id));
+      toast.success("Link removido!");
     }
+  };
+
+  const handleAdd = async (link: LinkType) => {
+    setLinks((prev) => [link, ...prev]);
+    toast.success("Link adicionado!");
+  };
+
+  const handleEdit = async (id: string, link: LinkType) => {
+    setLinks((prev) => prev.map((l) => l.id === id ? { ...l, ...link } : l));
+    toast.success("Link atualizado!");
   };
 
   if (loading) return <div className="text-center">Carregando...</div>;
@@ -44,7 +49,13 @@ export const Links = () => {
   return (
     <div className="space-y-4">
       <LinkForm onAdded={loadLinks} />
-      <LinkList links={links} onDelete={handleDelete} />
+      <LinkList
+        links={links}
+        onAddLink={handleAdd}
+        onEditLink={handleEdit}
+        onDeleteLink={handleDelete}
+        onDelete={handleDelete}
+      />
     </div>
   );
 };

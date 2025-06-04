@@ -1,3 +1,4 @@
+
 import { supabase } from "../base/supabaseService";
 import type { Category } from "@/types/prompt";
 import type { RawCategory } from "@/types/rawCategory";
@@ -40,7 +41,7 @@ export const fetchAllDataOptimized = async (
     const [categoriesResult, promptsWithCommentsResult] = await Promise.all([
       // Buscar todas as categorias
       supabase
-        .from<RawCategory>('categories')
+        .from('categories')
         .select('id, name, parent_id, created_at')
         .order('created_at', { ascending: true }),
       
@@ -55,7 +56,6 @@ export const fetchAllDataOptimized = async (
           rating,
           tags,
           background_color,
-          tags,
           created_at,
           comments:comments(id, text, created_at)
         `
@@ -131,7 +131,6 @@ export const buildOptimizedCategoryTree = (
             rating: prompt.rating,
             tags: prompt.tags || [],
             backgroundColor: prompt.background_color,
-            tags: prompt.tags || [],
             comments: prompt.comments?.map(c => c.text) || [],
             createdAt: new Date(prompt.created_at),
             selected: false

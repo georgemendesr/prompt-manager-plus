@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,21 +11,19 @@ interface LyricFormProps {
 }
 
 export const LyricForm = ({ onAdded }: LyricFormProps) => {
-  const [text, setText] = useState("");
+  const [content, setContent] = useState("");
   const [title, setTitle] = useState("");
-  const [artist, setArtist] = useState("");
 
   const handleAdd = async () => {
-    if (!text.trim()) return;
+    if (!content.trim()) return;
 
-    const { error } = await addLyricToDb({ text, title, artist });
+    const { error } = await addLyricToDb({ title, content });
     if (error) {
       toast.error("Erro ao adicionar letra");
     } else {
       toast.success("Letra adicionada");
-      setText("");
+      setContent("");
       setTitle("");
-      setArtist("");
       onAdded();
     }
   };
@@ -36,15 +35,10 @@ export const LyricForm = ({ onAdded }: LyricFormProps) => {
         value={title}
         onChange={(e) => setTitle(e.target.value)}
       />
-      <Input
-        placeholder="Artista"
-        value={artist}
-        onChange={(e) => setArtist(e.target.value)}
-      />
       <Textarea
         placeholder="Letra"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
       />
       <Button onClick={handleAdd}>Adicionar</Button>
     </div>
