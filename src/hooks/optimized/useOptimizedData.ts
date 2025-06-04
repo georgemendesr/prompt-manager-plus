@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -8,11 +7,15 @@ import type { Category } from '@/types/prompt';
 const QUERY_KEY = ['optimized-data'];
 const PAGE_SIZE = 50;
 
-export const useOptimizedData = () => {
+export const useOptimizedData = (
+  initialLimit: number = 10,
+  initialOffset: number = 0
+) => {
+  const [limit] = useState(initialLimit);
+  const [offset, setOffset] = useState(initialOffset);
   const queryClient = useQueryClient();
-  const [page, setPage] = useState(0);
 
-  const currentQueryKey = [...QUERY_KEY, page];
+  const currentQueryKey = [...QUERY_KEY, limit, offset];
 
   // Query principal com cache
   const {
@@ -23,7 +26,7 @@ export const useOptimizedData = () => {
   } = useQuery({
     queryKey: currentQueryKey,
     queryFn: async () => {
-      const { categories, promptsWithComments } = await fetchAllDataOptimized(PAGE_SIZE, page * PAGE_SIZE);
+      const { categories, promptsWithComments } = await fetchAllDataOptimized(limit, offset);
       return buildOptimizedCategoryTree(categories, promptsWithComments);
     },
     staleTime: 5 * 60 * 1000, // 5 minutos
@@ -89,8 +92,14 @@ export const useOptimizedData = () => {
             ...category,
             prompts: category.prompts.map(prompt =>
               prompt.id === promptId
-                ? { ...prompt, comments: [...prompt.comments, comment] }
-                : prompt
+                ? {
+                    ...prompt,
+                    comments: [...prompt.comments, comment],
+                    tags: comment.startsWith('#')
+                      ? [...(prompt.tags || []), comment.replace('#', '').trim()]
+                      : prompt.tags,
+                  }
+              : prompt
             ),
             subcategories: category.subcategories ? updatePromptInCategory(category.subcategories) : []
           }));
@@ -126,8 +135,13 @@ export const useOptimizedData = () => {
     commentMutation.mutate({ promptId, comment });
   };
 
-  const nextPage = () => setPage((p) => p + 1);
-  const previousPage = () => setPage((p) => Math.max(p - 1, 0));
+  const nextPage = () => {
+    setOffset(current => current + limit);
+  };
+
+  const prevPage = () => {
+    setOffset(current => Math.max(current - limit, 0));
+  };
 
   return {
     categories,
@@ -138,8 +152,9 @@ export const useOptimizedData = () => {
     addComment,
     invalidateData,
     nextPage,
-    previousPage,
-    currentPage: page,
+    prevPage,
+    limit,
+    offset,
     // Estados das mutations
     isRatingPrompt: ratingMutation.isPending,
     isAddingComment: commentMutation.isPending

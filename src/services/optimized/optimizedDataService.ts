@@ -1,6 +1,6 @@
-
 import { supabase } from "../base/supabaseService";
 import type { Category } from "@/types/prompt";
+import type { RawCategory } from "@/types/rawCategory";
 
 // Interface para os dados consolidados do banco
 interface DatabasePrompt {
@@ -8,6 +8,7 @@ interface DatabasePrompt {
   text: string;
   category_id: string;
   rating: number;
+  tags: string[] | null;
   background_color?: string;
   created_at: string;
   comments: Array<{
@@ -17,17 +18,13 @@ interface DatabasePrompt {
   }> | null;
 }
 
-interface DatabaseCategory {
-  id: string;
-  name: string;
-  parent_id?: string | null;
-  created_at: string;
-}
-
 // Função otimizada que faz uma única consulta com JOINs
-export const fetchAllDataOptimized = async (limit = 50, offset = 0) => {
+export const fetchAllDataOptimized = async (
+  limit: number = 10,
+  offset: number = 0
+) => {
   try {
-    console.log('🔄 Carregando dados otimizados...');
+    console.log(`🔄 Carregando dados otimizados... (limit: ${limit}, offset: ${offset})`);
     
     // Test connection first
     const { error: connectionError } = await supabase
@@ -43,7 +40,7 @@ export const fetchAllDataOptimized = async (limit = 50, offset = 0) => {
     const [categoriesResult, promptsWithCommentsResult] = await Promise.all([
       // Buscar todas as categorias
       supabase
-        .from('categories')
+        .from<RawCategory>('categories')
         .select('id, name, parent_id, created_at')
         .order('created_at', { ascending: true }),
       
@@ -55,6 +52,7 @@ export const fetchAllDataOptimized = async (limit = 50, offset = 0) => {
           text,
           category_id,
           rating,
+          tags,
           background_color,
           created_at,
           comments:comments(id, text, created_at)
@@ -73,7 +71,7 @@ export const fetchAllDataOptimized = async (limit = 50, offset = 0) => {
       throw new Error(`Erro ao carregar prompts: ${promptsWithCommentsResult.error.message}`);
     }
 
-    const categories = categoriesResult.data || [];
+    const categories: RawCategory[] = categoriesResult.data || [];
     const promptsWithComments = promptsWithCommentsResult.data || [];
 
     console.log(`✅ Dados carregados: ${categories.length} categorias, ${promptsWithComments.length} prompts (limit: ${limit}, offset: ${offset})`);
@@ -100,7 +98,7 @@ export const fetchAllDataOptimized = async (limit = 50, offset = 0) => {
 
 // Função para construir a árvore de categorias com prompts
 export const buildOptimizedCategoryTree = (
-  categories: DatabaseCategory[], 
+  categories: RawCategory[],
   promptsWithComments: DatabasePrompt[]
 ): Category[] => {
   // Agrupar prompts por categoria
@@ -128,6 +126,7 @@ export const buildOptimizedCategoryTree = (
             text: prompt.text,
             category: category.name,
             rating: prompt.rating,
+            tags: prompt.tags || [],
             backgroundColor: prompt.background_color,
             comments: prompt.comments?.map(c => c.text) || [],
             createdAt: new Date(prompt.created_at),
@@ -146,10 +145,24 @@ export const updatePromptRatingOptimistic = async (promptId: string, increment: 
   try {
     console.log(`🔄 Atualizando rating do prompt ${promptId} (${increment ? '+1' : '-1'})`);
     
-    const { error } = await supabase.rpc('update_prompt_rating', {
-      prompt_id: promptId,
-      increment_value: increment ? 1 : -1
-    });
+    // Instead of using RPC, update the rating directly
+    const { data: currentPrompt, error: fetchError } = await supabase
+      .from('prompts')
+      .select('rating')
+      .eq('id', promptId)
+      .single();
+    
+    if (fetchError) {
+      console.error('❌ Erro ao buscar prompt atual:', fetchError);
+      throw new Error(`Erro ao buscar prompt: ${fetchError.message}`);
+    }
+    
+    const newRating = currentPrompt.rating + (increment ? 1 : -1);
+    
+    const { error } = await supabase
+      .from('prompts')
+      .update({ rating: newRating })
+      .eq('id', promptId);
     
     if (error) {
       console.error('❌ Erro ao atualizar rating:', error);
@@ -171,10 +184,27 @@ export const addCommentOptimistic = async (promptId: string, commentText: string
     const { error } = await supabase
       .from('comments')
       .insert([{ prompt_id: promptId, text: commentText }]);
-    
+
     if (error) {
       console.error('❌ Erro ao adicionar comentário:', error);
       throw new Error(`Erro ao adicionar comentário: ${error.message}`);
+    }
+
+    if (commentText.startsWith('#')) {
+      const { data: promptData, error: fetchError } = await supabase
+        .from('prompts')
+        .select('tags')
+        .eq('id', promptId)
+        .single();
+      if (fetchError) throw new Error(fetchError.message);
+
+      const currentTags = promptData?.tags || [];
+      const newTag = commentText.replace('#', '').trim();
+      const { error: tagError } = await supabase
+        .from('prompts')
+        .update({ tags: [...currentTags, newTag] })
+        .eq('id', promptId);
+      if (tagError) throw new Error(tagError.message);
     }
     
     console.log('✅ Comentário adicionado com sucesso');
