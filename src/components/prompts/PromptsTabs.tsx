@@ -1,4 +1,3 @@
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PromptsSection } from "@/components/prompts/PromptsSection";
 import { StructureList } from "@/components/structures/StructureList";
