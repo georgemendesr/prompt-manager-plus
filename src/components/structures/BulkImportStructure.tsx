@@ -11,9 +11,10 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { toast } from "sonner";
+import type { MusicStructure } from "@/types/prompt";
 
 interface BulkImportStructureProps {
-  onImport: (structures: any[]) => void;
+  onImport: (structures: MusicStructure[]) => void;
 }
 
 export const BulkImportStructure = ({ onImport }: BulkImportStructureProps) => {
@@ -29,7 +30,7 @@ export const BulkImportStructure = ({ onImport }: BulkImportStructureProps) => {
         .filter(line => line);
 
       // Estruturas para importar
-      const structures = [];
+      const structures: MusicStructure[] = [];
       
       // Processa as linhas em grupos de 2 (nome da estrutura e descrição)
       for (let i = 0; i < lines.length; i++) {

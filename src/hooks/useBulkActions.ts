@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { Category } from "@/types/prompt";
 import { toast } from "sonner";
@@ -15,15 +14,19 @@ export const useBulkActions = (categories: Category[], setCategories: (categorie
     return undefined;
   };
 
-  const bulkImportPrompts = async (prompts: string[], categoryId: string) => {
+  const bulkImportPrompts = async (
+    prompts: { text: string; tags: string[] }[],
+    categoryId: string
+  ) => {
     try {
       const category = findCategoryById(categories, categoryId);
       if (!category) return;
 
-      const newPrompts = prompts.map(text => ({
-        text,
+      const newPrompts = prompts.map(p => ({
+        text: p.text,
+        tags: p.tags,
         category_id: categoryId,
-        rating: 0
+        rating: 0,
       }));
 
       const { data, error } = await supabase
@@ -45,6 +48,7 @@ export const useBulkActions = (categories: Category[], setCategories: (categorie
                   text: p.text,
                   category: c.name,
                   rating: 0,
+                  tags: p.tags || [],
                   comments: [],
                   createdAt: new Date(p.created_at),
                   selected: false,

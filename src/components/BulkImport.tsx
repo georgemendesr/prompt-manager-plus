@@ -1,8 +1,8 @@
-
 import { useState } from "react";
 import { Upload } from "lucide-react";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
+import { Input } from "./ui/input";
 import {
   Dialog,
   DialogContent,
@@ -15,23 +15,37 @@ import type { Category } from "@/types/prompt";
 
 interface BulkImportProps {
   categories: Category[];
-  onImport: (prompts: string[], categoryId: string) => void;
+  onImport: (prompts: { text: string; tags: string[] }[], categoryId: string) => void;
 }
 
 export const BulkImport = ({ categories, onImport }: BulkImportProps) => {
   const [text, setText] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  const [tags, setTags] = useState("");
   const [open, setOpen] = useState(false);
 
   const handleImport = () => {
-    // Divide o texto usando múltiplos separadores
-    const prompts = text
-      .split(/\n{1,}|```|\s{2,}/)  // Quebras de linha simples ou múltiplas, ```, ou espaços duplos
+    const lines = text
+      .split(/\n{1,}|```|\s{2,}/)
       .map(t => t.trim())
-      .filter(t => t && !t.includes("```") && t.length > 0); // Remove strings vazias e backticks
+      .filter(t => t && !t.includes("```") && t.length > 0);
+
+    const prompts = lines.map(line => {
+      const [promptText, tagsPart] = line.split("|");
+      const tagsArr = tagsPart ? tagsPart.split(',').map(t => t.trim()).filter(Boolean) : [];
+      return { text: promptText.trim(), tags: tagsArr };
+    });
 
     if (prompts.length && categoryId) {
-      onImport(prompts, categoryId);
+      // Merge tags from input with prompt line tags
+      const globalTags = tags.split(",").map(t => t.trim()).filter(t => t);
+      const promptsWithTags = prompts.map(({ text, tags }) => ({
+        text,
+        tags: Array.from(new Set([...tags, ...globalTags])),
+      }));
+
+      onImport(promptsWithTags, categoryId);
+      setTags("");
       setText("");
       setCategoryId("");
       setOpen(false);
@@ -78,8 +92,13 @@ export const BulkImport = ({ categories, onImport }: BulkImportProps) => {
           <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Cole seus prompts aqui. Eles podem estar separados por quebras de linha, ```, ou espaços duplos"
+            placeholder="Cole seus prompts aqui. Separe cada linha e opcionalmente adicione '| tag1, tag2'"
             className="min-h-[200px] font-mono"
+          />
+          <Input
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            placeholder="Tags para todos os prompts (separadas por vírgula)"
           />
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setOpen(false)}>

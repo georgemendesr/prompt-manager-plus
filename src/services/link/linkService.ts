@@ -1,24 +1,36 @@
 import { supabase } from "../base/supabaseService";
+import type { Link } from "@/types/link";
 
 export const fetchLinks = async () => {
-  return supabase.from('links').select('*').order('created_at', { ascending: false });
+  try {
+    return await supabase
+      .from('links')
+      .select('*')
+      .order('created_at', { ascending: false });
+  } catch (error) {
+    console.error('Erro ao buscar links:', error);
+    return { data: null, error };
+  }
 };
 
-export const addLinkToDb = async (link: { url: string; description?: string }) => {
-  return supabase
+export const addLink = async (link: Link) => {
+  return await supabase
     .from('links')
-    .insert([{ url: link.url.trim(), description: link.description?.trim() || null }])
+    .insert({ url: link.url, description: link.description })
     .select()
     .single();
 };
 
-export const updateLinkInDb = async (id: string, link: { url?: string; description?: string }) => {
-  return supabase
+export const updateLink = async (id: string, link: Partial<Link>) => {
+  return await supabase
     .from('links')
-    .update({ url: link.url?.trim(), description: link.description?.trim() })
+    .update({ url: link.url, description: link.description })
     .eq('id', id);
 };
 
-export const deleteLinkFromDb = async (id: string) => {
-  return supabase.from('links').delete().eq('id', id);
+export const deleteLink = async (id: string) => {
+  return await supabase
+    .from('links')
+    .delete()
+    .eq('id', id);
 };

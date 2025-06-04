@@ -1,24 +1,36 @@
 import { supabase } from "../base/supabaseService";
+import type { Lyric } from "@/types/lyric";
 
 export const fetchLyrics = async () => {
-  return supabase.from('lyrics').select('*').order('created_at', { ascending: false });
+  try {
+    return await supabase
+      .from('lyrics')
+      .select('*')
+      .order('created_at', { ascending: false });
+  } catch (error) {
+    console.error('Erro ao buscar letras:', error);
+    return { data: null, error };
+  }
 };
 
-export const addLyricToDb = async (lyric: { text: string; title?: string; artist?: string }) => {
-  return supabase
+export const addLyric = async (lyric: Lyric) => {
+  return await supabase
     .from('lyrics')
-    .insert([{ text: lyric.text.trim(), title: lyric.title?.trim() || null, artist: lyric.artist?.trim() || null }])
+    .insert({ title: lyric.title, content: lyric.content })
     .select()
     .single();
 };
 
-export const updateLyricInDb = async (id: string, lyric: { text?: string; title?: string; artist?: string }) => {
-  return supabase
+export const updateLyric = async (id: string, lyric: Partial<Lyric>) => {
+  return await supabase
     .from('lyrics')
-    .update({ text: lyric.text?.trim(), title: lyric.title?.trim(), artist: lyric.artist?.trim() })
+    .update({ title: lyric.title, content: lyric.content })
     .eq('id', id);
 };
 
-export const deleteLyricFromDb = async (id: string) => {
-  return supabase.from('lyrics').delete().eq('id', id);
+export const deleteLyric = async (id: string) => {
+  return await supabase
+    .from('lyrics')
+    .delete()
+    .eq('id', id);
 };

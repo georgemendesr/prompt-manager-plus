@@ -194,7 +194,9 @@ export type Database = {
           created_at: string
           id: string
           rating: number
+          tags: string[] | null
           text: string
+          tags: string[] | null
         }
         Insert: {
           background_color?: string | null
@@ -202,7 +204,9 @@ export type Database = {
           created_at?: string
           id?: string
           rating?: number
+          tags?: string[] | null
           text: string
+          tags?: string[] | null
         }
         Update: {
           background_color?: string | null
@@ -210,7 +214,9 @@ export type Database = {
           created_at?: string
           id?: string
           rating?: number
+          tags?: string[] | null
           text?: string
+          tags?: string[] | null
         }
         Relationships: [
           {

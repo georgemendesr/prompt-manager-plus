@@ -4,6 +4,13 @@
 
 **URL**: https://lovable.dev/projects/dbe93f27-6da3-4799-8645-13d27db44ec7
 
+### Environment variables
+
+Set the following variables in a `.env` file or your hosting environment:
+
+- `VITE_SUPABASE_URL` – URL of your Supabase instance
+- `VITE_SUPABASE_ANON_KEY` – anonymous public key from Supabase
+
 ## How can I edit this code?
 
 There are several ways of editing your application.
@@ -60,6 +67,15 @@ This project is built with .
 - shadcn-ui
 - Tailwind CSS
 
+## Environment variables
+
+Create a `.env` file in the project root with the following values:
+
+```env
+VITE_SUPABASE_URL=<your-supabase-url>
+VITE_SUPABASE_ANON_KEY=<your-supabase-anon-key>
+```
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/dbe93f27-6da3-4799-8645-13d27db44ec7) and click on Share -> Publish.
@@ -67,3 +83,17 @@ Simply open [Lovable](https://lovable.dev/projects/dbe93f27-6da3-4799-8645-13d27
 ## I want to use a custom domain - is that possible?
 
 We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+
+## Database migration
+
+Add a new `tags` column to the `prompts` table:
+
+```sql
+alter table prompts add column tags text[] default '{}'::text[];
+```
+
+After updating the database run the Supabase type generator to refresh local types:
+
+```sh
+npx supabase gen types typescript --project-id <project_id> --schema public > src/integrations/supabase/types.ts
+```
