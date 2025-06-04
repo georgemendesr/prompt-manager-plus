@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -138,9 +139,11 @@ export const useOptimizedData = (
     setOffset(current => current + limit);
   };
 
-  const prevPage = () => {
+  const previousPage = () => {
     setOffset(current => Math.max(current - limit, 0));
   };
+
+  const currentPage = Math.floor(offset / limit) + 1;
 
   return {
     categories,
@@ -151,7 +154,8 @@ export const useOptimizedData = (
     addComment,
     invalidateData,
     nextPage,
-    prevPage,
+    previousPage,
+    currentPage,
     limit,
     offset,
     // Estados das mutations
