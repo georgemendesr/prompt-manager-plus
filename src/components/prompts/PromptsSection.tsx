@@ -1,7 +1,7 @@
-
 import { AddCategory } from "@/components/AddCategory";
 import { BulkImport } from "@/components/BulkImport";
 import { CategoryTree } from "@/components/CategoryTree";
+import { AdminGuard } from "@/components/AdminGuard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
@@ -10,7 +10,7 @@ import type { Category } from "@/types/prompt";
 interface PromptsSectionProps {
   categories: Category[];
   addCategory: (name: string) => Promise<boolean>;
-  bulkImportPrompts: (prompts: Array<{ text: string; tags: string[] }>, categoryName: string) => Promise<void>;
+  bulkImportPrompts: (prompts: { text: string; tags: string[] }[], categoryName: string) => Promise<void>;
   ratePrompt: (id: string, increment: boolean) => void;
   addComment: (id: string, comment: string) => void;
   editPrompt: (id: string, newText: string) => Promise<void>;
@@ -24,6 +24,9 @@ interface PromptsSectionProps {
   searchTerm: string;
   setSearchTerm: (value: string) => void;
   exportPrompts: () => void;
+  onNextPage: () => void;
+  onPreviousPage: () => void;
+  currentPage: number;
 }
 
 export const PromptsSection = ({ 
@@ -42,19 +45,26 @@ export const PromptsSection = ({
   deleteCategory,
   searchTerm,
   setSearchTerm,
-  exportPrompts
+  exportPrompts,
+  onNextPage,
+  onPreviousPage,
+  currentPage
 }: PromptsSectionProps) => {
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap gap-2">
-          <AddCategory onAdd={addCategory} categories={categories} />
+          <AdminGuard showError={false}>
+            <AddCategory onAdd={addCategory} categories={categories} />
+          </AdminGuard>
           {categories.length > 0 && (
             <>
-              <BulkImport
-                categories={categories}
-                onImport={bulkImportPrompts}
-              />
+              <AdminGuard showError={false}>
+                <BulkImport
+                  categories={categories}
+                  onImport={bulkImportPrompts}
+                />
+              </AdminGuard>
               <Button 
                 onClick={exportPrompts} 
                 variant="outline"
@@ -70,9 +80,15 @@ export const PromptsSection = ({
 
       {categories.length === 0 ? (
         <div className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg">
-          Crie uma categoria para começar a adicionar prompts
+          <AdminGuard 
+            fallback="Nenhuma categoria disponível no momento."
+            showError={false}
+          >
+            Crie uma categoria para começar a adicionar prompts
+          </AdminGuard>
         </div>
       ) : (
+        <>
         <Tabs defaultValue={categories[0]?.name} className="w-full">
           <div className="max-w-full overflow-hidden">
             <TabsList className="bg-gray-100/80 p-1 rounded-lg max-w-full overflow-x-auto flex gap-1 no-scrollbar">
@@ -116,6 +132,16 @@ export const PromptsSection = ({
               </TabsContent>
             ))}
         </Tabs>
+        <div className="flex justify-between mt-4">
+          <Button onClick={onPreviousPage} disabled={currentPage === 0} variant="outline">
+            Anterior
+          </Button>
+          <span className="self-center">Página {currentPage + 1}</span>
+          <Button onClick={onNextPage} variant="outline">
+            Próxima
+          </Button>
+        </div>
+        </>
       )}
     </div>
   );

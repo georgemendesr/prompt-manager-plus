@@ -18,11 +18,14 @@ export interface PromptManager {
   ratePrompt: (promptId: string, increment: boolean) => Promise<void>;
   addComment: (promptId: string, comment: string) => Promise<void>;
   movePrompt: (promptId: string, targetCategoryId: string) => Promise<void>;
-  bulkImportPrompts: (prompts: Array<{ text: string; tags: string[] }>, categoryName: string) => Promise<void>;
+  bulkImportPrompts: (prompts: { text: string; tags: string[] }[], categoryName: string) => Promise<void>;
   deleteSelectedPrompts: (categoryName: string) => Promise<void>;
   togglePromptSelection: (promptId: string, selected: boolean) => void;
   toggleSelectAll: (categoryName: string, selected: boolean) => void;
   exportPrompts: () => void;
+  nextPage: () => void;
+  previousPage: () => void;
+  currentPage: number;
 }
 
 export const usePromptManager = (): PromptManager => {
@@ -34,7 +37,10 @@ export const usePromptManager = (): PromptManager => {
     refetch: optimizedRefetch,
     ratePrompt: optimizedRatePrompt,
     addComment: optimizedAddComment,
-    invalidateData
+    invalidateData,
+    nextPage,
+    previousPage,
+    currentPage
   } = useOptimizedData();
 
   // Fallback to original hooks
@@ -178,6 +184,9 @@ export const usePromptManager = (): PromptManager => {
     deleteSelectedPrompts,
     togglePromptSelection,
     toggleSelectAll,
-    exportPrompts
+    exportPrompts,
+    nextPage,
+    previousPage,
+    currentPage
   };
 };
