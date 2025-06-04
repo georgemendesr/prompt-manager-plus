@@ -1,3 +1,4 @@
+
 export interface Lyric {
   id: string;
   title: string;

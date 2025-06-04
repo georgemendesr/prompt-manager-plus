@@ -1,3 +1,4 @@
+
 import { supabase } from "../base/supabaseService";
 import type { Lyric } from "@/types/lyric";
 
@@ -13,7 +14,7 @@ export const fetchLyrics = async () => {
   }
 };
 
-export const addLyric = async (lyric: Lyric) => {
+export const addLyric = async (lyric: Omit<Lyric, 'id' | 'created_at'>) => {
   return await supabase
     .from('lyrics')
     .insert({ title: lyric.title, content: lyric.content })
@@ -21,7 +22,9 @@ export const addLyric = async (lyric: Lyric) => {
     .single();
 };
 
-export const updateLyric = async (id: string, lyric: Partial<Lyric>) => {
+export const addLyricToDb = addLyric; // Alias for compatibility
+
+export const updateLyric = async (id: string, lyric: Partial<Omit<Lyric, 'id' | 'created_at'>>) => {
   return await supabase
     .from('lyrics')
     .update({ title: lyric.title, content: lyric.content })
@@ -34,3 +37,5 @@ export const deleteLyric = async (id: string) => {
     .delete()
     .eq('id', id);
 };
+
+export const deleteLyricFromDb = deleteLyric; // Alias for compatibility

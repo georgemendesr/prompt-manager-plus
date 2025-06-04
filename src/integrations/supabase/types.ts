@@ -100,6 +100,48 @@ export type Database = {
         }
         Relationships: []
       }
+      links: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      lyrics: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          title: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          title?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          title?: string | null
+        }
+        Relationships: []
+      }
       music_requests: {
         Row: {
           avoid_elements: string | null
@@ -194,6 +236,7 @@ export type Database = {
           created_at: string
           id: string
           rating: number
+          tags: string[] | null
           text: string
         }
         Insert: {
@@ -202,6 +245,7 @@ export type Database = {
           created_at?: string
           id?: string
           rating?: number
+          tags?: string[] | null
           text: string
         }
         Update: {
@@ -210,6 +254,7 @@ export type Database = {
           created_at?: string
           id?: string
           rating?: number
+          tags?: string[] | null
           text?: string
         }
         Relationships: [

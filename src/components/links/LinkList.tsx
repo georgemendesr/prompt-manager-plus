@@ -11,6 +11,7 @@ interface LinkListProps {
   onAddLink: (link: LinkType) => void;
   onEditLink: (id: string, link: LinkType) => void;
   onDeleteLink: (id: string) => void;
+  onDelete?: (id: string) => Promise<void>; // Add this for compatibility
 }
 
 export const LinkList = ({
@@ -18,7 +19,8 @@ export const LinkList = ({
   loadError,
   onAddLink,
   onEditLink,
-  onDeleteLink
+  onDeleteLink,
+  onDelete
 }: LinkListProps) => {
   const [isAdding, setIsAdding] = useState(false);
   const [newLink, setNewLink] = useState({ url: "", description: "" });
@@ -41,6 +43,14 @@ export const LinkList = ({
   const handleEditSave = (id: string) => {
     onEditLink(id, { ...edited, id, created_at: new Date().toISOString() });
     setEditingId(null);
+  };
+
+  const handleDelete = (id: string) => {
+    if (onDelete) {
+      onDelete(id);
+    } else {
+      onDeleteLink(id);
+    }
   };
 
   return (
@@ -113,7 +123,7 @@ export const LinkList = ({
                   <Button size="icon" variant="outline" onClick={() => { setEditingId(link.id); setEdited({ url: link.url, description: link.description || "" }); }}>
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <Button size="icon" variant="outline" onClick={() => onDeleteLink(link.id)}>
+                  <Button size="icon" variant="outline" onClick={() => handleDelete(link.id)}>
                     <Trash className="h-4 w-4" />
                   </Button>
                 </div>

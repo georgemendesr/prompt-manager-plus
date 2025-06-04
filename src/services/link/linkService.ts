@@ -1,3 +1,4 @@
+
 import { supabase } from "../base/supabaseService";
 import type { Link } from "@/types/link";
 
@@ -13,7 +14,7 @@ export const fetchLinks = async () => {
   }
 };
 
-export const addLink = async (link: Link) => {
+export const addLink = async (link: Omit<Link, 'id' | 'created_at'>) => {
   return await supabase
     .from('links')
     .insert({ url: link.url, description: link.description })
@@ -21,7 +22,9 @@ export const addLink = async (link: Link) => {
     .single();
 };
 
-export const updateLink = async (id: string, link: Partial<Link>) => {
+export const addLinkToDb = addLink; // Alias for compatibility
+
+export const updateLink = async (id: string, link: Partial<Omit<Link, 'id' | 'created_at'>>) => {
   return await supabase
     .from('links')
     .update({ url: link.url, description: link.description })
@@ -34,3 +37,5 @@ export const deleteLink = async (id: string) => {
     .delete()
     .eq('id', id);
 };
+
+export const deleteLinkFromDb = deleteLink; // Alias for compatibility

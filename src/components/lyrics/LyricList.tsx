@@ -12,6 +12,7 @@ interface LyricListProps {
   onAddLyric: (lyric: Lyric) => void;
   onEditLyric: (id: string, lyric: Lyric) => void;
   onDeleteLyric: (id: string) => void;
+  onDelete?: (id: string) => Promise<void>; // Add this for compatibility
 }
 
 export const LyricList = ({
@@ -19,7 +20,8 @@ export const LyricList = ({
   loadError,
   onAddLyric,
   onEditLyric,
-  onDeleteLyric
+  onDeleteLyric,
+  onDelete
 }: LyricListProps) => {
   const [isAdding, setIsAdding] = useState(false);
   const [newLyric, setNewLyric] = useState({ title: "", content: "" });
@@ -42,6 +44,14 @@ export const LyricList = ({
   const handleEditSave = (id: string) => {
     onEditLyric(id, { ...edited, id, created_at: new Date().toISOString() });
     setEditingId(null);
+  };
+
+  const handleDelete = (id: string) => {
+    if (onDelete) {
+      onDelete(id);
+    } else {
+      onDeleteLyric(id);
+    }
   };
 
   return (
@@ -108,7 +118,7 @@ export const LyricList = ({
                     <Button size="icon" variant="outline" onClick={() => { setEditingId(lyric.id); setEdited({ title: lyric.title, content: lyric.content }); }}>
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button size="icon" variant="outline" onClick={() => onDeleteLyric(lyric.id)}>
+                    <Button size="icon" variant="outline" onClick={() => handleDelete(lyric.id)}>
                       <Trash className="h-4 w-4" />
                     </Button>
                   </div>
