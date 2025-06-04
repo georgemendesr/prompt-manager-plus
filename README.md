@@ -4,6 +4,13 @@
 
 **URL**: https://lovable.dev/projects/dbe93f27-6da3-4799-8645-13d27db44ec7
 
+### Environment variables
+
+Set the following variables in a `.env` file or your hosting environment:
+
+- `VITE_SUPABASE_URL` – URL of your Supabase instance
+- `VITE_SUPABASE_ANON_KEY` – anonymous public key from Supabase
+
 ## How can I edit this code?
 
 There are several ways of editing your application.
