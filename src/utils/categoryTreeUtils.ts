@@ -1,9 +1,8 @@
-
 import type { Category } from "@/types/prompt";
-import type { RawCategory } from "@/types/rawCategory";
+import type { RawCategory, CategoryRecord } from "@/types/category";
 
 export const buildCategoryTree = (
-  categories: RawCategory[],
+  categories: CategoryRecord[],
   parentId: string | null = null
 ): Category[] => {
   return categories
