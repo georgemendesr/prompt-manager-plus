@@ -1,9 +1,11 @@
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PromptsSection } from "@/components/prompts/PromptsSection";
 import { StructureList } from "@/components/structures/StructureList";
 import { Workspace } from "@/components/Workspace";
+import { Links } from "@/components/links/Links";
+import { Lyrics } from "@/components/lyrics/Lyrics";
 import { Category } from "@/types/prompt";
+import type { MusicStructure } from "@/types/prompt";
 
 interface PromptsTabsProps {
   categories: Category[];
@@ -22,11 +24,14 @@ interface PromptsTabsProps {
   onTogglePromptSelection: (promptId: string, selected: boolean) => void;
   onToggleSelectAll: (categoryName: string, selected: boolean) => void;
   onDeleteSelectedPrompts: (categoryName: string) => Promise<void>;
-  onBulkImportPrompts: (prompts: string[], categoryName: string) => Promise<void>;
+  onBulkImportPrompts: (prompts: { text: string; tags: string[] }[], categoryName: string) => Promise<void>;
   onExportPrompts: () => void;
-  structures: any[];
-  onAddStructure: (structure: any) => Promise<void>;
-  onEditStructure: (id: string, structure: any) => Promise<void>;
+  onNextPage: () => void;
+  onPreviousPage: () => void;
+  currentPage: number;
+  structures: MusicStructure[];
+  onAddStructure: (structure: MusicStructure | MusicStructure[]) => Promise<void>;
+  onEditStructure: (id: string, structure: MusicStructure) => Promise<void>;
   onDeleteStructure: (id: string) => Promise<void>;
 }
 
@@ -49,6 +54,9 @@ export const PromptsTabs = ({
   onDeleteSelectedPrompts,
   onBulkImportPrompts,
   onExportPrompts,
+  onNextPage,
+  onPreviousPage,
+  currentPage,
   structures,
   onAddStructure,
   onEditStructure,
@@ -60,6 +68,8 @@ export const PromptsTabs = ({
         <TabsTrigger value="prompts" className="flex-1">Prompts</TabsTrigger>
         <TabsTrigger value="estrutura" className="flex-1">Estrutura</TabsTrigger>
         <TabsTrigger value="workspace" className="flex-1">Workspace</TabsTrigger>
+        <TabsTrigger value="links" className="flex-1">Links</TabsTrigger>
+        <TabsTrigger value="lyrics" className="flex-1">Letras</TabsTrigger>
       </TabsList>
 
       <TabsContent value="prompts" className="mt-4 sm:mt-6">
@@ -80,6 +90,9 @@ export const PromptsTabs = ({
           searchTerm={globalSearchTerm}
           setSearchTerm={setGlobalSearchTerm}
           exportPrompts={onExportPrompts}
+          onNextPage={onNextPage}
+          onPreviousPage={onPreviousPage}
+          currentPage={currentPage}
         />
       </TabsContent>
 
@@ -97,6 +110,14 @@ export const PromptsTabs = ({
 
       <TabsContent value="workspace" className="mt-4 sm:mt-6">
         <Workspace />
+      </TabsContent>
+
+      <TabsContent value="links" className="mt-4 sm:mt-6">
+        <Links />
+      </TabsContent>
+
+      <TabsContent value="lyrics" className="mt-4 sm:mt-6">
+        <Lyrics />
       </TabsContent>
     </Tabs>
   );

@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AddCategory } from "@/components/AddCategory";
+import { AdminGuard } from "@/components/AdminGuard";
 import { useForceDeleteCategory } from "@/hooks/useForceDeleteCategory";
 import type { Category } from "@/types/prompt";
 
@@ -76,36 +77,38 @@ export const CategoryHeader = ({
           {name}
         </h3>
       </div>
-      <div 
-        className="flex items-center"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" disabled={isDeleting}>
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
-              <AddCategory
-                mode="edit"
-                initialName={name}
-                initialParentId={category.parentId}
-                onEdit={onEdit}
-                categories={categories}
-              />
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="text-red-600 focus:text-red-600"
-              onClick={handleDelete}
-              disabled={isDeleting}
-            >
-              {isDeleting ? 'Excluindo...' : 'Excluir'}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+      <AdminGuard showError={false}>
+        <div 
+          className="flex items-center"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8" disabled={isDeleting}>
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <AddCategory
+                  mode="edit"
+                  initialName={name}
+                  initialParentId={category.parentId}
+                  onEdit={onEdit}
+                  categories={categories}
+                />
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-red-600 focus:text-red-600"
+                onClick={handleDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Excluindo...' : 'Excluir'}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </AdminGuard>
     </div>
   );
 };
