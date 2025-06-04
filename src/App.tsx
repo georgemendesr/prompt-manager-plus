@@ -2,6 +2,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import Prompts from "./pages/Prompts";
+import LinksPage from "./pages/Links";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./components/AuthProvider";
@@ -30,6 +31,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Prompts />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/links"
+            element={
+              <ProtectedRoute>
+                <LinksPage />
               </ProtectedRoute>
             }
           />

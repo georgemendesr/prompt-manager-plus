@@ -1,10 +1,9 @@
-
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { fetchCategories, fetchPrompts, fetchComments } from "@/services/categoryService";
 import { buildCategoryTree } from "@/utils/categoryTreeUtils";
 import type { Category } from "@/types/prompt";
-import type { RawCategory } from "@/types/category";
+import type { RawCategory, CategoryRecord } from "@/types/category";
 
 export const useCategoryFetcher = () => {
   const [loading, setLoading] = useState(true);
@@ -53,7 +52,9 @@ export const useCategoryFetcher = () => {
         comments: commentsData.length
       });
 
-      const categoryTree = buildCategoryTree(categoriesData);
+      const categoryTree = buildCategoryTree(
+        categoriesData as CategoryRecord[]
+      );
 
       const addPromptsToCategories = (categories: Category[], allPrompts: any[]) => {
         return categories.map(category => {
@@ -68,6 +69,7 @@ export const useCategoryFetcher = () => {
               comments: commentsData
                 .filter(comment => comment.prompt_id === prompt.id)
                 .map(comment => comment.text) || [],
+              tags: prompt.tags || [],
               createdAt: new Date(prompt.created_at),
               selected: false
             }));
