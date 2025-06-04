@@ -56,9 +56,13 @@ export const PromptCard = ({
     });
   };
 
-  const hashtags = filterComments(
+  const commentTags = filterComments(
     prompt.comments.filter(comment => comment.startsWith('#'))
-  );
+  ).map(tag => tag.replace(/^#/, '').trim());
+
+  const hashtags = Array.from(
+    new Set([...(prompt.tags || []), ...commentTags])
+  ).map(t => `#${t}`);
 
   const regularComments = filterComments(
     prompt.comments.filter(comment => !comment.startsWith('#'))
