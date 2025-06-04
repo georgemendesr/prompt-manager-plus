@@ -24,6 +24,9 @@ interface PromptsTabsProps {
   onDeleteSelectedPrompts: (categoryName: string) => Promise<void>;
   onBulkImportPrompts: (prompts: { text: string; tags: string[] }[], categoryName: string) => Promise<void>;
   onExportPrompts: () => void;
+  onNextPage: () => void;
+  onPreviousPage: () => void;
+  currentPage: number;
   structures: MusicStructure[];
   onAddStructure: (structure: MusicStructure | MusicStructure[]) => Promise<void>;
   onEditStructure: (id: string, structure: MusicStructure) => Promise<void>;
@@ -49,6 +52,9 @@ export const PromptsTabs = ({
   onDeleteSelectedPrompts,
   onBulkImportPrompts,
   onExportPrompts,
+  onNextPage,
+  onPreviousPage,
+  currentPage,
   structures,
   onAddStructure,
   onEditStructure,
@@ -80,6 +86,9 @@ export const PromptsTabs = ({
           searchTerm={globalSearchTerm}
           setSearchTerm={setGlobalSearchTerm}
           exportPrompts={onExportPrompts}
+          onNextPage={onNextPage}
+          onPreviousPage={onPreviousPage}
+          currentPage={currentPage}
         />
       </TabsContent>
 

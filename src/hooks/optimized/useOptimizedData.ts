@@ -5,7 +5,6 @@ import { fetchAllDataOptimized, buildOptimizedCategoryTree, updatePromptRatingOp
 import type { Category } from '@/types/prompt';
 
 const QUERY_KEY = ['optimized-data'];
-const PAGE_SIZE = 50;
 
 export const useOptimizedData = (
   initialLimit: number = 10,

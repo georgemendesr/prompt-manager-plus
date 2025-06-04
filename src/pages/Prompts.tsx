@@ -142,6 +142,9 @@ const PromptsContent = () => {
             onDeleteSelectedPrompts={deleteSelectedPrompts}
             onBulkImportPrompts={bulkImportPrompts}
             onExportPrompts={exportPrompts}
+            onNextPage={nextPage}
+            onPreviousPage={previousPage}
+            currentPage={currentPage}
             structures={structures}
             onAddStructure={addStructure}
             onEditStructure={editStructure}
