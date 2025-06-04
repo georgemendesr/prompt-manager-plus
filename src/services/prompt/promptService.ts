@@ -4,7 +4,7 @@ export const fetchPrompts = async () => {
   try {
     return await supabase
       .from('prompts')
-      .select('id, text, category_id, rating, background_color, created_at');
+      .select('id, text, category_id, rating, background_color, tags, created_at');
   } catch (error) {
     console.error('Erro ao buscar prompts:', error);
     return { data: null, error };
@@ -124,10 +124,11 @@ export const convertPromptsToCSV = (prompts: Array<{
   category: string;
   rating: number;
   comments: string[];
+  tags: string[];
   createdAt: string;
 }>): string => {
   // Headers
-  let csv = "Texto,Categoria,Avaliação,Comentários,Data de Criação\n";
+  let csv = "Texto,Categoria,Avaliação,Comentários,Tags,Data de Criação\n";
   
   // Adicionar cada linha
   prompts.forEach(prompt => {
@@ -135,7 +136,8 @@ export const convertPromptsToCSV = (prompts: Array<{
     const escapedText = prompt.text.replace(/"/g, '""');
     const escapedComments = prompt.comments.join(" | ").replace(/"/g, '""');
     
-    csv += `"${escapedText}","${prompt.category}",${prompt.rating},"${escapedComments}","${prompt.createdAt}"\n`;
+    const escapedTags = prompt.tags.join(', ').replace(/"/g, '""');
+    csv += `"${escapedText}","${prompt.category}",${prompt.rating},"${escapedComments}","${escapedTags}","${prompt.createdAt}"\n`;
   });
   
   return csv;

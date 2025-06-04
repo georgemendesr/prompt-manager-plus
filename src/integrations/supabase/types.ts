@@ -195,6 +195,7 @@ export type Database = {
           id: string
           rating: number
           text: string
+          tags: string[] | null
         }
         Insert: {
           background_color?: string | null
@@ -203,6 +204,7 @@ export type Database = {
           id?: string
           rating?: number
           text: string
+          tags?: string[] | null
         }
         Update: {
           background_color?: string | null
@@ -211,6 +213,7 @@ export type Database = {
           id?: string
           rating?: number
           text?: string
+          tags?: string[] | null
         }
         Relationships: [
           {

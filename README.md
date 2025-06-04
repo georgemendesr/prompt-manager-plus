@@ -67,3 +67,17 @@ Simply open [Lovable](https://lovable.dev/projects/dbe93f27-6da3-4799-8645-13d27
 ## I want to use a custom domain - is that possible?
 
 We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+
+## Database migration
+
+Add a new `tags` column to the `prompts` table:
+
+```sql
+alter table prompts add column tags text[] default '{}'::text[];
+```
+
+After updating the database run the Supabase type generator to refresh local types:
+
+```sh
+npx supabase gen types typescript --project-id <project_id> --schema public > src/integrations/supabase/types.ts
+```

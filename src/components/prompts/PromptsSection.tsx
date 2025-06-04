@@ -10,7 +10,7 @@ import type { Category } from "@/types/prompt";
 interface PromptsSectionProps {
   categories: Category[];
   addCategory: (name: string) => Promise<boolean>;
-  bulkImportPrompts: (prompts: string[], categoryName: string) => Promise<void>;
+  bulkImportPrompts: (prompts: Array<{ text: string; tags: string[] }>, categoryName: string) => Promise<void>;
   ratePrompt: (id: string, increment: boolean) => void;
   addComment: (id: string, comment: string) => void;
   editPrompt: (id: string, newText: string) => Promise<void>;

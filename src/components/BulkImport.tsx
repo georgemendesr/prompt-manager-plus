@@ -15,7 +15,7 @@ import type { Category } from "@/types/prompt";
 
 interface BulkImportProps {
   categories: Category[];
-  onImport: (prompts: string[], categoryId: string) => void;
+  onImport: (prompts: Array<{ text: string; tags: string[] }>, categoryId: string) => void;
 }
 
 export const BulkImport = ({ categories, onImport }: BulkImportProps) => {
@@ -23,12 +23,18 @@ export const BulkImport = ({ categories, onImport }: BulkImportProps) => {
   const [categoryId, setCategoryId] = useState("");
   const [open, setOpen] = useState(false);
 
+
   const handleImport = () => {
-    // Divide o texto usando múltiplos separadores
-    const prompts = text
-      .split(/\n{1,}|```|\s{2,}/)  // Quebras de linha simples ou múltiplas, ```, ou espaços duplos
+    const lines = text
+      .split(/\n{1,}|```|\s{2,}/)
       .map(t => t.trim())
-      .filter(t => t && !t.includes("```") && t.length > 0); // Remove strings vazias e backticks
+      .filter(t => t && !t.includes("```") && t.length > 0);
+
+    const prompts = lines.map(line => {
+      const [promptText, tagsPart] = line.split("|");
+      const tags = tagsPart ? tagsPart.split(',').map(t => t.trim()).filter(Boolean) : [];
+      return { text: promptText.trim(), tags };
+    });
 
     if (prompts.length && categoryId) {
       onImport(prompts, categoryId);
@@ -37,7 +43,6 @@ export const BulkImport = ({ categories, onImport }: BulkImportProps) => {
       setOpen(false);
     }
   };
-
   const getAllCategories = (categories: Category[]): Category[] => {
     return categories.reduce((acc: Category[], category) => {
       acc.push(category);
@@ -78,7 +83,7 @@ export const BulkImport = ({ categories, onImport }: BulkImportProps) => {
           <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Cole seus prompts aqui. Eles podem estar separados por quebras de linha, ```, ou espaços duplos"
+            placeholder="Cole seus prompts aqui. Separe cada linha e opcionalmente adicione '| tag1, tag2'"
             className="min-h-[200px] font-mono"
           />
           <div className="flex justify-end gap-2">

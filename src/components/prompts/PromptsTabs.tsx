@@ -22,7 +22,7 @@ interface PromptsTabsProps {
   onTogglePromptSelection: (promptId: string, selected: boolean) => void;
   onToggleSelectAll: (categoryName: string, selected: boolean) => void;
   onDeleteSelectedPrompts: (categoryName: string) => Promise<void>;
-  onBulkImportPrompts: (prompts: string[], categoryName: string) => Promise<void>;
+  onBulkImportPrompts: (prompts: Array<{ text: string; tags: string[] }>, categoryName: string) => Promise<void>;
   onExportPrompts: () => void;
   structures: any[];
   onAddStructure: (structure: any) => Promise<void>;

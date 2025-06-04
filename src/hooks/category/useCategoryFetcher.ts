@@ -64,6 +64,7 @@ export const useCategoryFetcher = () => {
               category: category.name,
               rating: prompt.rating,
               backgroundColor: prompt.background_color,
+              tags: prompt.tags || [],
               comments: commentsData
                 .filter(comment => comment.prompt_id === prompt.id)
                 .map(comment => comment.text) || [],
