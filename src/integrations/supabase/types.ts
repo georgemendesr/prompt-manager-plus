@@ -249,6 +249,51 @@ export type Database = {
         }
         Relationships: []
       }
+      links: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      lyrics: {
+        Row: {
+          artist: string | null
+          created_at: string
+          id: string
+          text: string
+          title: string | null
+        }
+        Insert: {
+          artist?: string | null
+          created_at?: string
+          id?: string
+          text: string
+          title?: string | null
+        }
+        Update: {
+          artist?: string | null
+          created_at?: string
+          id?: string
+          text?: string
+          title?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
