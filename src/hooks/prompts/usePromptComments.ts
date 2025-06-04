@@ -20,6 +20,21 @@ export const usePromptComments = (
         if (promptError) throw promptError;
       }
 
+      if (comment.startsWith('#')) {
+        const { data: promptData, error: fetchError } = await supabase
+          .from('prompts')
+          .select('tags')
+          .eq('id', promptId)
+          .single();
+        if (fetchError) throw fetchError;
+        const newTag = comment.replace('#', '').trim();
+        const { error: tagError } = await supabase
+          .from('prompts')
+          .update({ tags: [...(promptData?.tags || []), newTag] })
+          .eq('id', promptId);
+        if (tagError) throw tagError;
+      }
+
       const { data, error } = await supabase
         .from('comments')
         .insert([{ prompt_id: promptId, text: comment }])
@@ -40,7 +55,13 @@ export const usePromptComments = (
                   backgroundColor: comment.replace('[color:', '').replace(']', '')
                 };
               }
-              return { ...prompt, comments: [...prompt.comments, comment] };
+              return {
+                ...prompt,
+                comments: [...prompt.comments, comment],
+                tags: comment.startsWith('#')
+                  ? [...(prompt.tags || []), comment.replace('#', '').trim()]
+                  : prompt.tags,
+              };
             }
             return prompt;
           }),

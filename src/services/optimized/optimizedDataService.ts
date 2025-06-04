@@ -8,6 +8,7 @@ interface DatabasePrompt {
   text: string;
   category_id: string;
   rating: number;
+  tags: string[] | null;
   background_color?: string;
   created_at: string;
   comments: Array<{
@@ -58,6 +59,7 @@ export const fetchAllDataOptimized = async (
           text,
           category_id,
           rating,
+          tags,
           background_color,
           created_at,
           comments:comments(id, text, created_at)
@@ -131,6 +133,7 @@ export const buildOptimizedCategoryTree = (
             text: prompt.text,
             category: category.name,
             rating: prompt.rating,
+            tags: prompt.tags || [],
             backgroundColor: prompt.background_color,
             comments: prompt.comments?.map(c => c.text) || [],
             createdAt: new Date(prompt.created_at),
@@ -188,10 +191,27 @@ export const addCommentOptimistic = async (promptId: string, commentText: string
     const { error } = await supabase
       .from('comments')
       .insert([{ prompt_id: promptId, text: commentText }]);
-    
+
     if (error) {
       console.error('❌ Erro ao adicionar comentário:', error);
       throw new Error(`Erro ao adicionar comentário: ${error.message}`);
+    }
+
+    if (commentText.startsWith('#')) {
+      const { data: promptData, error: fetchError } = await supabase
+        .from('prompts')
+        .select('tags')
+        .eq('id', promptId)
+        .single();
+      if (fetchError) throw new Error(fetchError.message);
+
+      const currentTags = promptData?.tags || [];
+      const newTag = commentText.replace('#', '').trim();
+      const { error: tagError } = await supabase
+        .from('prompts')
+        .update({ tags: [...currentTags, newTag] })
+        .eq('id', promptId);
+      if (tagError) throw new Error(tagError.message);
     }
     
     console.log('✅ Comentário adicionado com sucesso');

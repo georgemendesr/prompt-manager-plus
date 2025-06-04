@@ -194,6 +194,7 @@ export type Database = {
           created_at: string
           id: string
           rating: number
+          tags: string[] | null
           text: string
         }
         Insert: {
@@ -202,6 +203,7 @@ export type Database = {
           created_at?: string
           id?: string
           rating?: number
+          tags?: string[] | null
           text: string
         }
         Update: {
@@ -210,6 +212,7 @@ export type Database = {
           created_at?: string
           id?: string
           rating?: number
+          tags?: string[] | null
           text?: string
         }
         Relationships: [

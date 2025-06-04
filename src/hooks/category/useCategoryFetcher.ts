@@ -70,6 +70,7 @@ export const useCategoryFetcher = () => {
               comments: commentsData
                 .filter(comment => comment.prompt_id === prompt.id)
                 .map(comment => comment.text) || [],
+              tags: prompt.tags || [],
               createdAt: new Date(prompt.created_at),
               selected: false
             }));

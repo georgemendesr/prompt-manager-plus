@@ -90,8 +90,14 @@ export const useOptimizedData = (
             ...category,
             prompts: category.prompts.map(prompt =>
               prompt.id === promptId
-                ? { ...prompt, comments: [...prompt.comments, comment] }
-                : prompt
+                ? {
+                    ...prompt,
+                    comments: [...prompt.comments, comment],
+                    tags: comment.startsWith('#')
+                      ? [...(prompt.tags || []), comment.replace('#', '').trim()]
+                      : prompt.tags,
+                  }
+              : prompt
             ),
             subcategories: category.subcategories ? updatePromptInCategory(category.subcategories) : []
           }));
