@@ -1,5 +1,6 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { fetchAllDataOptimized, buildOptimizedCategoryTree, updatePromptRatingOptimistic, addCommentOptimistic } from '@/services/optimized/optimizedDataService';
 import type { Category } from '@/types/prompt';
@@ -8,6 +9,8 @@ const QUERY_KEY = ['optimized-data'];
 
 export const useOptimizedData = () => {
   const queryClient = useQueryClient();
+  const [currentPage, setCurrentPage] = useState(0);
+  const PAGE_SIZE = 20;
 
   // Query principal com cache
   const {
@@ -16,9 +19,12 @@ export const useOptimizedData = () => {
     error,
     refetch
   } = useQuery({
-    queryKey: QUERY_KEY,
+    queryKey: [...QUERY_KEY, currentPage],
     queryFn: async () => {
-      const { categories, promptsWithComments } = await fetchAllDataOptimized();
+      const { categories, promptsWithComments } = await fetchAllDataOptimized(
+        PAGE_SIZE,
+        currentPage * PAGE_SIZE
+      );
       return buildOptimizedCategoryTree(categories, promptsWithComments);
     },
     staleTime: 5 * 60 * 1000, // 5 minutos
@@ -121,6 +127,9 @@ export const useOptimizedData = () => {
     commentMutation.mutate({ promptId, comment });
   };
 
+  const nextPage = () => setCurrentPage(p => p + 1);
+  const previousPage = () => setCurrentPage(p => Math.max(p - 1, 0));
+
   return {
     categories,
     loading: isLoading,
@@ -129,6 +138,9 @@ export const useOptimizedData = () => {
     ratePrompt,
     addComment,
     invalidateData,
+    nextPage,
+    previousPage,
+    currentPage,
     // Estados das mutations
     isRatingPrompt: ratingMutation.isPending,
     isAddingComment: commentMutation.isPending

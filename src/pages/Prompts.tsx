@@ -33,7 +33,10 @@ const PromptsContent = () => {
     deleteSelectedPrompts,
     togglePromptSelection,
     toggleSelectAll,
-    exportPrompts
+    exportPrompts,
+    nextPage,
+    previousPage,
+    currentPage
   } = usePromptManager();
 
   const {
@@ -138,6 +141,9 @@ const PromptsContent = () => {
           onDeleteSelectedPrompts={deleteSelectedPrompts}
           onBulkImportPrompts={bulkImportPrompts}
           onExportPrompts={exportPrompts}
+          onNextPage={nextPage}
+          onPreviousPage={previousPage}
+          currentPage={currentPage}
           structures={structures}
           onAddStructure={addStructure}
           onEditStructure={editStructure}

@@ -25,7 +25,10 @@ interface DatabaseCategory {
 }
 
 // Função otimizada que faz uma única consulta com JOINs
-export const fetchAllDataOptimized = async () => {
+export const fetchAllDataOptimized = async (
+  limit: number = 20,
+  offset: number = 0
+) => {
   try {
     console.log('🔄 Carregando dados otimizados...');
     
@@ -50,7 +53,8 @@ export const fetchAllDataOptimized = async () => {
       // Buscar prompts com seus comentários em uma única query
       supabase
         .from('prompts')
-        .select(`
+        .select(
+          `
           id,
           text,
           category_id,
@@ -58,8 +62,10 @@ export const fetchAllDataOptimized = async () => {
           background_color,
           created_at,
           comments:comments(id, text, created_at)
-        `)
+        `
+        )
         .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1)
     ]);
 
     if (categoriesResult.error) {
