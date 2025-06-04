@@ -1,5 +1,6 @@
 
 import { supabase } from "../base/supabaseService";
+import type { DatabaseError } from "@/types/database";
 
 export const fetchComments = async () => {
   try {
@@ -48,16 +49,26 @@ export const deleteCommentsForPrompt = async (promptId: string) => {
   }
 };
 
-export const deleteCommentsForPrompts = async (promptIds: string[]) => {
+export const deleteCommentsForPrompts = async (
+  promptIds: string[]
+): Promise<{ error: DatabaseError | null }> => {
   if (promptIds.length === 0) return { error: null };
-  
+
   try {
-    return await supabase
+    const { error } = await supabase
       .from('comments')
       .delete()
       .in('prompt_id', promptIds);
-  } catch (error) {
+
+    if (error) throw error;
+
+    return { error: null };
+  } catch (error: unknown) {
     console.error('Erro ao deletar comentários em massa:', error);
-    return { error };
+    const message =
+      error && typeof error === 'object' && 'message' in error
+        ? String((error as { message: string }).message)
+        : String(error);
+    return { error: { message } };
   }
 };
