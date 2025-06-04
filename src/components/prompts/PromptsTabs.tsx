@@ -4,6 +4,7 @@ import { PromptsSection } from "@/components/prompts/PromptsSection";
 import { StructureList } from "@/components/structures/StructureList";
 import { Workspace } from "@/components/Workspace";
 import { Category } from "@/types/prompt";
+import type { Structure } from "@/types/structure";
 
 interface PromptsTabsProps {
   categories: Category[];
@@ -24,9 +25,9 @@ interface PromptsTabsProps {
   onDeleteSelectedPrompts: (categoryName: string) => Promise<void>;
   onBulkImportPrompts: (prompts: string[], categoryName: string) => Promise<void>;
   onExportPrompts: () => void;
-  structures: any[];
-  onAddStructure: (structure: any) => Promise<void>;
-  onEditStructure: (id: string, structure: any) => Promise<void>;
+  structures: Structure[];
+  onAddStructure: (structure: Structure | Structure[]) => Promise<void>;
+  onEditStructure: (id: string, structure: Structure) => Promise<void>;
   onDeleteStructure: (id: string) => Promise<void>;
 }
 
