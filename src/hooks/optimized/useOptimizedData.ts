@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -6,6 +5,7 @@ import { fetchAllDataOptimized, buildOptimizedCategoryTree, updatePromptRatingOp
 import type { Category } from '@/types/prompt';
 
 const QUERY_KEY = ['optimized-data'];
+const PAGE_SIZE = 50;
 
 export const useOptimizedData = (
   initialLimit: number = 10,
@@ -15,6 +15,8 @@ export const useOptimizedData = (
   const [offset, setOffset] = useState(initialOffset);
   const queryClient = useQueryClient();
 
+  const currentQueryKey = [...QUERY_KEY, limit, offset];
+
   // Query principal com cache
   const {
     data: categories = [],
@@ -22,7 +24,7 @@ export const useOptimizedData = (
     error,
     refetch
   } = useQuery({
-    queryKey: [...QUERY_KEY, limit, offset],
+    queryKey: currentQueryKey,
     queryFn: async () => {
       const { categories, promptsWithComments } = await fetchAllDataOptimized(limit, offset);
       return buildOptimizedCategoryTree(categories, promptsWithComments);
@@ -40,10 +42,10 @@ export const useOptimizedData = (
       updatePromptRatingOptimistic(promptId, increment),
     onMutate: async ({ promptId, increment }) => {
       // Cancel outgoing refetches
-      await queryClient.cancelQueries({ queryKey: QUERY_KEY });
+      await queryClient.cancelQueries({ queryKey: currentQueryKey });
 
       // Snapshot previous value
-      const previousData = queryClient.getQueryData<Category[]>(QUERY_KEY);
+      const previousData = queryClient.getQueryData<Category[]>(currentQueryKey);
 
       // Optimistically update
       if (previousData) {
@@ -59,7 +61,7 @@ export const useOptimizedData = (
           }));
         };
 
-        queryClient.setQueryData(QUERY_KEY, updatePromptInCategory(previousData));
+        queryClient.setQueryData(currentQueryKey, updatePromptInCategory(previousData));
       }
 
       return { previousData };
@@ -67,7 +69,7 @@ export const useOptimizedData = (
     onError: (err, variables, context) => {
       // Rollback on error
       if (context?.previousData) {
-        queryClient.setQueryData(QUERY_KEY, context.previousData);
+        queryClient.setQueryData(currentQueryKey, context.previousData);
       }
       toast.error('Erro ao avaliar prompt');
     },
@@ -81,8 +83,8 @@ export const useOptimizedData = (
     mutationFn: ({ promptId, comment }: { promptId: string; comment: string }) =>
       addCommentOptimistic(promptId, comment),
     onMutate: async ({ promptId, comment }) => {
-      await queryClient.cancelQueries({ queryKey: QUERY_KEY });
-      const previousData = queryClient.getQueryData<Category[]>(QUERY_KEY);
+      await queryClient.cancelQueries({ queryKey: currentQueryKey });
+      const previousData = queryClient.getQueryData<Category[]>(currentQueryKey);
 
       if (previousData) {
         const updatePromptInCategory = (categories: Category[]): Category[] => {
@@ -103,14 +105,14 @@ export const useOptimizedData = (
           }));
         };
 
-        queryClient.setQueryData(QUERY_KEY, updatePromptInCategory(previousData));
+        queryClient.setQueryData(currentQueryKey, updatePromptInCategory(previousData));
       }
 
       return { previousData };
     },
     onError: (err, variables, context) => {
       if (context?.previousData) {
-        queryClient.setQueryData(QUERY_KEY, context.previousData);
+        queryClient.setQueryData(currentQueryKey, context.previousData);
       }
       toast.error('Erro ao adicionar comentário');
     },

@@ -1,4 +1,3 @@
-
 import { supabase } from "../base/supabaseService";
 import type { Category } from "@/types/prompt";
 import type { RawCategory } from "@/types/rawCategory";
@@ -18,7 +17,6 @@ interface DatabasePrompt {
     created_at: string;
   }> | null;
 }
-
 
 // Função otimizada que faz uma única consulta com JOINs
 export const fetchAllDataOptimized = async (
@@ -76,7 +74,7 @@ export const fetchAllDataOptimized = async (
     const categories: RawCategory[] = categoriesResult.data || [];
     const promptsWithComments = promptsWithCommentsResult.data || [];
 
-    console.log(`✅ Dados carregados: ${categories.length} categorias, ${promptsWithComments.length} prompts`);
+    console.log(`✅ Dados carregados: ${categories.length} categorias, ${promptsWithComments.length} prompts (limit: ${limit}, offset: ${offset})`);
 
     return { categories, promptsWithComments };
   } catch (error) {

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { SecurityProvider } from "@/components/SecurityProvider";
@@ -34,7 +33,10 @@ const PromptsContent = () => {
     deleteSelectedPrompts,
     togglePromptSelection,
     toggleSelectAll,
-    exportPrompts
+    exportPrompts,
+    nextPage,
+    previousPage,
+    currentPage
   } = usePromptManager();
 
   const {
