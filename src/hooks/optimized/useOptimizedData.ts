@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -17,7 +16,7 @@ export const useOptimizedData = (
 
   const currentQueryKey = [...QUERY_KEY, limit, offset];
 
-  // Query principal com cache e melhor tratamento de erro
+  // Query principal com fallback mais robusto
   const {
     data: categories = [],
     isLoading,
@@ -31,21 +30,17 @@ export const useOptimizedData = (
         return buildOptimizedCategoryTree(categories, promptsWithComments);
       } catch (error) {
         console.error('Query error:', error);
-        throw error;
+        // Instead of throwing, return empty array to prevent complete failure
+        return [];
       }
     },
-    staleTime: 5 * 60 * 1000, // 5 minutos
-    gcTime: 10 * 60 * 1000, // 10 minutos
+    staleTime: 2 * 60 * 1000, // 2 minutos - reduzido
+    gcTime: 5 * 60 * 1000, // 5 minutos - reduzido
     retry: (failureCount, error) => {
-      // Don't retry on network errors, but retry on other errors
-      if (error?.message?.includes('Sem conexão') || 
-          error?.message?.includes('Failed to fetch') ||
-          error?.message?.includes('network')) {
-        return false;
-      }
-      return failureCount < 2;
+      // Retry menos agressivo
+      return failureCount < 1;
     },
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+    retryDelay: 1000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: true
   });

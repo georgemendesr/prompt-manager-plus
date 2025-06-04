@@ -1,4 +1,3 @@
-
 import { supabase } from "../base/supabaseService";
 import type { Category } from "@/types/prompt";
 import type { RawCategory } from "@/types/rawCategory";
@@ -27,24 +26,15 @@ export const fetchAllDataOptimized = async (
   try {
     console.log(`🔄 Carregando dados otimizados... (limit: ${limit}, offset: ${offset})`);
     
-    // Test connection first with timeout
-    const connectionTest = new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        reject(new Error('Connection timeout - servidor pode estar sobrecarregado'));
-      }, 15000); // 15 second timeout
-      
+    // Test connection first with proper timeout handling
+    const connectionTest = Promise.race([
       supabase
         .from('categories')
-        .select('count', { count: 'exact', head: true })
-        .then((result) => {
-          clearTimeout(timeout);
-          resolve(result);
-        })
-        .catch((error) => {
-          clearTimeout(timeout);
-          reject(error);
-        });
-    });
+        .select('count', { count: 'exact', head: true }),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Connection timeout - servidor pode estar sobrecarregado')), 10000)
+      )
+    ]);
     
     const connectionResult = await connectionTest as any;
     
