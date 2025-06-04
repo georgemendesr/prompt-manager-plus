@@ -1,4 +1,5 @@
 import { supabase } from "../base/supabaseService";
+import type { DatabaseError } from "@/types/database";
 
 export const fetchPrompts = async () => {
   try {
@@ -29,7 +30,9 @@ export const getPromptsInCategories = async (categoryIds: string[]): Promise<num
   }
 };
 
-export const deletePromptsInCategories = async (categoryIds: string[]): Promise<{error: any | null}> => {
+export const deletePromptsInCategories = async (
+  categoryIds: string[]
+): Promise<{ error: DatabaseError | null }> => {
   if (categoryIds.length === 0) return { error: null };
   
   try {
@@ -39,7 +42,7 @@ export const deletePromptsInCategories = async (categoryIds: string[]): Promise<
       .select('id')
       .in('category_id', categoryIds);
       
-    if (fetchError) throw fetchError;
+    if (fetchError) throw { message: fetchError.message } as DatabaseError;
     
     if (prompts && prompts.length > 0) {
       // Delete all comments for these prompts first
@@ -50,7 +53,7 @@ export const deletePromptsInCategories = async (categoryIds: string[]): Promise<
         .delete()
         .in('prompt_id', promptIds);
         
-      if (commentsError) throw commentsError;
+      if (commentsError) throw { message: commentsError.message } as DatabaseError;
       
       // Then delete the prompts
       const { error: promptsError } = await supabase
@@ -58,13 +61,14 @@ export const deletePromptsInCategories = async (categoryIds: string[]): Promise<
         .delete()
         .in('category_id', categoryIds);
         
-      if (promptsError) throw promptsError;
+      if (promptsError) throw { message: promptsError.message } as DatabaseError;
     }
     
     return { error: null };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erro ao deletar prompts nas categorias:', error);
-    return { error };
+    const dbError: DatabaseError = { message: error?.message || String(error) };
+    return { error: dbError };
   }
 };
 
