@@ -25,9 +25,12 @@ interface DatabaseCategory {
 }
 
 // Função otimizada que faz uma única consulta com JOINs
-export const fetchAllDataOptimized = async () => {
+export const fetchAllDataOptimized = async (
+  limit: number = 10,
+  offset: number = 0
+) => {
   try {
-    console.log('🔄 Carregando dados otimizados...');
+    console.log(`🔄 Carregando dados otimizados... (limit: ${limit}, offset: ${offset})`);
     
     // Test connection first
     const { error: connectionError } = await supabase
@@ -60,6 +63,7 @@ export const fetchAllDataOptimized = async () => {
           comments:comments(id, text, created_at)
         `)
         .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1)
     ]);
 
     if (categoriesResult.error) {
