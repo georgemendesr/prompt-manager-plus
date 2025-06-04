@@ -55,6 +55,7 @@ export const fetchAllDataOptimized = async (
           rating,
           tags,
           background_color,
+          tags,
           created_at,
           comments:comments(id, text, created_at)
         `
@@ -130,6 +131,7 @@ export const buildOptimizedCategoryTree = (
             rating: prompt.rating,
             tags: prompt.tags || [],
             backgroundColor: prompt.background_color,
+            tags: prompt.tags || [],
             comments: prompt.comments?.map(c => c.text) || [],
             createdAt: new Date(prompt.created_at),
             selected: false

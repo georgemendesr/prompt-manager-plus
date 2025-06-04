@@ -5,7 +5,7 @@ export const fetchPrompts = async () => {
   try {
     return await supabase
       .from('prompts')
-      .select('id, text, category_id, rating, background_color, created_at, tags');
+      .select('id, text, category_id, rating, background_color, tags, created_at');
   } catch (error) {
     console.error('Erro ao buscar prompts:', error);
     return { data: null, error };
@@ -142,7 +142,7 @@ export const convertPromptsToCSV = (prompts: Array<{
     // Escapar aspas nos campos de texto e comentários
     const escapedText = prompt.text.replace(/"/g, '""');
     const escapedComments = prompt.comments.join(" | ").replace(/"/g, '""');
-    const escapedTags = prompt.tags.join(" | ").replace(/"/g, '""');
+    const escapedTags = prompt.tags.join(', ').replace(/"/g, '""');
 
     csv += `"${escapedText}","${prompt.category}",${prompt.rating},"${escapedComments}","${escapedTags}","${prompt.createdAt}"\n`;
   });

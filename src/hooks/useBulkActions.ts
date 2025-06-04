@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { Category } from "@/types/prompt";
 import { toast } from "sonner";
@@ -25,9 +24,9 @@ export const useBulkActions = (categories: Category[], setCategories: (categorie
 
       const newPrompts = prompts.map(p => ({
         text: p.text,
+        tags: p.tags,
         category_id: categoryId,
         rating: 0,
-        tags: p.tags
       }));
 
       const { data, error } = await supabase
@@ -49,8 +48,8 @@ export const useBulkActions = (categories: Category[], setCategories: (categorie
                   text: p.text,
                   category: c.name,
                   rating: 0,
-                  comments: [],
                   tags: p.tags || [],
+                  comments: [],
                   createdAt: new Date(p.created_at),
                   selected: false,
                 })),

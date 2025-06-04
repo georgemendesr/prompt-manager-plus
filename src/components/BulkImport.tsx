@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Upload } from "lucide-react";
 import { Button } from "./ui/button";
@@ -26,14 +25,26 @@ export const BulkImport = ({ categories, onImport }: BulkImportProps) => {
   const [open, setOpen] = useState(false);
 
   const handleImport = () => {
-    // Divide o texto usando múltiplos separadores
-    const prompts = text
-      .split(/\n{1,}|```|\s{2,}/)  // Quebras de linha simples ou múltiplas, ```, ou espaços duplos
+    const lines = text
+      .split(/\n{1,}|```|\s{2,}/)
       .map(t => t.trim())
-      .filter(t => t && !t.includes("```") && t.length > 0); // Remove strings vazias e backticks
+      .filter(t => t && !t.includes("```") && t.length > 0);
+
+    const prompts = lines.map(line => {
+      const [promptText, tagsPart] = line.split("|");
+      const tagsArr = tagsPart ? tagsPart.split(',').map(t => t.trim()).filter(Boolean) : [];
+      return { text: promptText.trim(), tags: tagsArr };
+    });
 
     if (prompts.length && categoryId) {
-      onImport(prompts.map(text => ({ text, tags: tags.split(",").map(t=>t.trim()).filter(t=>t) })), categoryId);
+      // Merge tags from input with prompt line tags
+      const globalTags = tags.split(",").map(t => t.trim()).filter(t => t);
+      const promptsWithTags = prompts.map(({ text, tags }) => ({
+        text,
+        tags: Array.from(new Set([...tags, ...globalTags])),
+      }));
+
+      onImport(promptsWithTags, categoryId);
       setTags("");
       setText("");
       setCategoryId("");
@@ -81,7 +92,7 @@ export const BulkImport = ({ categories, onImport }: BulkImportProps) => {
           <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Cole seus prompts aqui. Eles podem estar separados por quebras de linha, ```, ou espaços duplos"
+            placeholder="Cole seus prompts aqui. Separe cada linha e opcionalmente adicione '| tag1, tag2'"
             className="min-h-[200px] font-mono"
           />
           <Input
