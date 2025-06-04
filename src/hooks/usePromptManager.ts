@@ -18,7 +18,7 @@ export interface PromptManager {
   ratePrompt: (promptId: string, increment: boolean) => Promise<void>;
   addComment: (promptId: string, comment: string) => Promise<void>;
   movePrompt: (promptId: string, targetCategoryId: string) => Promise<void>;
-  bulkImportPrompts: (prompts: string[], categoryName: string) => Promise<void>;
+  bulkImportPrompts: (prompts: { text: string; tags: string[] }[], categoryName: string) => Promise<void>;
   deleteSelectedPrompts: (categoryName: string) => Promise<void>;
   togglePromptSelection: (promptId: string, selected: boolean) => void;
   toggleSelectAll: (categoryName: string, selected: boolean) => void;
@@ -124,6 +124,7 @@ export const usePromptManager = (): PromptManager => {
         category: string;
         rating: number;
         comments: string[];
+        tags: string[];
         createdAt: string;
       }> = [];
       
@@ -137,6 +138,7 @@ export const usePromptManager = (): PromptManager => {
               category: categoryPath,
               rating: prompt.rating,
               comments: prompt.comments,
+              tags: prompt.tags,
               createdAt: prompt.createdAt.toISOString(),
             });
           });

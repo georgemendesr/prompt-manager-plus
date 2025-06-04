@@ -5,6 +5,7 @@ export type Prompt = {
   category: string;
   rating: number; // Pontuação de votos
   comments: string[];
+  tags: string[];
   createdAt: Date;
   selected?: boolean;
   isEditing?: boolean;

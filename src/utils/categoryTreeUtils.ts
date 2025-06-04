@@ -1,7 +1,10 @@
-
 import type { Category } from "@/types/prompt";
+import type { RawCategory, CategoryRecord } from "@/types/category";
 
-export const buildCategoryTree = (categories: any[], parentId: string | null = null): Category[] => {
+export const buildCategoryTree = (
+  categories: CategoryRecord[],
+  parentId: string | null = null
+): Category[] => {
   return categories
     .filter(category => category.parent_id === parentId)
     .map(category => ({
