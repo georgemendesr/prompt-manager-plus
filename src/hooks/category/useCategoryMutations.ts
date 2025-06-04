@@ -1,6 +1,5 @@
-
 import { Category } from "@/types/prompt";
-import type { CategoryRecord } from "@/types/category";
+import type { RawCategory, CategoryRecord } from "@/types/category";
 import { toast } from "sonner";
 import { 
   addCategoryToDb, 
