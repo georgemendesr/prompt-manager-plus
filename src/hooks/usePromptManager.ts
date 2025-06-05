@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useOptimizedData } from "./optimized/useOptimizedData";
 import { useBulkActions } from "./useBulkActions";
@@ -112,12 +113,12 @@ export const usePromptManager = (): PromptManager => {
     originalAddCategory: fallbackAddCategory,
     originalEditCategory: fallbackEditCategory,
     originalDeleteCategory: fallbackDeleteCategory,
-    loadCategories: () => {
+    loadCategories: async () => {
       if (useOptimized) {
         invalidateData();
-        return optimizedRefetch();
+        await optimizedRefetch();
       } else {
-        return fallbackLoadCategories();
+        await fallbackLoadCategories();
       }
     }
   });
