@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useOptimizedData } from "./optimized/useOptimizedData";
 import { useBulkActions } from "./useBulkActions";
@@ -30,7 +29,9 @@ export interface PromptManager {
 }
 
 export const usePromptManager = (): PromptManager => {
-  // Use optimized data hook
+  const [useOptimized, setUseOptimized] = useState(true);
+
+  // Try optimized data first
   const {
     categories: optimizedCategories,
     loading: optimizedLoading,
@@ -39,10 +40,10 @@ export const usePromptManager = (): PromptManager => {
     ratePrompt: optimizedRatePrompt,
     addComment: optimizedAddComment,
     invalidateData,
-    nextPage,
-    previousPage, // This should now exist in useOptimizedData
-    currentPage   // This should now exist in useOptimizedData
-  } = useOptimizedData();
+    nextPage: optimizedNextPage,
+    previousPage: optimizedPreviousPage,
+    currentPage: optimizedCurrentPage
+  } = useOptimizedData(20, 0); // Increased limit and start from 0
 
   // Fallback to original hooks
   const {
@@ -61,10 +62,35 @@ export const usePromptManager = (): PromptManager => {
     movePrompt
   } = usePrompts(fallbackCategories, setCategories);
 
-  // Use optimized data if available, fallback otherwise
-  const categories = optimizedCategories.length > 0 ? optimizedCategories : fallbackCategories;
-  const loading = optimizedLoading || fallbackLoading;
-  const loadError = optimizedError;
+  // Check if optimized data is working
+  useEffect(() => {
+    console.log('🔍 Verificando dados otimizados:', {
+      optimizedCategories: optimizedCategories.length,
+      optimizedError,
+      optimizedLoading,
+      useOptimized
+    });
+
+    // Se há erro ou não há dados após loading, use fallback
+    if (optimizedError || (!optimizedLoading && optimizedCategories.length === 0)) {
+      console.log('⚠️ Mudando para fallback devido a:', { optimizedError, categoriesLength: optimizedCategories.length });
+      setUseOptimized(false);
+      fallbackLoadCategories();
+    }
+  }, [optimizedCategories, optimizedError, optimizedLoading, fallbackLoadCategories]);
+
+  // Use optimized data if available and working, fallback otherwise
+  const categories = useOptimized && optimizedCategories.length > 0 ? optimizedCategories : fallbackCategories;
+  const loading = useOptimized ? optimizedLoading : fallbackLoading;
+  const loadError = useOptimized ? optimizedError : null;
+
+  console.log('📊 Estado atual do PromptManager:', {
+    useOptimized,
+    categoriesCount: categories.length,
+    loading,
+    loadError,
+    totalPrompts: categories.reduce((acc, cat) => acc + cat.prompts.length, 0)
+  });
 
   // Existing hooks with current state
   const {
@@ -87,14 +113,18 @@ export const usePromptManager = (): PromptManager => {
     originalEditCategory: fallbackEditCategory,
     originalDeleteCategory: fallbackDeleteCategory,
     loadCategories: () => {
-      invalidateData();
-      return fallbackLoadCategories();
+      if (useOptimized) {
+        invalidateData();
+        return optimizedRefetch();
+      } else {
+        return fallbackLoadCategories();
+      }
     }
   });
 
   // Optimized functions with fallback
   const ratePrompt = async (promptId: string, increment: boolean) => {
-    if (optimizedCategories.length > 0) {
+    if (useOptimized && optimizedCategories.length > 0) {
       optimizedRatePrompt(promptId, increment);
     } else {
       await fallbackRatePrompt(promptId, increment);
@@ -102,7 +132,7 @@ export const usePromptManager = (): PromptManager => {
   };
 
   const addComment = async (promptId: string, comment: string) => {
-    if (optimizedCategories.length > 0) {
+    if (useOptimized && optimizedCategories.length > 0) {
       optimizedAddComment(promptId, comment);
     } else {
       await fallbackAddComment(promptId, comment);
@@ -110,12 +140,27 @@ export const usePromptManager = (): PromptManager => {
   };
 
   const loadCategories = async () => {
-    if (optimizedCategories.length > 0) {
+    if (useOptimized) {
       await optimizedRefetch();
     } else {
       await fallbackLoadCategories();
     }
   };
+
+  // Page navigation - only use optimized if working
+  const nextPage = () => {
+    if (useOptimized && optimizedCategories.length > 0) {
+      optimizedNextPage();
+    }
+  };
+
+  const previousPage = () => {
+    if (useOptimized && optimizedCategories.length > 0) {
+      optimizedPreviousPage();
+    }
+  };
+
+  const currentPage = useOptimized && optimizedCategories.length > 0 ? optimizedCurrentPage : 1;
 
   // Export functionality
   const exportPrompts = () => {

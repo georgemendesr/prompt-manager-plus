@@ -1,3 +1,4 @@
+
 import { supabase } from "../base/supabaseService";
 import type { Category } from "@/types/prompt";
 import type { RawCategory } from "@/types/rawCategory";
@@ -28,13 +29,13 @@ export const fetchAllDataOptimized = async (
     
     // Query única para buscar categorias, prompts e comentários
     const [categoriesResult, promptsWithCommentsResult] = await Promise.all([
-      // Buscar todas as categorias
+      // Buscar todas as categorias (sem limite)
       supabase
         .from('categories')
         .select('id, name, parent_id, created_at')
         .order('created_at', { ascending: true }),
       
-      // Buscar prompts com seus comentários em uma única query
+      // Buscar TODOS os prompts com seus comentários (remover paginação temporariamente para debug)
       supabase
         .from('prompts')
         .select(`
@@ -48,7 +49,6 @@ export const fetchAllDataOptimized = async (
           comments:comments(id, text, created_at)
         `)
         .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1)
     ]);
 
     if (categoriesResult.error) {
@@ -70,6 +70,14 @@ export const fetchAllDataOptimized = async (
       acc[p.category_id] = (acc[p.category_id] || 0) + 1;
       return acc;
     }, {} as Record<string, number>));
+
+    // Verificar se há dados
+    if (categories.length === 0) {
+      console.warn('⚠️ Nenhuma categoria encontrada no banco de dados');
+    }
+    if (promptsWithComments.length === 0) {
+      console.warn('⚠️ Nenhum prompt encontrado no banco de dados');
+    }
 
     return { categories, promptsWithComments };
   } catch (error) {
@@ -100,6 +108,7 @@ export const buildOptimizedCategoryTree = (
   promptsWithComments: DatabasePrompt[]
 ): Category[] => {
   console.log('🏗️ Construindo árvore de categorias...');
+  console.log('📥 Input:', { categoriesCount: categories.length, promptsCount: promptsWithComments.length });
   
   // Agrupar prompts por categoria
   const promptsByCategory = new Map<string, DatabasePrompt[]>();
@@ -114,33 +123,35 @@ export const buildOptimizedCategoryTree = (
 
   // Construir árvore recursivamente
   const buildTree = (parentId: string | null = null): Category[] => {
-    return categories
-      .filter(cat => cat.parent_id === parentId)
-      .map(category => {
-        const categoryPrompts = promptsByCategory.get(category.id) || [];
-        
-        console.log(`📁 Categoria "${category.name}" (${category.id}): ${categoryPrompts.length} prompts`);
-        
-        const builtCategory = {
-          id: category.id,
-          name: category.name,
-          parentId: category.parent_id || undefined,
-          prompts: categoryPrompts.map(prompt => ({
-            id: prompt.id,
-            text: prompt.text,
-            category: category.name,
-            rating: prompt.rating,
-            tags: prompt.tags || [],
-            backgroundColor: prompt.background_color,
-            comments: prompt.comments?.map(c => c.text) || [],
-            createdAt: new Date(prompt.created_at),
-            selected: false
-          })),
-          subcategories: buildTree(category.id)
-        };
+    const categoriesAtLevel = categories.filter(cat => cat.parent_id === parentId);
+    console.log(`🌲 Construindo nível com parentId=${parentId}, encontradas ${categoriesAtLevel.length} categorias`);
+    
+    return categoriesAtLevel.map(category => {
+      const categoryPrompts = promptsByCategory.get(category.id) || [];
+      
+      console.log(`📁 Categoria "${category.name}" (${category.id}): ${categoryPrompts.length} prompts`);
+      
+      const builtCategory = {
+        id: category.id,
+        name: category.name,
+        parentId: category.parent_id || undefined,
+        prompts: categoryPrompts.map(prompt => ({
+          id: prompt.id,
+          text: prompt.text,
+          category: category.name,
+          rating: prompt.rating,
+          tags: prompt.tags || [],
+          backgroundColor: prompt.background_color,
+          comments: prompt.comments?.map(c => c.text) || [],
+          createdAt: new Date(prompt.created_at),
+          selected: false
+        })),
+        subcategories: buildTree(category.id)
+      };
 
-        return builtCategory;
-      });
+      console.log(`✅ Categoria "${category.name}" construída com ${builtCategory.prompts.length} prompts e ${builtCategory.subcategories?.length || 0} subcategorias`);
+      return builtCategory;
+    });
   };
 
   const result = buildTree();
@@ -149,6 +160,22 @@ export const buildOptimizedCategoryTree = (
     prompts: c.prompts.length, 
     subcategories: c.subcategories?.length || 0 
   })));
+  
+  // Verificar se há prompts na árvore construída
+  const totalPrompts = result.reduce((acc, cat) => {
+    const countRecursive = (category: Category): number => {
+      let count = category.prompts.length;
+      if (category.subcategories) {
+        category.subcategories.forEach(sub => {
+          count += countRecursive(sub);
+        });
+      }
+      return count;
+    };
+    return acc + countRecursive(cat);
+  }, 0);
+  
+  console.log(`📈 Total de prompts na árvore final: ${totalPrompts}`);
   
   return result;
 };
