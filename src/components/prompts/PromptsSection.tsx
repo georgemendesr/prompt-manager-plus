@@ -1,10 +1,19 @@
+
 import { AddCategory } from "@/components/AddCategory";
 import { BulkImport } from "@/components/BulkImport";
 import { CategoryTree } from "@/components/CategoryTree";
 import { AdminGuard } from "@/components/AdminGuard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import type { Category } from "@/types/prompt";
 
 interface PromptsSectionProps {
@@ -50,6 +59,19 @@ export const PromptsSection = ({
   onPreviousPage,
   currentPage
 }: PromptsSectionProps) => {
+  const totalPrompts = categories.reduce((total, category) => {
+    const countPromptsRecursive = (cat: Category): number => {
+      let count = cat.prompts.length;
+      if (cat.subcategories) {
+        cat.subcategories.forEach(sub => {
+          count += countPromptsRecursive(sub);
+        });
+      }
+      return count;
+    };
+    return total + countPromptsRecursive(category);
+  }, 0);
+
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col gap-4">
@@ -75,6 +97,34 @@ export const PromptsSection = ({
               </Button>
             </>
           )}
+        </div>
+
+        {/* Controles de paginação no topo */}
+        <div className="flex justify-between items-center bg-white/80 backdrop-blur-sm rounded-lg p-4">
+          <Button 
+            onClick={onPreviousPage} 
+            disabled={currentPage === 1} 
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Anterior
+          </Button>
+          
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">
+              Página {currentPage} • {totalPrompts} prompts total
+            </span>
+          </div>
+          
+          <Button 
+            onClick={onNextPage} 
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            Próxima
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
@@ -132,15 +182,38 @@ export const PromptsSection = ({
               </TabsContent>
             ))}
         </Tabs>
-        <div className="flex justify-between mt-4">
-          <Button onClick={onPreviousPage} disabled={currentPage === 0} variant="outline">
-            Anterior
-          </Button>
-          <span className="self-center">Página {currentPage + 1}</span>
-          <Button onClick={onNextPage} variant="outline">
-            Próxima
-          </Button>
-        </div>
+        
+        {/* Controles de paginação no rodapé */}
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious 
+                href="#" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  onPreviousPage();
+                }}
+                className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+              />
+            </PaginationItem>
+            
+            <PaginationItem>
+              <PaginationLink href="#" isActive>
+                {currentPage}
+              </PaginationLink>
+            </PaginationItem>
+            
+            <PaginationItem>
+              <PaginationNext 
+                href="#" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  onNextPage();
+                }}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
         </>
       )}
     </div>

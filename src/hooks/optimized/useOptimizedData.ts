@@ -1,4 +1,5 @@
 
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -147,6 +148,7 @@ export const useOptimizedData = (
     setOffset(current => Math.max(current - limit, 0));
   };
 
+  // Corrigir o cálculo da página atual para começar em 1
   const currentPage = Math.floor(offset / limit) + 1;
 
   return {
