@@ -65,6 +65,11 @@ export const fetchAllDataOptimized = async (
     const promptsWithComments = promptsWithCommentsResult.data || [];
 
     console.log(`✅ Dados carregados: ${categories.length} categorias, ${promptsWithComments.length} prompts (limit: ${limit}, offset: ${offset})`);
+    console.log('📊 Categorias encontradas:', categories.map(c => ({ id: c.id, name: c.name, parent_id: c.parent_id })));
+    console.log('📊 Prompts por categoria:', promptsWithComments.reduce((acc, p) => {
+      acc[p.category_id] = (acc[p.category_id] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>));
 
     return { categories, promptsWithComments };
   } catch (error) {
@@ -94,6 +99,8 @@ export const buildOptimizedCategoryTree = (
   categories: RawCategory[],
   promptsWithComments: DatabasePrompt[]
 ): Category[] => {
+  console.log('🏗️ Construindo árvore de categorias...');
+  
   // Agrupar prompts por categoria
   const promptsByCategory = new Map<string, DatabasePrompt[]>();
   promptsWithComments.forEach(prompt => {
@@ -103,6 +110,8 @@ export const buildOptimizedCategoryTree = (
     promptsByCategory.get(prompt.category_id)!.push(prompt);
   });
 
+  console.log('📝 Prompts agrupados por categoria:', Object.fromEntries(promptsByCategory.entries()));
+
   // Construir árvore recursivamente
   const buildTree = (parentId: string | null = null): Category[] => {
     return categories
@@ -110,7 +119,9 @@ export const buildOptimizedCategoryTree = (
       .map(category => {
         const categoryPrompts = promptsByCategory.get(category.id) || [];
         
-        return {
+        console.log(`📁 Categoria "${category.name}" (${category.id}): ${categoryPrompts.length} prompts`);
+        
+        const builtCategory = {
           id: category.id,
           name: category.name,
           parentId: category.parent_id || undefined,
@@ -127,10 +138,19 @@ export const buildOptimizedCategoryTree = (
           })),
           subcategories: buildTree(category.id)
         };
+
+        return builtCategory;
       });
   };
 
-  return buildTree();
+  const result = buildTree();
+  console.log('🌳 Árvore construída:', result.map(c => ({ 
+    name: c.name, 
+    prompts: c.prompts.length, 
+    subcategories: c.subcategories?.length || 0 
+  })));
+  
+  return result;
 };
 
 // Funções para updates otimistas individuais
