@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -25,14 +26,8 @@ export const useOptimizedData = (
   } = useQuery({
     queryKey: currentQueryKey,
     queryFn: async () => {
-      try {
-        const { categories, promptsWithComments } = await fetchAllDataOptimized(limit, offset);
-        return buildOptimizedCategoryTree(categories, promptsWithComments);
-      } catch (error) {
-        console.error('Query error:', error);
-        // Instead of throwing, return empty array to prevent complete failure
-        return [];
-      }
+      const { categories, promptsWithComments } = await fetchAllDataOptimized(limit, offset);
+      return buildOptimizedCategoryTree(categories, promptsWithComments);
     },
     staleTime: 2 * 60 * 1000, // 2 minutos - reduzido
     gcTime: 5 * 60 * 1000, // 5 minutos - reduzido

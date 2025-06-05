@@ -26,23 +26,6 @@ export const fetchAllDataOptimized = async (
   try {
     console.log(`🔄 Carregando dados otimizados... (limit: ${limit}, offset: ${offset})`);
     
-    // Test connection first with proper timeout handling
-    const connectionTest = Promise.race([
-      supabase
-        .from('categories')
-        .select('count', { count: 'exact', head: true }),
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Connection timeout - servidor pode estar sobrecarregado')), 10000)
-      )
-    ]);
-    
-    const connectionResult = await connectionTest as any;
-    
-    if (connectionResult.error) {
-      console.error('❌ Erro de conexão com o banco:', connectionResult.error);
-      throw new Error(`Falha na conexão: ${connectionResult.error.message}`);
-    }
-    
     // Query única para buscar categorias, prompts e comentários
     const [categoriesResult, promptsWithCommentsResult] = await Promise.all([
       // Buscar todas as categorias
