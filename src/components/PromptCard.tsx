@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { toast } from "sonner";
 import { Card } from "./ui/card";
@@ -48,7 +47,9 @@ export const PromptCard = ({
         'selecionar todos',
         '[color:',
         'voice:male',
-        'voice:female'
+        'voice:female',
+        'português',
+        'brasil'
       ];
       return !systemTags.some(tag => 
         lowerComment.includes(tag.toLowerCase())
@@ -135,7 +136,6 @@ export const PromptCard = ({
         <div className="flex items-center justify-between pt-1">
           <ActionButtons
             text={prompt.text}
-            onAddComment={(comment) => onAddComment(prompt.id, comment)}
           />
           <div className="flex items-center gap-1">
             <RatingButtons 

@@ -63,17 +63,13 @@ export const PromptsSection = ({
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap gap-2">
-          <AdminGuard showError={false}>
-            <AddCategory onAdd={addCategory} categories={categories} />
-          </AdminGuard>
+          <AddCategory onAdd={addCategory} categories={categories} />
           {categories.length > 0 && (
             <>
-              <AdminGuard showError={false}>
-                <BulkImport
-                  categories={categories}
-                  onImport={bulkImportPrompts}
-                />
-              </AdminGuard>
+              <BulkImport
+                categories={categories}
+                onImport={bulkImportPrompts}
+              />
               <Button 
                 onClick={exportPrompts} 
                 variant="outline"
@@ -89,12 +85,7 @@ export const PromptsSection = ({
 
       {categories.length === 0 ? (
         <div className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg">
-          <AdminGuard 
-            fallback="Nenhuma categoria disponível no momento."
-            showError={false}
-          >
-            Crie uma categoria para começar a adicionar prompts
-          </AdminGuard>
+          Crie uma categoria para começar a adicionar prompts
         </div>
       ) : (
         <>
