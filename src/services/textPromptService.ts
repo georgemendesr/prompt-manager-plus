@@ -4,7 +4,7 @@ import type { TextPrompt, TextPromptInsert, TextPromptUpdate } from "@/types/tex
 
 export const fetchTextPrompts = async (): Promise<TextPrompt[]> => {
   const { data, error } = await supabase
-    .from('text_prompts')
+    .from('text_prompts' as any)
     .select('*')
     .order('created_at', { ascending: false });
 
@@ -13,12 +13,12 @@ export const fetchTextPrompts = async (): Promise<TextPrompt[]> => {
     throw new Error(`Erro ao buscar prompts de texto: ${error.message}`);
   }
 
-  return data || [];
+  return (data as any) || [];
 };
 
 export const addTextPrompt = async (prompt: TextPromptInsert): Promise<TextPrompt> => {
   const { data, error } = await supabase
-    .from('text_prompts')
+    .from('text_prompts' as any)
     .insert([prompt])
     .select()
     .single();
@@ -28,12 +28,12 @@ export const addTextPrompt = async (prompt: TextPromptInsert): Promise<TextPromp
     throw new Error(`Erro ao adicionar prompt de texto: ${error.message}`);
   }
 
-  return data;
+  return data as any;
 };
 
 export const updateTextPrompt = async (id: string, updates: TextPromptUpdate): Promise<TextPrompt> => {
   const { data, error } = await supabase
-    .from('text_prompts')
+    .from('text_prompts' as any)
     .update(updates)
     .eq('id', id)
     .select()
@@ -44,12 +44,12 @@ export const updateTextPrompt = async (id: string, updates: TextPromptUpdate): P
     throw new Error(`Erro ao atualizar prompt de texto: ${error.message}`);
   }
 
-  return data;
+  return data as any;
 };
 
 export const deleteTextPrompt = async (id: string): Promise<void> => {
   const { error } = await supabase
-    .from('text_prompts')
+    .from('text_prompts' as any)
     .delete()
     .eq('id', id);
 

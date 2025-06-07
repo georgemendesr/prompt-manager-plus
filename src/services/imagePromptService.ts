@@ -4,7 +4,7 @@ import type { ImagePrompt, ImagePromptInsert, ImagePromptUpdate } from "@/types/
 
 export const fetchImagePrompts = async (): Promise<ImagePrompt[]> => {
   const { data, error } = await supabase
-    .from('image_prompts')
+    .from('image_prompts' as any)
     .select('*')
     .order('created_at', { ascending: false });
 
@@ -13,12 +13,12 @@ export const fetchImagePrompts = async (): Promise<ImagePrompt[]> => {
     throw new Error(`Erro ao buscar prompts de imagem: ${error.message}`);
   }
 
-  return data || [];
+  return (data as any) || [];
 };
 
 export const addImagePrompt = async (prompt: ImagePromptInsert): Promise<ImagePrompt> => {
   const { data, error } = await supabase
-    .from('image_prompts')
+    .from('image_prompts' as any)
     .insert([prompt])
     .select()
     .single();
@@ -28,12 +28,12 @@ export const addImagePrompt = async (prompt: ImagePromptInsert): Promise<ImagePr
     throw new Error(`Erro ao adicionar prompt de imagem: ${error.message}`);
   }
 
-  return data;
+  return data as any;
 };
 
 export const updateImagePrompt = async (id: string, updates: ImagePromptUpdate): Promise<ImagePrompt> => {
   const { data, error } = await supabase
-    .from('image_prompts')
+    .from('image_prompts' as any)
     .update(updates)
     .eq('id', id)
     .select()
@@ -44,12 +44,12 @@ export const updateImagePrompt = async (id: string, updates: ImagePromptUpdate):
     throw new Error(`Erro ao atualizar prompt de imagem: ${error.message}`);
   }
 
-  return data;
+  return data as any;
 };
 
 export const deleteImagePrompt = async (id: string): Promise<void> => {
   const { error } = await supabase
-    .from('image_prompts')
+    .from('image_prompts' as any)
     .delete()
     .eq('id', id);
 
