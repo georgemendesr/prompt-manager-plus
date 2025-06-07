@@ -5,7 +5,7 @@ import { Button } from "../ui/button";
 
 interface ActionButtonsProps {
   text: string;
-  onAddComment: (comment: string) => void;
+  onAddComment?: (comment: string) => void;
 }
 
 export const ActionButtons = ({ 
@@ -25,8 +25,6 @@ export const ActionButtons = ({
   const handleAddMaleVoice = async () => {
     try {
       await navigator.clipboard.writeText(`male voice\nportuguês, brasil\n${text}`);
-      onAddComment("voice:male");
-      onAddComment("português, brasil");
       toast.success("Prompt copiado com voz masculina!");
     } catch (error) {
       toast.error("Erro ao copiar prompt");
@@ -36,8 +34,6 @@ export const ActionButtons = ({
   const handleAddFemaleVoice = async () => {
     try {
       await navigator.clipboard.writeText(`female voice\nportuguês, brasil\n${text}`);
-      onAddComment("voice:female");
-      onAddComment("português, brasil");
       toast.success("Prompt copiado com voz feminina!");
     } catch (error) {
       toast.error("Erro ao copiar prompt");
