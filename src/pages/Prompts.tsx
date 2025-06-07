@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { SecurityProvider } from "@/components/SecurityProvider";
@@ -5,9 +6,11 @@ import { PromptsHeader } from "@/components/prompts/PromptsHeader";
 import { ConnectionAlert } from "@/components/prompts/ConnectionAlert";
 import { PromptsTabs } from "@/components/prompts/PromptsTabs";
 import { PromptsLoading } from "@/components/prompts/PromptsLoading";
+import { HealthStatus } from "@/components/common/HealthStatus";
 import { AIChat } from "@/components/ai/AIChat";
 import { usePromptManager } from "@/hooks/usePromptManager";
-import { useStructures } from "@/hooks/useStructures";
+import { useTextPrompts } from "@/hooks/useTextPrompts";
+import { useImagePrompts } from "@/hooks/useImagePrompts";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { updatePromptInDb, deletePromptFromDb } from "@/services/categoryService";
 import { QueryProvider } from "@/providers/QueryProvider";
@@ -39,15 +42,8 @@ const PromptsContent = () => {
     currentPage
   } = usePromptManager();
 
-  const {
-    structures,
-    loading: structuresLoading,
-    loadError: structuresLoadError,
-    loadStructures,
-    addStructure,
-    editStructure,
-    deleteStructure
-  } = useStructures();
+  const { textPrompts, loading: textLoading } = useTextPrompts();
+  const { imagePrompts, loading: imageLoading } = useImagePrompts();
   
   const { networkStatus, isRetrying, handleRetryConnection } = useNetworkStatus();
 
@@ -83,30 +79,22 @@ const PromptsContent = () => {
 
   const handleRetry = async () => {
     await handleRetryConnection(async () => {
-      await Promise.all([
-        loadCategories(),
-        loadStructures()
-      ]);
+      await loadCategories();
       setConnectionError(null);
     });
   };
 
-  // Load structures when component mounts
-  useEffect(() => {
-    loadStructures();
-  }, [loadStructures]);
-
   // Update connection error state
   useEffect(() => {
-    if (categoriesLoadError || structuresLoadError) {
-      setConnectionError(categoriesLoadError || structuresLoadError);
+    if (categoriesLoadError) {
+      setConnectionError(categoriesLoadError);
     } else {
       setConnectionError(null);
     }
-  }, [categoriesLoadError, structuresLoadError]);
+  }, [categoriesLoadError]);
 
   // Show loading screen only if loading and no connection error
-  if (categoriesLoading && !connectionError) {
+  if ((categoriesLoading || textLoading || imageLoading) && !connectionError) {
     return <PromptsLoading />;
   }
 
@@ -125,8 +113,8 @@ const PromptsContent = () => {
           
           <PromptsTabs
             categories={categories}
-            structuresLoading={structuresLoading}
-            structuresLoadError={structuresLoadError}
+            textPrompts={textPrompts}
+            imagePrompts={imagePrompts}
             globalSearchTerm={globalSearchTerm}
             setGlobalSearchTerm={setGlobalSearchTerm}
             onAddCategory={addCategory}
@@ -145,12 +133,9 @@ const PromptsContent = () => {
             onNextPage={nextPage}
             onPreviousPage={previousPage}
             currentPage={currentPage}
-            structures={structures}
-            onAddStructure={addStructure}
-            onEditStructure={editStructure}
-            onDeleteStructure={deleteStructure}
           />
         </div>
+        <HealthStatus />
         <AIChat />
       </div>
     </SecurityProvider>
