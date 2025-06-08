@@ -3,7 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Card } from "./ui/card";
 import { Checkbox } from "./ui/checkbox";
-import { Award, Trophy, Star } from "lucide-react";
+import { Award, Trophy, Star, Crown } from "lucide-react";
 import type { Prompt, MusicStructure, Category } from "@/types/prompt";
 import { CommentSection } from "./prompt/CommentSection";
 import { PromptText } from "./prompt/PromptText";
@@ -24,6 +24,7 @@ interface PromptCardProps {
   categories?: Category[];
   searchTerm?: string;
   onPromptUpdate?: () => void;
+  rank?: number; // Nova prop para posição no ranking
 }
 
 export const PromptCard = ({ 
@@ -37,13 +38,16 @@ export const PromptCard = ({
   structures = [],
   categories = [],
   searchTerm = "",
-  onPromptUpdate
+  onPromptUpdate,
+  rank
 }: PromptCardProps) => {
   const [bgColor, setBgColor] = useState(prompt.backgroundColor || "bg-blue-50/30");
 
   const handleCopyText = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
+      
+      console.log('📋 Copiando prompt:', prompt.id);
       
       // Incrementar contador de cópias
       await incrementCopyCount(prompt.id);
@@ -52,7 +56,9 @@ export const PromptCard = ({
       
       // Atualizar os dados do prompt
       if (onPromptUpdate) {
-        onPromptUpdate();
+        setTimeout(() => {
+          onPromptUpdate();
+        }, 300);
       }
     } catch (error) {
       console.error('Erro ao copiar:', error);
@@ -92,48 +98,59 @@ export const PromptCard = ({
     prompt.comments.filter(comment => !comment.startsWith('#'))
   );
 
-  // Determina a classe de estilo com base na classificação e pontuação
+  // Determina a classe de estilo com base no ranking e pontuação
   const getRankingClass = () => {
-    // Se o prompt já tem uma cor de fundo definida, mantemos ela
-    if (prompt.backgroundColor && prompt.backgroundColor !== "bg-blue-50/30") {
-      return `${prompt.backgroundColor} backdrop-blur-sm`;
+    // Top 3 - Destaque dourado premium
+    if (rank && rank <= 3) {
+      return "bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-100 border-2 border-amber-300 shadow-lg shadow-amber-200/50 ring-2 ring-amber-400/30";
     }
     
-    // Aplicar cores baseadas no ranking por estrelas
-    if (prompt.ratingAverage && prompt.ratingAverage >= 4.5) {
-      return "bg-gradient-to-r from-amber-100 to-yellow-100 shadow-md shadow-amber-100/50 ring-2 ring-amber-300";
+    // Top 4-10 - Destaque prateado
+    if (rank && rank <= 10) {
+      return "bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 border-2 border-blue-300 shadow-lg shadow-blue-200/50 ring-2 ring-blue-400/30";
     }
+    
+    // Prompts com alta avaliação (4.0+) mas fora do Top 10
     if (prompt.ratingAverage && prompt.ratingAverage >= 4.0) {
-      return "bg-gradient-to-r from-blue-50 to-indigo-50 shadow-md shadow-blue-100/50 ring-2 ring-blue-200";
-    }
-    if (prompt.ratingAverage && prompt.ratingAverage >= 3.5) {
-      return "bg-gradient-to-r from-green-50 to-emerald-50 shadow-md shadow-green-100/50 ring-2 ring-green-200";
+      return "bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 shadow-md shadow-green-100/50";
     }
     
-    // Estilo padrão para outros prompts - usando cinza bem claro, próximo do branco
-    return "bg-gray-50/70 backdrop-blur-sm";
+    // Prompts com boa avaliação (3.0+)
+    if (prompt.ratingAverage && prompt.ratingAverage >= 3.0) {
+      return "bg-gradient-to-r from-slate-50 to-gray-50 border border-gray-200";
+    }
+    
+    // Estilo padrão para prompts sem avaliação ou baixa avaliação
+    return "bg-white border border-gray-200 hover:shadow-sm transition-shadow";
   };
 
-  // Determina o ícone de ranking baseado na avaliação por estrelas
+  // Determina o ícone de ranking baseado na posição
   const getRankIcon = () => {
-    if (prompt.ratingAverage && prompt.ratingAverage >= 4.5) return <Trophy className="h-4 w-4 text-amber-500" />;
-    if (prompt.ratingAverage && prompt.ratingAverage >= 4.0) return <Star className="h-4 w-4 text-blue-500" />;
-    if (prompt.ratingAverage && prompt.ratingAverage >= 3.5) return <Award className="h-4 w-4 text-green-500" />;
+    if (rank === 1) return <Crown className="h-4 w-4 text-amber-500" title="🥇 1º Lugar" />;
+    if (rank === 2) return <Trophy className="h-4 w-4 text-amber-400" title="🥈 2º Lugar" />;
+    if (rank === 3) return <Trophy className="h-4 w-4 text-amber-300" title="🥉 3º Lugar" />;
+    if (rank && rank <= 10) return <Star className="h-4 w-4 text-blue-500" title={`Top ${rank}`} />;
+    if (prompt.ratingAverage && prompt.ratingAverage >= 4.0) return <Award className="h-4 w-4 text-green-500" title="Alta Avaliação" />;
     return null;
   };
 
   const rankingClass = getRankingClass();
   const rankIcon = getRankIcon();
 
-  const cardClasses = `relative sm:text-xs text-xs p-3 ${rankingClass} border rounded-lg`;
+  const cardClasses = `relative text-xs p-3 ${rankingClass} rounded-lg transition-all duration-200 hover:scale-[1.01]`;
 
   return (
     <Card className={cardClasses}>
       <div className="flex flex-col space-y-3">
-        {/* Cabeçalho com ID e Avaliação por Estrelas */}
+        {/* Cabeçalho com ID, Ranking e Avaliação */}
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
             {rankIcon}
+            {rank && rank <= 10 && (
+              <span className="text-xs font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">
+                #{rank}
+              </span>
+            )}
             <span className="text-xs font-mono text-blue-600 font-medium">
               {prompt.simpleId || 'ID-000'}
             </span>

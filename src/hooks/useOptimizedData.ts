@@ -29,10 +29,48 @@ export const useOptimizedData = (
       const { categories, promptsWithComments } = await fetchAllDataOptimized(limit, offset);
       const builtCategories = buildOptimizedCategoryTree(categories, promptsWithComments);
       
+      // Coletar todos os prompts para ranking global
+      const allPrompts: any[] = [];
+      const collectPrompts = (cats: Category[]) => {
+        cats.forEach(cat => {
+          allPrompts.push(...cat.prompts);
+          if (cat.subcategories) {
+            collectPrompts(cat.subcategories);
+          }
+        });
+      };
+      collectPrompts(builtCategories);
+      
+      // Ordenar todos os prompts por média de avaliação para determinar ranking
+      const sortedPrompts = allPrompts.sort((a, b) => {
+        const ratingA = a.ratingAverage || 0;
+        const ratingB = b.ratingAverage || 0;
+        
+        if (ratingB !== ratingA) {
+          return ratingB - ratingA; // Maior média primeiro
+        }
+        
+        // Se empate, usar número de avaliações como critério
+        const countA = a.ratingCount || 0;
+        const countB = b.ratingCount || 0;
+        return countB - countA;
+      });
+      
+      // Atribuir ranking aos prompts
+      const promptRankMap = new Map();
+      sortedPrompts.forEach((prompt, index) => {
+        if (prompt.ratingAverage && prompt.ratingAverage > 0) {
+          promptRankMap.set(prompt.id, index + 1);
+        }
+      });
+      
       // Ordenar prompts por média de estrelas dentro de cada categoria após construir a árvore
       const sortCategoryPrompts = (category: Category): Category => ({
         ...category,
-        prompts: category.prompts.sort((a, b) => {
+        prompts: category.prompts.map(prompt => ({
+          ...prompt,
+          rank: promptRankMap.get(prompt.id) // Adicionar ranking ao prompt
+        })).sort((a, b) => {
           const ratingA = a.ratingAverage || 0;
           const ratingB = b.ratingAverage || 0;
           
@@ -50,9 +88,9 @@ export const useOptimizedData = (
       
       return builtCategories.map(sortCategoryPrompts);
     },
-    staleTime: 5 * 60 * 1000, // 5 minutos
-    gcTime: 10 * 60 * 1000, // 10 minutos (nova API)
-    retry: 1, // Reduzir tentativas de retry
+    staleTime: 2 * 60 * 1000, // 2 minutos
+    gcTime: 5 * 60 * 1000, // 5 minutos
+    retry: 1,
     retryDelay: 2000,
     refetchOnWindowFocus: false
   });

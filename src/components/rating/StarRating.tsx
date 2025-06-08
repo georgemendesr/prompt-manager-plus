@@ -27,15 +27,23 @@ export const StarRating = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleStarClick = async (rating: number) => {
+    if (isSubmitting) return;
+    
     setIsSubmitting(true);
+    console.log(`🌟 Avaliando prompt ${promptId} com ${rating} estrelas`);
+    
     try {
       const { error } = await addPromptRating(promptId, rating);
       if (error) throw error;
       
       toast.success(`Avaliação de ${rating} estrela${rating > 1 ? 's' : ''} adicionada!`);
-      onRatingUpdate();
+      
+      // Aguardar um pouco antes de atualizar para dar tempo do banco processar
+      setTimeout(() => {
+        onRatingUpdate();
+      }, 500);
     } catch (error) {
-      console.error('Erro ao avaliar:', error);
+      console.error('❌ Erro ao avaliar:', error);
       toast.error('Erro ao adicionar avaliação');
     } finally {
       setIsSubmitting(false);
@@ -53,18 +61,19 @@ export const StarRating = ({
       stars.push(
         <button
           key={i}
-          className={`relative transition-all duration-150 ${
-            isSubmitting ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-110'
+          className={`relative transition-all duration-200 ${
+            isSubmitting ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:scale-125 active:scale-110'
           }`}
           onMouseEnter={() => !isSubmitting && setHoveredStar(i)}
           onMouseLeave={() => !isSubmitting && setHoveredStar(0)}
           onClick={() => !isSubmitting && handleStarClick(i)}
           disabled={isSubmitting}
+          title={`Avaliar com ${i} estrela${i > 1 ? 's' : ''}`}
         >
           <Star 
-            className={`${compact ? 'h-3 w-3' : 'h-4 w-4'} ${
+            className={`${compact ? 'h-3 w-3' : 'h-4 w-4'} transition-all duration-200 ${
               isFilled || (hoveredStar >= i)
-                ? 'fill-yellow-400 text-yellow-400' 
+                ? 'fill-yellow-400 text-yellow-400 drop-shadow-sm' 
                 : isHalfFilled
                 ? 'fill-yellow-200 text-yellow-400'
                 : 'text-gray-300 hover:text-yellow-300'
@@ -80,10 +89,10 @@ export const StarRating = ({
   if (compact) {
     return (
       <div className="flex items-center gap-1 text-xs">
-        <div className="flex items-center">
+        <div className="flex items-center gap-0.5">
           {renderStars()}
         </div>
-        <span className="font-medium text-gray-700">
+        <span className="font-medium text-gray-700 ml-1">
           {currentRating > 0 ? currentRating.toFixed(1) : '0.0'}
         </span>
       </div>
@@ -94,7 +103,7 @@ export const StarRating = ({
     <div className="flex flex-col gap-1">
       {/* ID do Prompt e Estatísticas Compactas */}
       <div className="flex items-center justify-between text-xs text-gray-500">
-        <span className="font-mono text-blue-600">
+        <span className="font-mono text-blue-600 font-medium">
           {simpleId || 'ID-000'}
         </span>
         <span>
