@@ -1,3 +1,4 @@
+
 import { supabase } from "../base/supabaseService";
 import type { DatabaseError } from "@/types/database";
 
@@ -5,7 +6,9 @@ export const fetchPrompts = async () => {
   try {
     return await supabase
       .from('prompts')
-      .select('id, text, category_id, rating, background_color, tags, created_at, rating_average, rating_count, copy_count');
+      .select('id, text, category_id, rating, background_color, tags, created_at, rating_average, rating_count, copy_count, simple_id')
+      .order('rating_average', { ascending: false })
+      .order('rating_count', { ascending: false });
   } catch (error) {
     console.error('Erro ao buscar prompts:', error);
     return { data: null, error };
