@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -26,26 +27,28 @@ export const useOptimizedData = (
     queryKey: currentQueryKey,
     queryFn: async () => {
       const { categories, promptsWithComments } = await fetchAllDataOptimized(limit, offset);
+      const builtCategories = buildOptimizedCategoryTree(categories, promptsWithComments);
       
-      // Ordenar prompts por média de estrelas dentro de cada categoria
-      const sortedCategories = categories.map(category => ({
+      // Ordenar prompts por média de estrelas dentro de cada categoria após construir a árvore
+      const sortCategoryPrompts = (category: Category): Category => ({
         ...category,
         prompts: category.prompts.sort((a, b) => {
-          const ratingA = a.rating_average || 0;
-          const ratingB = b.rating_average || 0;
+          const ratingA = a.ratingAverage || 0;
+          const ratingB = b.ratingAverage || 0;
           
           if (ratingB !== ratingA) {
             return ratingB - ratingA; // Maior média primeiro
           }
           
           // Se empate, usar número de avaliações como critério
-          const countA = a.rating_count || 0;
-          const countB = b.rating_count || 0;
+          const countA = a.ratingCount || 0;
+          const countB = b.ratingCount || 0;
           return countB - countA;
-        })
-      }));
+        }),
+        subcategories: category.subcategories?.map(sortCategoryPrompts) || []
+      });
       
-      return buildOptimizedCategoryTree(sortedCategories, promptsWithComments);
+      return builtCategories.map(sortCategoryPrompts);
     },
     staleTime: 5 * 60 * 1000, // 5 minutos
     gcTime: 10 * 60 * 1000, // 10 minutos (nova API)
