@@ -5,7 +5,6 @@ import { Card } from "./ui/card";
 import { Checkbox } from "./ui/checkbox";
 import { Award, Trophy, Star } from "lucide-react";
 import type { Prompt, MusicStructure, Category } from "@/types/prompt";
-import { RatingButtons } from "./prompt/RatingButtons";
 import { CommentSection } from "./prompt/CommentSection";
 import { PromptText } from "./prompt/PromptText";
 import { ActionButtons } from "./prompt/ActionButtons";
@@ -100,85 +99,77 @@ export const PromptCard = ({
       return `${prompt.backgroundColor} backdrop-blur-sm`;
     }
     
-    // Aplicar cores baseadas no ranking
-    if (prompt.rank && prompt.rank <= 5) {
+    // Aplicar cores baseadas no ranking por estrelas
+    if (prompt.ratingAverage && prompt.ratingAverage >= 4.5) {
       return "bg-gradient-to-r from-amber-100 to-yellow-100 shadow-md shadow-amber-100/50 ring-2 ring-amber-300";
     }
-    if (prompt.rank && prompt.rank > 5 && prompt.rank <= 8) {
-      return "bg-gradient-to-r from-gray-100 to-slate-100 shadow-md shadow-gray-100/50 ring-2 ring-gray-300";
+    if (prompt.ratingAverage && prompt.ratingAverage >= 4.0) {
+      return "bg-gradient-to-r from-blue-50 to-indigo-50 shadow-md shadow-blue-100/50 ring-2 ring-blue-200";
     }
-    if (prompt.rank && prompt.rank > 8 && prompt.rank <= 10) {
-      return "bg-gradient-to-r from-orange-50 to-amber-50 shadow-md shadow-orange-100/50 ring-2 ring-orange-200";
-    }
-    if (prompt.rating >= 10) {
-      return "bg-gradient-to-r from-purple-50 to-indigo-50 shadow-md shadow-purple-100/50 ring-1 ring-purple-200";
+    if (prompt.ratingAverage && prompt.ratingAverage >= 3.5) {
+      return "bg-gradient-to-r from-green-50 to-emerald-50 shadow-md shadow-green-100/50 ring-2 ring-green-200";
     }
     
     // Estilo padrão para outros prompts - usando cinza bem claro, próximo do branco
     return "bg-gray-50/70 backdrop-blur-sm";
   };
 
-  // Determina o ícone de ranking
+  // Determina o ícone de ranking baseado na avaliação por estrelas
   const getRankIcon = () => {
-    if (prompt.rank && prompt.rank <= 5) return <Trophy className="h-4 w-4 text-amber-500" />;
-    if (prompt.rank && prompt.rank > 5 && prompt.rank <= 8) return <Trophy className="h-4 w-4 text-gray-400" />;
-    if (prompt.rank && prompt.rank > 8 && prompt.rank <= 10) return <Trophy className="h-4 w-4 text-orange-400" />;
-    if (prompt.rating >= 10) return <Star className="h-4 w-4 text-purple-400" />;
+    if (prompt.ratingAverage && prompt.ratingAverage >= 4.5) return <Trophy className="h-4 w-4 text-amber-500" />;
+    if (prompt.ratingAverage && prompt.ratingAverage >= 4.0) return <Star className="h-4 w-4 text-blue-500" />;
+    if (prompt.ratingAverage && prompt.ratingAverage >= 3.5) return <Award className="h-4 w-4 text-green-500" />;
     return null;
-  };
-
-  // Ajusta a classe CSS com base na pontuação
-  const getScoreClass = (score: number) => {
-    if (score > 5) return 'shadow-lg shadow-green-100';
-    if (score > 0) return 'shadow-md shadow-blue-50';
-    if (score < 0) return 'shadow-md shadow-red-50';
-    return 'border-b';
   };
 
   const rankingClass = getRankingClass();
   const rankIcon = getRankIcon();
-  const scoreClass = getScoreClass(prompt.rating);
 
-  const cardClasses = `relative sm:text-xs text-xs p-2 ${rankingClass} ${scoreClass}`;
+  const cardClasses = `relative sm:text-xs text-xs p-3 ${rankingClass} border rounded-lg`;
 
   return (
     <Card className={cardClasses}>
-      <div className="flex flex-col space-y-2">
-        <div className="flex items-start gap-1">
-          {rankIcon && (
-            <div className="mt-1 mr-1">{rankIcon}</div>
-          )}
-          <div className="flex-grow">
-            <PromptText 
-              text={prompt.text}
-              searchTerm={searchTerm}
-              rating={prompt.rating}
+      <div className="flex flex-col space-y-3">
+        {/* Cabeçalho com ID e Avaliação por Estrelas */}
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-2">
+            {rankIcon}
+            <span className="text-xs font-mono text-blue-600 font-medium">
+              {prompt.simpleId || 'ID-000'}
+            </span>
+          </div>
+          
+          <div className="flex items-center gap-1 text-xs text-gray-500">
+            <span>📄 {prompt.copyCount || 0}</span>
+            <span>•</span>
+            <StarRating
+              promptId={prompt.id}
+              currentRating={prompt.ratingAverage || 0}
+              ratingCount={prompt.ratingCount || 0}
+              copyCount={prompt.copyCount || 0}
+              onRatingUpdate={onPromptUpdate || (() => {})}
+              compact={true}
             />
           </div>
         </div>
 
-        {/* Sistema de Avaliação por Estrelas */}
-        <div className="border-t pt-2">
-          <StarRating
-            promptId={prompt.id}
-            currentRating={prompt.ratingAverage || 0}
-            ratingCount={prompt.ratingCount || 0}
-            copyCount={prompt.copyCount || 0}
-            onRatingUpdate={onPromptUpdate || (() => {})}
+        {/* Texto do Prompt */}
+        <div className="flex-grow">
+          <PromptText 
+            text={prompt.text}
+            searchTerm={searchTerm}
+            rating={prompt.rating}
           />
         </div>
 
-        <div className="flex items-center justify-between pt-1">
+        {/* Ações e Seleção */}
+        <div className="flex items-center justify-between pt-2 border-t border-gray-200">
           <ActionButtons
             text={prompt.text}
             onCopyText={handleCopyText}
           />
-          <div className="flex items-center gap-1">
-            <RatingButtons 
-              rating={prompt.rating}
-              onRate={(increment) => onRate(prompt.id, increment)}
-              backgroundColor={bgColor}
-            />
+          
+          <div className="flex items-center gap-2">
             <CommentSection
               comments={[]}
               hashtags={hashtags}
@@ -207,6 +198,7 @@ export const PromptCard = ({
               promptText={prompt.text}
               structures={structures}
             />
+            
             <div className="h-5 w-5 flex items-center justify-center">
               <Checkbox
                 checked={selected}
@@ -217,6 +209,7 @@ export const PromptCard = ({
           </div>
         </div>
 
+        {/* Comentários e Hashtags */}
         {(hashtags.length > 0 || regularComments.length > 0) && (
           <PromptComments 
             hashtags={hashtags}

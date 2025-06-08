@@ -15,6 +15,7 @@ export type Prompt = {
   ratingAverage?: number; // Média das avaliações por estrelas
   ratingCount?: number; // Total de avaliações
   copyCount?: number; // Total de cópias
+  simpleId?: string; // ID único do prompt (ex: REG-MAS-003)
 };
 
 export type Category = {
