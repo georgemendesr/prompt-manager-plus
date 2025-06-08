@@ -1,4 +1,3 @@
-
 export type Prompt = {
   id: string;
   text: string;
@@ -11,12 +10,11 @@ export type Prompt = {
   isEditing?: boolean;
   backgroundColor?: string;
   score?: number; // Nova propriedade para pontuação de votos
-  rank?: number; // Posição no ranking global baseado em avaliações
+  rank?: number; // Nova propriedade para posição no ranking
   // Novas propriedades para o sistema de estrelas
   ratingAverage?: number; // Média das avaliações por estrelas
   ratingCount?: number; // Total de avaliações
   copyCount?: number; // Total de cópias
-  simpleId?: string; // ID único do prompt (ex: REG-MAS-003)
 };
 
 export type Category = {

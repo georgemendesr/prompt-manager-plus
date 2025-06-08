@@ -17,7 +17,7 @@ export const useOptimizedData = (
 
   const currentQueryKey = [...QUERY_KEY, limit, offset];
 
-  // Query principal com cache e ordenação por estrelas
+  // Query principal com cache
   const {
     data: categories = [],
     isLoading,
@@ -27,70 +27,11 @@ export const useOptimizedData = (
     queryKey: currentQueryKey,
     queryFn: async () => {
       const { categories, promptsWithComments } = await fetchAllDataOptimized(limit, offset);
-      const builtCategories = buildOptimizedCategoryTree(categories, promptsWithComments);
-      
-      // Coletar todos os prompts para ranking global
-      const allPrompts: any[] = [];
-      const collectPrompts = (cats: Category[]) => {
-        cats.forEach(cat => {
-          allPrompts.push(...cat.prompts);
-          if (cat.subcategories) {
-            collectPrompts(cat.subcategories);
-          }
-        });
-      };
-      collectPrompts(builtCategories);
-      
-      // Ordenar todos os prompts por média de avaliação para determinar ranking
-      const sortedPrompts = allPrompts.sort((a, b) => {
-        const ratingA = a.ratingAverage || 0;
-        const ratingB = b.ratingAverage || 0;
-        
-        if (ratingB !== ratingA) {
-          return ratingB - ratingA; // Maior média primeiro
-        }
-        
-        // Se empate, usar número de avaliações como critério
-        const countA = a.ratingCount || 0;
-        const countB = b.ratingCount || 0;
-        return countB - countA;
-      });
-      
-      // Atribuir ranking aos prompts
-      const promptRankMap = new Map();
-      sortedPrompts.forEach((prompt, index) => {
-        if (prompt.ratingAverage && prompt.ratingAverage > 0) {
-          promptRankMap.set(prompt.id, index + 1);
-        }
-      });
-      
-      // Ordenar prompts por média de estrelas dentro de cada categoria após construir a árvore
-      const sortCategoryPrompts = (category: Category): Category => ({
-        ...category,
-        prompts: category.prompts.map(prompt => ({
-          ...prompt,
-          rank: promptRankMap.get(prompt.id) // Adicionar ranking ao prompt
-        })).sort((a, b) => {
-          const ratingA = a.ratingAverage || 0;
-          const ratingB = b.ratingAverage || 0;
-          
-          if (ratingB !== ratingA) {
-            return ratingB - ratingA; // Maior média primeiro
-          }
-          
-          // Se empate, usar número de avaliações como critério
-          const countA = a.ratingCount || 0;
-          const countB = b.ratingCount || 0;
-          return countB - countA;
-        }),
-        subcategories: category.subcategories?.map(sortCategoryPrompts) || []
-      });
-      
-      return builtCategories.map(sortCategoryPrompts);
+      return buildOptimizedCategoryTree(categories, promptsWithComments);
     },
-    staleTime: 2 * 60 * 1000, // 2 minutos
-    gcTime: 5 * 60 * 1000, // 5 minutos
-    retry: 1,
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    gcTime: 10 * 60 * 1000, // 10 minutos (nova API)
+    retry: 1, // Reduzir tentativas de retry
     retryDelay: 2000,
     refetchOnWindowFocus: false
   });
@@ -113,22 +54,9 @@ export const useOptimizedData = (
             ...category,
             prompts: category.prompts.map(prompt =>
               prompt.id === promptId
-                ? { 
-                    ...prompt, 
-                    rating: prompt.rating + (increment ? 1 : -1),
-                    ratingCount: (prompt.ratingCount || 0) + 1,
-                    ratingAverage: Math.min(5, Math.max(0, (prompt.ratingAverage || 0) + (increment ? 0.1 : -0.1)))
-                  }
+                ? { ...prompt, rating: prompt.rating + (increment ? 1 : -1) }
                 : prompt
-            ).sort((a, b) => {
-              // Re-ordenar após atualização otimística
-              const ratingA = a.ratingAverage || 0;
-              const ratingB = b.ratingAverage || 0;
-              if (ratingB !== ratingA) return ratingB - ratingA;
-              const countA = a.ratingCount || 0;
-              const countB = b.ratingCount || 0;
-              return countB - countA;
-            }),
+            ),
             subcategories: category.subcategories ? updatePromptInCategory(category.subcategories) : []
           }));
         };
@@ -232,6 +160,6 @@ export const useOptimizedData = (
     offset,
     // Estados das mutations
     isRatingPrompt: ratingMutation.isPending,
-    isAddingComment: false
+    isAddingComment: commentMutation.isPending
   };
 };
