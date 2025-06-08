@@ -1,73 +1,50 @@
 
-import { toast } from "sonner";
-import { Copy, Music2, Music4 } from "lucide-react";
-import { Button } from "../ui/button";
+import { Copy, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface ActionButtonsProps {
   text: string;
-  onAddComment?: (comment: string) => void;
+  onCopyText?: (text: string) => Promise<void>;
 }
 
-export const ActionButtons = ({ 
-  text, 
-  onAddComment
-}: ActionButtonsProps) => {
+export const ActionButtons = ({ text, onCopyText }: ActionButtonsProps) => {
   const handleCopy = async () => {
-    try {
-      // Just copy the text without adding any tags
-      await navigator.clipboard.writeText(text);
-      toast.success("Prompt copiado!");
-    } catch (error) {
-      toast.error("Erro ao copiar prompt");
+    if (onCopyText) {
+      await onCopyText(text);
+    } else {
+      // Fallback para o comportamento antigo
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (error) {
+        console.error('Erro ao copiar:', error);
+      }
     }
   };
 
-  const handleAddMaleVoice = async () => {
-    try {
-      await navigator.clipboard.writeText(`male voice\nportuguês, brasil\n${text}`);
-      toast.success("Prompt copiado com voz masculina!");
-    } catch (error) {
-      toast.error("Erro ao copiar prompt");
-    }
-  };
-
-  const handleAddFemaleVoice = async () => {
-    try {
-      await navigator.clipboard.writeText(`female voice\nportuguês, brasil\n${text}`);
-      toast.success("Prompt copiado com voz feminina!");
-    } catch (error) {
-      toast.error("Erro ao copiar prompt");
-    }
+  const handleOpenInSuno = () => {
+    const sunoUrl = `https://suno.com/create?prompt=${encodeURIComponent(text)}`;
+    window.open(sunoUrl, '_blank');
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1">
       <Button
         variant="ghost"
-        size="icon"
+        size="sm"
+        className="h-6 w-6 p-0"
         onClick={handleCopy}
-        className="h-7 w-7 transition-colors hover:text-blue-600"
-        title="Copiar"
+        title="Copiar prompt"
       >
         <Copy className="h-3 w-3" />
       </Button>
       <Button
         variant="ghost"
-        size="icon"
-        onClick={handleAddMaleVoice}
-        className="h-7 w-7 transition-colors hover:text-blue-600"
-        title="Voz masculina"
+        size="sm"
+        className="h-6 w-6 p-0"
+        onClick={handleOpenInSuno}
+        title="Abrir no Suno"
       >
-        <Music2 className="h-3 w-3" />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={handleAddFemaleVoice}
-        className="h-7 w-7 transition-colors hover:text-pink-600"
-        title="Voz feminina"
-      >
-        <Music4 className="h-3 w-3" />
+        <ExternalLink className="h-3 w-3" />
       </Button>
     </div>
   );

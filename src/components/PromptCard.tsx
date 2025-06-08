@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { toast } from "sonner";
 import { Card } from "./ui/card";
@@ -9,6 +10,8 @@ import { CommentSection } from "./prompt/CommentSection";
 import { PromptText } from "./prompt/PromptText";
 import { ActionButtons } from "./prompt/ActionButtons";
 import { PromptComments } from "./prompt/PromptComments";
+import { StarRating } from "./rating/StarRating";
+import { incrementCopyCount } from "@/services/rating/ratingService";
 
 interface PromptCardProps {
   prompt: Prompt;
@@ -21,6 +24,7 @@ interface PromptCardProps {
   structures?: MusicStructure[];
   categories?: Category[];
   searchTerm?: string;
+  onPromptUpdate?: () => void;
 }
 
 export const PromptCard = ({ 
@@ -33,9 +37,29 @@ export const PromptCard = ({
   selected,
   structures = [],
   categories = [],
-  searchTerm = ""
+  searchTerm = "",
+  onPromptUpdate
 }: PromptCardProps) => {
   const [bgColor, setBgColor] = useState(prompt.backgroundColor || "bg-blue-50/30");
+
+  const handleCopyText = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      
+      // Incrementar contador de cópias
+      await incrementCopyCount(prompt.id);
+      
+      toast.success("Prompt copiado!");
+      
+      // Atualizar os dados do prompt
+      if (onPromptUpdate) {
+        onPromptUpdate();
+      }
+    } catch (error) {
+      console.error('Erro ao copiar:', error);
+      toast.error("Erro ao copiar prompt");
+    }
+  };
 
   const filterComments = (comments: string[]) => {
     return comments.filter(comment => {
@@ -119,7 +143,7 @@ export const PromptCard = ({
 
   return (
     <Card className={cardClasses}>
-      <div className="flex flex-col space-y-1">
+      <div className="flex flex-col space-y-2">
         <div className="flex items-start gap-1">
           {rankIcon && (
             <div className="mt-1 mr-1">{rankIcon}</div>
@@ -133,9 +157,21 @@ export const PromptCard = ({
           </div>
         </div>
 
+        {/* Sistema de Avaliação por Estrelas */}
+        <div className="border-t pt-2">
+          <StarRating
+            promptId={prompt.id}
+            currentRating={prompt.ratingAverage || 0}
+            ratingCount={prompt.ratingCount || 0}
+            copyCount={prompt.copyCount || 0}
+            onRatingUpdate={onPromptUpdate || (() => {})}
+          />
+        </div>
+
         <div className="flex items-center justify-between pt-1">
           <ActionButtons
             text={prompt.text}
+            onCopyText={handleCopyText}
           />
           <div className="flex items-center gap-1">
             <RatingButtons 

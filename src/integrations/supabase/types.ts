@@ -276,31 +276,104 @@ export type Database = {
         }
         Relationships: []
       }
+      prompt_ratings: {
+        Row: {
+          created_at: string | null
+          id: string
+          prompt_id: string | null
+          rating: number
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          prompt_id?: string | null
+          rating: number
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          prompt_id?: string | null
+          rating?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prompt_ratings_prompt_id_fkey"
+            columns: ["prompt_id"]
+            isOneToOne: false
+            referencedRelation: "prompts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prompt_usage: {
+        Row: {
+          id: string
+          prompt_id: string | null
+          used_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          id?: string
+          prompt_id?: string | null
+          used_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          id?: string
+          prompt_id?: string | null
+          used_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prompt_usage_prompt_id_fkey"
+            columns: ["prompt_id"]
+            isOneToOne: false
+            referencedRelation: "prompts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       prompts: {
         Row: {
           background_color: string | null
           category_id: string
+          copy_count: number | null
           created_at: string
           id: string
           rating: number
+          rating_average: number | null
+          rating_count: number | null
+          simple_id: string | null
           tags: string[] | null
           text: string
         }
         Insert: {
           background_color?: string | null
           category_id: string
+          copy_count?: number | null
           created_at?: string
           id?: string
           rating?: number
+          rating_average?: number | null
+          rating_count?: number | null
+          simple_id?: string | null
           tags?: string[] | null
           text: string
         }
         Update: {
           background_color?: string | null
           category_id?: string
+          copy_count?: number | null
           created_at?: string
           id?: string
           rating?: number
+          rating_average?: number | null
+          rating_count?: number | null
+          simple_id?: string | null
           tags?: string[] | null
           text?: string
         }
@@ -385,7 +458,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      calculate_prompt_rating_average: {
+        Args: { prompt_uuid: string }
+        Returns: undefined
+      }
+      increment_copy_count: {
+        Args: { prompt_uuid: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "user"
