@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { toast } from "sonner";
 import { Card } from "./ui/card";
@@ -123,7 +124,7 @@ export const PromptCard = ({
 
   // Determinar destaque visual para Top 10
   const getCardClasses = () => {
-    const baseClasses = "relative text-xs p-3 border transition-all duration-200";
+    const baseClasses = "relative p-4 border transition-all duration-200";
     const avgRating = prompt.ratingAverage || 0;
     
     // Top 3 - Destaque dourado
@@ -163,7 +164,7 @@ export const PromptCard = ({
           disabled={isSubmitting}
         >
           <Star
-            className={`h-4 w-4 ${
+            className={`h-5 w-5 ${
               isFilled || (hoveredStar >= i)
                 ? 'fill-yellow-400 text-yellow-400' 
                 : isHalfFilled
@@ -180,14 +181,14 @@ export const PromptCard = ({
 
   return (
     <Card className={getCardClasses()}>
-      <div className="flex flex-col space-y-3">
+      <div className="flex flex-col space-y-4">
         {/* Header com ID, Contadores e Avaliação */}
         <div className="flex items-start justify-between">
           <div className="flex flex-col">
-            <div className="text-xs text-gray-500 font-mono font-medium">
+            <div className="text-sm text-gray-600 font-mono font-semibold">
               {displayId}
             </div>
-            <div className="text-xs text-gray-400 mt-1">
+            <div className="text-sm text-gray-500 mt-1">
               📄 {prompt.copyCount || 0} · ⭐ {prompt.ratingCount || 0}
             </div>
           </div>
@@ -196,43 +197,52 @@ export const PromptCard = ({
             <div className="flex items-center gap-1 mb-1">
               {renderStars()}
             </div>
-            <div className="text-xs font-medium text-gray-600">
+            <div className="text-sm font-semibold text-gray-700">
               {(prompt.ratingAverage || 0).toFixed(1)}
             </div>
           </div>
         </div>
 
-        {/* Texto do Prompt */}
+        {/* Texto do Prompt - Fonte maior e melhor contraste */}
         <div className="flex-grow">
-          <PromptText 
-            text={prompt.text}
-            searchTerm={searchTerm}
-            rating={prompt.rating}
-          />
+          <p className="text-base leading-relaxed text-gray-800 break-words">
+            {searchTerm ? (
+              <>
+                {prompt.text.split(new RegExp(`(${searchTerm})`, 'gi')).map((part, i) => {
+                  if (part.toLowerCase() === searchTerm.toLowerCase()) {
+                    return <span key={i} className="bg-yellow-200 px-1 rounded">{part}</span>;
+                  }
+                  return part;
+                })}
+              </>
+            ) : (
+              prompt.text
+            )}
+          </p>
         </div>
 
         {/* Botões de Ação */}
-        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 w-7 p-0 hover:bg-blue-50"
+              className="h-8 w-8 p-0 hover:bg-blue-50"
               onClick={() => handleCopyText(prompt.text)}
             >
-              <Copy className="h-3.5 w-3.5" />
+              <Copy className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 w-7 p-0 hover:bg-blue-50"
+              className="h-8 w-8 p-0 hover:bg-blue-50"
               onClick={handleOpenInSuno}
             >
-              <ExternalLink className="h-3.5 w-3.5" />
+              <ExternalLink className="h-4 w-4" />
             </Button>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <CommentSection
               comments={[]}
               hashtags={[]}
@@ -261,11 +271,11 @@ export const PromptCard = ({
               promptText={prompt.text}
               structures={structures}
             />
-            <div className="h-5 w-5 flex items-center justify-center">
+            <div className="h-6 w-6 flex items-center justify-center">
               <Checkbox
                 checked={selected}
                 onCheckedChange={(checked) => onSelect(prompt.id, checked as boolean)}
-                className="h-4 w-4 rounded-sm border-[1.5px] border-gray-400 cursor-pointer data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
+                className="h-5 w-5 rounded border-2 border-gray-400 cursor-pointer data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
               />
             </div>
           </div>

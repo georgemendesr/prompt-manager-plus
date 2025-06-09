@@ -1,16 +1,20 @@
 
 import { useState } from "react";
-import { ChevronDown, ChevronRight, MoreVertical } from "lucide-react";
+import { ChevronDown, ChevronRight, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { AddCategory } from "@/components/AddCategory";
 import { AdminGuard } from "@/components/AdminGuard";
-import { useForceDeleteCategory } from "@/hooks/useForceDeleteCategory";
+import { AddCategory } from "@/components/AddCategory";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import type { Category } from "@/types/prompt";
 
 interface CategoryHeaderProps {
@@ -20,7 +24,7 @@ interface CategoryHeaderProps {
   onToggle: () => void;
   onEdit: (id: string, newName: string, newParentId?: string) => Promise<boolean>;
   onDelete: (id: string) => Promise<boolean>;
-  categories?: Category[];
+  categories: Category[];
   category: Category;
 }
 
@@ -31,82 +35,89 @@ export const CategoryHeader = ({
   onToggle,
   onEdit,
   onDelete,
-  categories = [],
+  categories,
   category
 }: CategoryHeaderProps) => {
-  const { forceDeleteCategory, isDeleting } = useForceDeleteCategory();
-  
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const handleDelete = async () => {
-    console.log(`🎯 Tentando excluir categoria: ${name} (ID: ${category.id})`);
-    
-    // Para categorias problemáticas, usar exclusão forçada
-    const problematicCategories = ['Emocionantes II', 'emocionantes ii'];
-    const isProblematic = problematicCategories.some(prob => 
-      name.toLowerCase().includes(prob.toLowerCase())
-    );
-    
-    if (isProblematic) {
-      console.log(`⚠️ Categoria problemática detectada - usando exclusão forçada`);
-      const success = await forceDeleteCategory(category.id, name);
-      if (success) {
-        // Recarregar a página após exclusão bem-sucedida
-        window.location.reload();
-      }
-    } else {
-      // Usar método normal para outras categorias
+    setIsDeleting(true);
+    try {
       await onDelete(category.id);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   return (
-    <div 
-      className="flex items-center justify-between p-2 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors"
-      onClick={onToggle}
-    >
-      <div className="flex items-center gap-2">
-        {hasSubcategories && (
-          <div className="flex items-center justify-center h-6 w-6">
-            {expanded ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronRight className="h-4 w-4" />
-            )}
-          </div>
-        )}
-        <h3 className="text-lg font-semibold text-gray-700 hover:text-gray-900">
+    <div className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100 border-b">
+      <div className="flex items-center gap-3">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onToggle}
+          className="p-1 h-8 w-8"
+        >
+          {expanded ? (
+            <ChevronDown className="h-4 w-4" />
+          ) : (
+            <ChevronRight className="h-4 w-4" />
+          )}
+        </Button>
+        
+        <h3 className="text-lg font-semibold text-gray-800">
           {name}
         </h3>
+        
+        {hasSubcategories && (
+          <span className="text-sm text-gray-500 bg-white px-2 py-1 rounded">
+            {category.subcategories?.length || 0} subcategorias
+          </span>
+        )}
       </div>
-      <AdminGuard showError={false}>
-        <div 
-          className="flex items-center"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8" disabled={isDeleting}>
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <AddCategory
-                  mode="edit"
-                  initialName={name}
-                  initialParentId={category.parentId}
-                  onEdit={onEdit}
-                  categories={categories}
-                />
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="text-red-600 focus:text-red-600"
-                onClick={handleDelete}
+
+      <AdminGuard>
+        <div className="flex items-center gap-2">
+          <AddCategory
+            mode="edit"
+            initialName={category.name}
+            initialParentId={category.parentId}
+            categories={categories}
+            onEdit={(newName, newParentId) => onEdit(category.id, newName, newParentId)}
+          />
+          
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
                 disabled={isDeleting}
               >
-                {isDeleting ? 'Excluindo...' : 'Excluir'}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Excluir categoria</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Tem certeza que deseja excluir a categoria "{name}"? 
+                  {hasSubcategories && " Esta ação também excluirá todas as subcategorias e prompts relacionados."}
+                  Esta ação não pode ser desfeita.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDelete}
+                  className="bg-red-600 hover:bg-red-700"
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? "Excluindo..." : "Excluir"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </AdminGuard>
     </div>
