@@ -1,9 +1,9 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { fetchAllDataOptimized, buildOptimizedCategoryTree, updatePromptRatingOptimistic, addCommentOptimistic } from '@/services/optimized/optimizedDataService';
 import type { Category } from '@/types/prompt';
+import { addPromptRating } from '@/services/rating/ratingService';
 
 const QUERY_KEY = ['optimized-data'];
 
@@ -30,31 +30,34 @@ export const useOptimizedData = (
       return buildOptimizedCategoryTree(categories, promptsWithComments);
     },
     staleTime: 5 * 60 * 1000, // 5 minutos
-    gcTime: 10 * 60 * 1000, // 10 minutos (nova API)
-    retry: 1, // Reduzir tentativas de retry
+    gcTime: 10 * 60 * 1000, // 10 minutos
+    retry: 1,
     retryDelay: 2000,
     refetchOnWindowFocus: false
   });
 
-  // Mutation otimística para rating
+  // Mutation otimística para rating (sistema de estrelas)
   const ratingMutation = useMutation({
-    mutationFn: ({ promptId, increment }: { promptId: string; increment: boolean }) =>
-      updatePromptRatingOptimistic(promptId, increment),
-    onMutate: async ({ promptId, increment }) => {
-      // Cancel outgoing refetches
+    mutationFn: async ({ promptId, rating }: { promptId: string; rating: number }) => {
+      const { error } = await addPromptRating(promptId, rating);
+      if (error) throw error;
+      return true;
+    },
+    onMutate: async ({ promptId, rating }) => {
       await queryClient.cancelQueries({ queryKey: currentQueryKey });
-
-      // Snapshot previous value
       const previousData = queryClient.getQueryData<Category[]>(currentQueryKey);
 
-      // Optimistically update
       if (previousData) {
         const updatePromptInCategory = (categories: Category[]): Category[] => {
           return categories.map(category => ({
             ...category,
             prompts: category.prompts.map(prompt =>
               prompt.id === promptId
-                ? { ...prompt, rating: prompt.rating + (increment ? 1 : -1) }
+                ? { 
+                    ...prompt, 
+                    ratingAverage: rating,
+                    ratingCount: (prompt.ratingCount || 0) + 1
+                  }
                 : prompt
             ),
             subcategories: category.subcategories ? updatePromptInCategory(category.subcategories) : []
@@ -67,14 +70,15 @@ export const useOptimizedData = (
       return { previousData };
     },
     onError: (err, variables, context) => {
-      // Rollback on error
       if (context?.previousData) {
         queryClient.setQueryData(currentQueryKey, context.previousData);
       }
       toast.error('Erro ao avaliar prompt');
     },
     onSuccess: () => {
-      toast.success('Prompt avaliado!');
+      toast.success('Avaliação registrada!');
+      // Recarregar dados para garantir sincronização
+      refetch();
     }
   });
 
@@ -126,11 +130,12 @@ export const useOptimizedData = (
     queryClient.invalidateQueries({ queryKey: QUERY_KEY });
   };
 
-  // Funções otimizadas
-  const ratePrompt = (promptId: string, increment: boolean) => {
-    ratingMutation.mutate({ promptId, increment });
+  // Função otimizada para rating com estrelas
+  const ratePrompt = (promptId: string, rating: number) => {
+    ratingMutation.mutate({ promptId, rating });
   };
 
+  // Função otimizada para adicionar comentários
   const addComment = (promptId: string, comment: string) => {
     commentMutation.mutate({ promptId, comment });
   };
@@ -150,7 +155,11 @@ export const useOptimizedData = (
     loading: isLoading,
     error: error?.message || null,
     refetch,
-    ratePrompt,
+    ratePrompt: (promptId: string, increment: boolean) => {
+      // Para compatibilidade, usar rating 5 quando increment=true, 1 quando false
+      const rating = increment ? 5 : 1;
+      ratePrompt(promptId, rating);
+    },
     addComment,
     invalidateData,
     nextPage,
@@ -158,7 +167,6 @@ export const useOptimizedData = (
     currentPage,
     limit,
     offset,
-    // Estados das mutations
     isRatingPrompt: ratingMutation.isPending,
     isAddingComment: commentMutation.isPending
   };

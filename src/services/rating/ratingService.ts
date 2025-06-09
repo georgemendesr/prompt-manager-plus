@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const addPromptRating = async (promptId: string, rating: number) => {
   try {
+    // Inserir nova avaliação
     const { data, error } = await supabase
       .from('prompt_ratings')
       .insert({
@@ -12,6 +13,14 @@ export const addPromptRating = async (promptId: string, rating: number) => {
       });
     
     if (error) throw error;
+
+    // Recalcular média usando função do banco
+    const { error: updateError } = await supabase.rpc('calculate_prompt_rating_average', {
+      prompt_uuid: promptId
+    });
+
+    if (updateError) throw updateError;
+
     return { data, error: null };
   } catch (error) {
     console.error('Erro ao adicionar avaliação:', error);
@@ -26,6 +35,8 @@ export const incrementCopyCount = async (promptId: string) => {
     });
     
     if (error) throw error;
+    
+    console.log('✅ Contador de cópias incrementado com sucesso');
     return { data, error: null };
   } catch (error) {
     console.error('Erro ao incrementar contador de cópias:', error);

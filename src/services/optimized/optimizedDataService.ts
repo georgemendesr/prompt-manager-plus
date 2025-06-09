@@ -1,4 +1,3 @@
-
 import { supabase } from "../base/supabaseService";
 import type { Category } from "@/types/prompt";
 import type { RawCategory } from "@/types/rawCategory";
@@ -35,7 +34,7 @@ export const fetchAllDataOptimized = async (
         .select('id, name, parent_id, created_at')
         .order('created_at', { ascending: true }),
       
-      // Buscar TODOS os prompts com seus comentários (remover paginação temporariamente para debug)
+      // Buscar prompts ordenados por rating_average (média de estrelas)
       supabase
         .from('prompts')
         .select(`
@@ -46,8 +45,13 @@ export const fetchAllDataOptimized = async (
           tags,
           background_color,
           created_at,
+          rating_average,
+          rating_count,
+          copy_count,
           comments:comments(id, text, created_at)
         `)
+        .order('rating_average', { ascending: false })
+        .order('rating_count', { ascending: false })
         .order('created_at', { ascending: false })
     ]);
 
@@ -64,26 +68,12 @@ export const fetchAllDataOptimized = async (
     const categories: RawCategory[] = categoriesResult.data || [];
     const promptsWithComments = promptsWithCommentsResult.data || [];
 
-    console.log(`✅ Dados carregados: ${categories.length} categorias, ${promptsWithComments.length} prompts (limit: ${limit}, offset: ${offset})`);
-    console.log('📊 Categorias encontradas:', categories.map(c => ({ id: c.id, name: c.name, parent_id: c.parent_id })));
-    console.log('📊 Prompts por categoria:', promptsWithComments.reduce((acc, p) => {
-      acc[p.category_id] = (acc[p.category_id] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>));
-
-    // Verificar se há dados
-    if (categories.length === 0) {
-      console.warn('⚠️ Nenhuma categoria encontrada no banco de dados');
-    }
-    if (promptsWithComments.length === 0) {
-      console.warn('⚠️ Nenhum prompt encontrado no banco de dados');
-    }
+    console.log(`✅ Dados carregados: ${categories.length} categorias, ${promptsWithComments.length} prompts (ordenados por rating)`);
 
     return { categories, promptsWithComments };
   } catch (error) {
     console.error('❌ Erro ao carregar dados otimizados:', error);
     
-    // Better error handling
     if (error instanceof Error) {
       if (error.message.includes('fetch') || 
           error.message.includes('network') || 
@@ -94,7 +84,6 @@ export const fetchAllDataOptimized = async (
       if (error.message.includes('timeout') || error.message.includes('Connection timeout')) {
         throw new Error('Timeout na conexão. O servidor pode estar sobrecarregado.');
       }
-      // Re-throw the error message as is if it's already formatted
       throw error;
     }
     
@@ -108,7 +97,6 @@ export const buildOptimizedCategoryTree = (
   promptsWithComments: DatabasePrompt[]
 ): Category[] => {
   console.log('🏗️ Construindo árvore de categorias...');
-  console.log('📥 Input:', { categoriesCount: categories.length, promptsCount: promptsWithComments.length });
   
   // Agrupar prompts por categoria
   const promptsByCategory = new Map<string, DatabasePrompt[]>();
@@ -119,17 +107,12 @@ export const buildOptimizedCategoryTree = (
     promptsByCategory.get(prompt.category_id)!.push(prompt);
   });
 
-  console.log('📝 Prompts agrupados por categoria:', Object.fromEntries(promptsByCategory.entries()));
-
   // Construir árvore recursivamente
   const buildTree = (parentId: string | null = null): Category[] => {
     const categoriesAtLevel = categories.filter(cat => cat.parent_id === parentId);
-    console.log(`🌲 Construindo nível com parentId=${parentId}, encontradas ${categoriesAtLevel.length} categorias`);
     
     return categoriesAtLevel.map(category => {
       const categoryPrompts = promptsByCategory.get(category.id) || [];
-      
-      console.log(`📁 Categoria "${category.name}" (${category.id}): ${categoryPrompts.length} prompts`);
       
       const builtCategory = {
         id: category.id,
@@ -144,38 +127,20 @@ export const buildOptimizedCategoryTree = (
           backgroundColor: prompt.background_color,
           comments: prompt.comments?.map(c => c.text) || [],
           createdAt: new Date(prompt.created_at),
-          selected: false
+          selected: false,
+          ratingAverage: prompt.rating_average || 0,
+          ratingCount: prompt.rating_count || 0,
+          copyCount: prompt.copy_count || 0
         })),
         subcategories: buildTree(category.id)
       };
 
-      console.log(`✅ Categoria "${category.name}" construída com ${builtCategory.prompts.length} prompts e ${builtCategory.subcategories?.length || 0} subcategorias`);
       return builtCategory;
     });
   };
 
   const result = buildTree();
-  console.log('🌳 Árvore construída:', result.map(c => ({ 
-    name: c.name, 
-    prompts: c.prompts.length, 
-    subcategories: c.subcategories?.length || 0 
-  })));
-  
-  // Verificar se há prompts na árvore construída
-  const totalPrompts = result.reduce((acc, cat) => {
-    const countRecursive = (category: Category): number => {
-      let count = category.prompts.length;
-      if (category.subcategories) {
-        category.subcategories.forEach(sub => {
-          count += countRecursive(sub);
-        });
-      }
-      return count;
-    };
-    return acc + countRecursive(cat);
-  }, 0);
-  
-  console.log(`📈 Total de prompts na árvore final: ${totalPrompts}`);
+  console.log('🌳 Árvore construída com ordenação por rating');
   
   return result;
 };
