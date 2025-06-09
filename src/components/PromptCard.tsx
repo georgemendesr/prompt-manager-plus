@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { toast } from "sonner";
 import { Card } from "./ui/card";
@@ -120,7 +119,7 @@ export const PromptCard = ({
   );
 
   // Usar o uniqueId se disponível, caso contrário gerar um
-  const displayId = prompt.uniqueId || `GEN-${String(prompt.rating + 1).padStart(3, '0')}`;
+  const displayId = prompt.uniqueId || `GEN-GEN-${String(prompt.rating + 1).padStart(3, '0')}`;
 
   // Determinar destaque visual para Top 10
   const getCardClasses = () => {
@@ -236,7 +235,7 @@ export const PromptCard = ({
           <div className="flex items-center gap-2">
             <CommentSection
               comments={[]}
-              hashtags={hashtags}
+              hashtags={[]}
               onAddComment={(comment) => {
                 onAddComment(prompt.id, comment);
                 toast.success("Comentário adicionado!");

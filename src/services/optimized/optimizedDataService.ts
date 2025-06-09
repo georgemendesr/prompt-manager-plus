@@ -1,4 +1,3 @@
-
 import { supabase } from "../base/supabaseService";
 import type { Category } from "@/types/prompt";
 import type { RawCategory } from "@/types/rawCategory";
@@ -97,17 +96,18 @@ export const fetchAllDataOptimized = async (
   }
 };
 
-// Função para gerar ID único para prompts
-const generateUniquePromptId = (prompt: DatabasePrompt, categoryName: string, index: number): string => {
+// Função para gerar ID único para prompts no formato CAT-SUB-###
+const generateUniquePromptId = (prompt: DatabasePrompt, categoryName: string, subcategoryName: string | null, index: number): string => {
   // Se já tem um simple_id salvo, usar ele
   if (prompt.simple_id) {
     return prompt.simple_id;
   }
   
-  // Gerar novo ID baseado na categoria
+  // Gerar novo ID baseado na categoria e subcategoria
   const catCode = categoryName.substring(0, 3).toUpperCase();
+  const subCode = subcategoryName ? subcategoryName.substring(0, 3).toUpperCase() : 'GEN';
   const promptNumber = String(index + 1).padStart(3, '0');
-  return `${catCode}-${promptNumber}`;
+  return `${catCode}-${subCode}-${promptNumber}`;
 };
 
 // Função para construir a árvore de categorias com prompts
@@ -143,6 +143,11 @@ export const buildOptimizedCategoryTree = (
         const countB = b.rating_count || 0;
         return countB - countA;
       });
+
+      // Encontrar categoria pai para gerar IDs corretos
+      const parentCategory = categories.find(cat => cat.id === category.parent_id);
+      const subcategoryName = parentCategory ? category.name : null;
+      const mainCategoryName = parentCategory ? parentCategory.name : category.name;
       
       const builtCategory = {
         id: category.id,
@@ -161,7 +166,7 @@ export const buildOptimizedCategoryTree = (
           ratingAverage: prompt.rating_average || 0,
           ratingCount: prompt.rating_count || 0,
           copyCount: prompt.copy_count || 0,
-          uniqueId: generateUniquePromptId(prompt, category.name, index)
+          uniqueId: generateUniquePromptId(prompt, mainCategoryName, subcategoryName, index)
         })),
         subcategories: buildTree(category.id)
       };
@@ -171,7 +176,7 @@ export const buildOptimizedCategoryTree = (
   };
 
   const result = buildTree();
-  console.log('🌳 Árvore construída com ordenação por rating');
+  console.log('🌳 Árvore construída com ordenação por rating e IDs no formato CAT-SUB-###');
   
   return result;
 };
