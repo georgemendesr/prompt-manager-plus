@@ -15,6 +15,7 @@ export type Prompt = {
   ratingAverage?: number; // Média das avaliações por estrelas
   ratingCount?: number; // Total de avaliações
   copyCount?: number; // Total de cópias
+  uniqueId?: string; // ID único para exibição
 };
 
 export type Category = {

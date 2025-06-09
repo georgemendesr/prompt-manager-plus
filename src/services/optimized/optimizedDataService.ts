@@ -1,3 +1,4 @@
+
 import { supabase } from "../base/supabaseService";
 import type { Category } from "@/types/prompt";
 import type { RawCategory } from "@/types/rawCategory";
@@ -11,6 +12,10 @@ interface DatabasePrompt {
   tags: string[] | null;
   background_color?: string;
   created_at: string;
+  rating_average?: number;
+  rating_count?: number;
+  copy_count?: number;
+  simple_id?: string;
   comments: Array<{
     id: string;
     text: string;
@@ -48,10 +53,11 @@ export const fetchAllDataOptimized = async (
           rating_average,
           rating_count,
           copy_count,
+          simple_id,
           comments:comments(id, text, created_at)
         `)
-        .order('rating_average', { ascending: false })
-        .order('rating_count', { ascending: false })
+        .order('rating_average', { ascending: false, nullsFirst: false })
+        .order('rating_count', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false })
     ]);
 
@@ -91,6 +97,19 @@ export const fetchAllDataOptimized = async (
   }
 };
 
+// Função para gerar ID único para prompts
+const generateUniquePromptId = (prompt: DatabasePrompt, categoryName: string, index: number): string => {
+  // Se já tem um simple_id salvo, usar ele
+  if (prompt.simple_id) {
+    return prompt.simple_id;
+  }
+  
+  // Gerar novo ID baseado na categoria
+  const catCode = categoryName.substring(0, 3).toUpperCase();
+  const promptNumber = String(index + 1).padStart(3, '0');
+  return `${catCode}-${promptNumber}`;
+};
+
 // Função para construir a árvore de categorias com prompts
 export const buildOptimizedCategoryTree = (
   categories: RawCategory[],
@@ -114,11 +133,22 @@ export const buildOptimizedCategoryTree = (
     return categoriesAtLevel.map(category => {
       const categoryPrompts = promptsByCategory.get(category.id) || [];
       
+      // Ordenar prompts por rating_average (maiores primeiro)
+      const sortedPrompts = [...categoryPrompts].sort((a, b) => {
+        const ratingA = a.rating_average || 0;
+        const ratingB = b.rating_average || 0;
+        if (ratingA !== ratingB) return ratingB - ratingA;
+        
+        const countA = a.rating_count || 0;
+        const countB = b.rating_count || 0;
+        return countB - countA;
+      });
+      
       const builtCategory = {
         id: category.id,
         name: category.name,
         parentId: category.parent_id || undefined,
-        prompts: categoryPrompts.map(prompt => ({
+        prompts: sortedPrompts.map((prompt, index) => ({
           id: prompt.id,
           text: prompt.text,
           category: category.name,
@@ -130,7 +160,8 @@ export const buildOptimizedCategoryTree = (
           selected: false,
           ratingAverage: prompt.rating_average || 0,
           ratingCount: prompt.rating_count || 0,
-          copyCount: prompt.copy_count || 0
+          copyCount: prompt.copy_count || 0,
+          uniqueId: generateUniquePromptId(prompt, category.name, index)
         })),
         subcategories: buildTree(category.id)
       };
