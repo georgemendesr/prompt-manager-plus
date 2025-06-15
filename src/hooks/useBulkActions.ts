@@ -1,213 +1,163 @@
+
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import type { Category } from "@/types/prompt";
 import { toast } from "sonner";
+import type { Category } from "@/types/prompt";
 
-export const useBulkActions = (categories: Category[], setCategories: (categories: Category[]) => void) => {
-  const findCategoryById = (categories: Category[], categoryId: string): Category | undefined => {
-    for (const category of categories) {
-      if (category.id === categoryId) return category;
-      if (category.subcategories) {
-        const found = findCategoryById(category.subcategories, categoryId);
-        if (found) return found;
-      }
-    }
-    return undefined;
-  };
+export const useBulkActions = (
+  categories: Category[],
+  setCategories: React.Dispatch<React.SetStateAction<Category[]>>
+) => {
+  const [importing, setImporting] = useState(false);
 
-  const bulkImportPrompts = async (
-    prompts: { text: string; tags: string[] }[],
-    categoryId: string
-  ) => {
-    try {
-      const category = findCategoryById(categories, categoryId);
-      if (!category) return;
-
-<<<<<<< HEAD
-      // Filtrar e limpar as tags para garantir que sejam apenas strings válidas
-      // e não incluir o campo simple_id para evitar erros de tipo
-      const newPrompts = prompts.map(p => ({
-        text: p.text,
-        tags: p.tags.filter(tag => typeof tag === 'string'),
-        category_id: categoryId,
-        rating: 0,
-        // Não incluir simple_id para evitar erro de tipo
-        // O simple_id será gerado pelo banco de dados ou trigger
-      }));
-
-      console.log('Dados a serem importados:', JSON.stringify(newPrompts.slice(0, 2)));
-
-      // Verificar se há algum prompt com texto muito longo
-      const longPrompts = newPrompts.filter(p => p.text.length > 5000);
-      if (longPrompts.length > 0) {
-        console.warn(`${longPrompts.length} prompts têm texto muito longo (>5000 caracteres)`);
-      }
-
-      // Usar SQL bruto para inserir os prompts, evitando problemas com o campo simple_id
-      const insertedPrompts = [];
-      
-      // Inserir um prompt de cada vez para identificar qual está causando o problema
-      for (const [index, prompt] of newPrompts.entries()) {
-        try {
-          console.log(`Tentando inserir prompt ${index + 1}/${newPrompts.length}`);
-          
-          // Usar método de inserção específico que não tenta definir simple_id
-          const { data, error } = await supabase
-            .from('prompts')
-            .insert({
-              text: prompt.text,
-              tags: prompt.tags,
-              category_id: prompt.category_id,
-              rating: prompt.rating
-            })
-            .select();
-          
-          if (error) {
-            console.error(`Erro ao inserir prompt ${index + 1}:`, error);
-            continue; // Continuar com o próximo prompt
-          }
-          
-          if (data && data.length > 0) {
-            insertedPrompts.push(data[0]);
-          }
-        } catch (err) {
-          console.error(`Erro ao processar prompt ${index + 1}:`, err);
+  const findCategoryByName = (name: string): Category | undefined => {
+    const searchInCategories = (cats: Category[]): Category | undefined => {
+      for (const cat of cats) {
+        if (cat.name.toLowerCase() === name.toLowerCase()) {
+          return cat;
+        }
+        if (cat.subcategories) {
+          const found = searchInCategories(cat.subcategories);
+          if (found) return found;
         }
       }
+      return undefined;
+    };
+    return searchInCategories(categories);
+  };
+
+  const bulkImportPrompts = async (prompts: { text: string; tags: string[] }[], categoryName: string) => {
+    try {
+      setImporting(true);
+      const targetCategory = findCategoryByName(categoryName);
       
-      console.log(`Inseridos ${insertedPrompts.length} de ${newPrompts.length} prompts`);
-      
-      if (insertedPrompts.length === 0) {
-        throw new Error('Nenhum prompt foi inserido');
+      if (!targetCategory) {
+        toast.error(`Categoria "${categoryName}" não encontrada`);
+        return;
       }
-=======
-      const newPrompts = prompts.map(p => ({
-        text: p.text,
-        tags: p.tags,
-        category_id: categoryId,
-        rating: 0,
+
+      const promptsToInsert = prompts.map(prompt => ({
+        text: prompt.text,
+        category_id: targetCategory.id,
+        tags: prompt.tags,
+        rating: 0
       }));
 
       const { data, error } = await supabase
-        .from('prompts')
-        .insert(newPrompts)
+        .from("prompts")
+        .insert(promptsToInsert)
         .select();
 
-      if (error) throw error;
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
-
-      const updateCategoriesRecursively = (cats: Category[]): Category[] => {
-        return cats.map(c => {
-          if (c.id === categoryId) {
-            return {
-              ...c,
-              prompts: [
-                ...c.prompts,
-<<<<<<< HEAD
-                ...insertedPrompts.map((p) => ({
-=======
-                ...data.map((p) => ({
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
-                  id: p.id,
-                  text: p.text,
-                  category: c.name,
-                  rating: 0,
-                  tags: p.tags || [],
-                  comments: [],
-                  createdAt: new Date(p.created_at),
-                  selected: false,
-                })),
-              ],
-            };
-          }
-          if (c.subcategories?.length) {
-            return {
-              ...c,
-              subcategories: updateCategoriesRecursively(c.subcategories)
-            };
-          }
-          return c;
-        });
-      };
-
-      setCategories(updateCategoriesRecursively(categories));
-<<<<<<< HEAD
-      
-      if (insertedPrompts.length === newPrompts.length) {
-        toast.success(`${insertedPrompts.length} prompts importados com sucesso!`);
-      } else {
-        toast.warning(`${insertedPrompts.length} de ${newPrompts.length} prompts importados. Alguns prompts não puderam ser importados.`);
+      if (error) {
+        console.error("Erro ao importar prompts:", error);
+        toast.error("Erro ao importar prompts");
+        return;
       }
+
+      const newPrompts = data.map(prompt => ({
+        id: prompt.id,
+        text: prompt.text,
+        category: targetCategory.name,
+        rating: prompt.rating,
+        tags: prompt.tags || [],
+        backgroundColor: prompt.background_color,
+        comments: [],
+        createdAt: new Date(prompt.created_at),
+        selected: false,
+        ratingAverage: 0,
+        ratingCount: 0,
+        copyCount: 0,
+        uniqueId: prompt.simple_id || `${targetCategory.name.substring(0, 3).toUpperCase()}-GEN-${String(prompt.id).padStart(3, '0')}`
+      }));
+
+      setCategories(prevCategories => {
+        const updateCategoryPrompts = (cats: Category[]): Category[] => {
+          return cats.map(cat => {
+            if (cat.id === targetCategory.id) {
+              return {
+                ...cat,
+                prompts: [...cat.prompts, ...newPrompts]
+              };
+            }
+            if (cat.subcategories) {
+              return {
+                ...cat,
+                subcategories: updateCategoryPrompts(cat.subcategories)
+              };
+            }
+            return cat;
+          });
+        };
+        return updateCategoryPrompts(prevCategories);
+      });
+
+      toast.success(`${prompts.length} prompts importados com sucesso!`);
     } catch (error) {
-      console.error('Erro ao importar prompts:', error);
-      toast.error(`Erro ao importar prompts: ${error.message || 'Erro desconhecido'}`);
-=======
-      toast.success('Prompts importados com sucesso!');
-    } catch (error) {
-      console.error('Erro ao importar prompts:', error);
-      toast.error('Erro ao importar prompts');
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
+      console.error("Erro ao importar prompts:", error);
+      toast.error("Erro ao importar prompts");
+    } finally {
+      setImporting(false);
     }
   };
 
-  const deleteSelectedPrompts = async (categoryId: string) => {
+  const deleteSelectedPrompts = async (categoryName: string) => {
     try {
-      console.log('Tentando excluir prompts da categoria:', categoryId);
+      const targetCategory = findCategoryByName(categoryName);
+      if (!targetCategory) {
+        toast.error(`Categoria "${categoryName}" não encontrada`);
+        return;
+      }
+
+      const selectedPrompts = targetCategory.prompts.filter(p => p.selected);
+      if (selectedPrompts.length === 0) {
+        toast.error("Nenhum prompt selecionado");
+        return;
+      }
+
+      const promptIds = selectedPrompts.map(p => p.id);
       
-      const category = findCategoryById(categories, categoryId);
-      if (!category) {
-        console.error('Categoria não encontrada:', categoryId);
-        return;
-      }
-
-      const selectedPromptIds = category.prompts
-        .filter(p => p.selected)
-        .map(p => p.id);
-
-      if (selectedPromptIds.length === 0) {
-        console.log('Nenhum prompt selecionado para exclusão');
-        return;
-      }
-
-      console.log('Prompts selecionados para exclusão:', selectedPromptIds);
-
       const { error } = await supabase
-        .from('prompts')
+        .from("prompts")
         .delete()
-        .in('id', selectedPromptIds);
+        .in("id", promptIds);
 
       if (error) {
-        console.error('Erro ao excluir no Supabase:', error);
-        throw error;
+        console.error("Erro ao deletar prompts:", error);
+        toast.error("Erro ao deletar prompts");
+        return;
       }
 
-      const updateCategoriesRecursively = (cats: Category[]): Category[] => {
-        return cats.map(c => {
-          if (c.id === categoryId) {
-            return {
-              ...c,
-              prompts: c.prompts.filter((prompt) => !prompt.selected),
-            };
-          }
-          if (c.subcategories?.length) {
-            return {
-              ...c,
-              subcategories: updateCategoriesRecursively(c.subcategories)
-            };
-          }
-          return c;
-        });
-      };
+      setCategories(prevCategories => {
+        const updateCategoryPrompts = (cats: Category[]): Category[] => {
+          return cats.map(cat => {
+            if (cat.id === targetCategory.id) {
+              return {
+                ...cat,
+                prompts: cat.prompts.filter(p => !p.selected)
+              };
+            }
+            if (cat.subcategories) {
+              return {
+                ...cat,
+                subcategories: updateCategoryPrompts(cat.subcategories)
+              };
+            }
+            return cat;
+          });
+        };
+        return updateCategoryPrompts(prevCategories);
+      });
 
-      setCategories(updateCategoriesRecursively(categories));
-      toast.success('Prompts excluídos com sucesso!');
+      toast.success(`${selectedPrompts.length} prompts deletados com sucesso!`);
     } catch (error) {
-      console.error('Erro ao excluir prompts:', error);
-      toast.error('Erro ao excluir prompts');
+      console.error("Erro ao deletar prompts:", error);
+      toast.error("Erro ao deletar prompts");
     }
   };
 
   return {
     bulkImportPrompts,
-    deleteSelectedPrompts
+    deleteSelectedPrompts,
+    importing
   };
 };
