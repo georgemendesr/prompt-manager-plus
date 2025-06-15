@@ -38,61 +38,6 @@ export type Database = {
           },
         ]
       }
-<<<<<<< HEAD
-      text_categories: {
-        Row: {
-          id: string
-          name: string
-          parent_id: string | null
-        }
-        Insert: {
-          id?: string
-          name: string
-          parent_id?: string | null
-        }
-        Update: {
-          id?: string
-          name?: string
-          parent_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "text_categories_parent_id_fkey"
-            columns: ["parent_id"]
-            isOneToOne: false
-            referencedRelation: "text_categories"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      image_categories: {
-        Row: {
-          id: string
-          name: string
-          parent_id: string | null
-        }
-        Insert: {
-          id?: string
-          name: string
-          parent_id?: string | null
-        }
-        Update: {
-          id?: string
-          name?: string
-          parent_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "image_categories_parent_id_fkey"
-            columns: ["parent_id"]
-            isOneToOne: false
-            referencedRelation: "image_categories"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-=======
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
       cities: {
         Row: {
           country_id: number
@@ -202,6 +147,73 @@ export type Database = {
         }
         Relationships: []
       }
+      image_categories: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          parent_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          parent_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          parent_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "image_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "image_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      image_prompts: {
+        Row: {
+          ai_hint: string | null
+          blocks: Json
+          category_id: string | null
+          created_at: string | null
+          id: string
+          title: string | null
+          type: string
+        }
+        Insert: {
+          ai_hint?: string | null
+          blocks?: Json
+          category_id?: string | null
+          created_at?: string | null
+          id?: string
+          title?: string | null
+          type: string
+        }
+        Update: {
+          ai_hint?: string | null
+          blocks?: Json
+          category_id?: string | null
+          created_at?: string | null
+          id?: string
+          title?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "image_prompts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "image_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       links: {
         Row: {
           created_at: string
@@ -243,6 +255,35 @@ export type Database = {
           title?: string | null
         }
         Relationships: []
+      }
+      music_categories: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          parent_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          parent_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          parent_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "music_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "music_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       music_requests: {
         Row: {
@@ -405,6 +446,7 @@ export type Database = {
           simple_id: string | null
           tags: string[] | null
           text: string
+          translated_text: string | null
         }
         Insert: {
           background_color?: string | null
@@ -418,6 +460,7 @@ export type Database = {
           simple_id?: string | null
           tags?: string[] | null
           text: string
+          translated_text?: string | null
         }
         Update: {
           background_color?: string | null
@@ -431,6 +474,7 @@ export type Database = {
           simple_id?: string | null
           tags?: string[] | null
           text?: string
+          translated_text?: string | null
         }
         Relationships: [
           {
@@ -468,6 +512,67 @@ export type Database = {
           tags?: string[] | null
         }
         Relationships: []
+      }
+      text_categories: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          parent_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          parent_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          parent_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "text_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "text_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      text_prompts: {
+        Row: {
+          blocks: Json
+          category_id: string | null
+          created_at: string | null
+          id: string
+          title: string | null
+        }
+        Insert: {
+          blocks?: Json
+          category_id?: string | null
+          created_at?: string | null
+          id?: string
+          title?: string | null
+        }
+        Update: {
+          blocks?: Json
+          category_id?: string | null
+          created_at?: string | null
+          id?: string
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "text_prompts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "text_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

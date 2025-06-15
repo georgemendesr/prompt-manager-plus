@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-=======
 
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -30,27 +27,8 @@ export const useOptimizedData = (
   } = useQuery({
     queryKey: currentQueryKey,
     queryFn: async () => {
-<<<<<<< HEAD
-      try {
-        // Tentar carregar dados otimizados primeiro
-        console.log('🔄 [OPT] Carregando dados otimizados...');
-        const { categories, promptsWithComments } = await fetchAllDataOptimized();
-        
-        // Construir a árvore de categorias
-        const categoryTree = await buildOptimizedCategoryTree(categories, promptsWithComments);
-        
-        // Aplicar paginação na árvore de categorias - apenas para debugging
-        console.log(`✅ [OPT] Árvore construída com ${categoryTree.length} categorias principais, paginação: offset=${offset}, limit=${limit}`);
-        
-        return categoryTree;
-      } catch (error) {
-        console.log(`❌ [OPT] erro na consulta`, error);
-        throw error;
-      }
-=======
       const { categories, promptsWithComments } = await fetchAllDataOptimized(limit, offset);
       return buildOptimizedCategoryTree(categories, promptsWithComments);
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
     },
     staleTime: 5 * 60 * 1000, // 5 minutos
     gcTime: 10 * 60 * 1000, // 10 minutos
