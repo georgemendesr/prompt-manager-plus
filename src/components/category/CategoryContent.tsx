@@ -1,247 +1,98 @@
-<<<<<<< HEAD
-import { CategorySearch } from "./CategorySearch";
-import { CategoryActions } from "@/components/CategoryActions";
-import { PromptCard } from "@/components/PromptCard";
-import { Input } from '@/components/ui/input';
-import type { Category, Prompt } from "@/types/prompt";
-import { toast } from "sonner";
-=======
 
+import { CategoryActions } from "../CategoryActions";
+import { PromptCard } from "../PromptCard";
 import { CategorySearch } from "./CategorySearch";
-import { CategoryActions } from "@/components/CategoryActions";
-import { PromptCard } from "@/components/PromptCard";
+import { AdminGuard } from "../AdminGuard";
+import { AddCategory } from "../AddCategory";
 import type { Category, Prompt } from "@/types/prompt";
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 
 interface CategoryContentProps {
   category: Category;
-  level: number;
-  searchTerm: string;
-<<<<<<< HEAD
-  setSearchTerm: (term: string) => void;
   categories: Category[];
+  filteredPrompts: Prompt[];
+  hasSelectedPrompts: boolean;
   onRatePrompt: (id: string, increment: boolean) => void;
   onAddComment: (id: string, comment: string) => void;
-  onMovePrompt: (id: string, targetCategoryId: string) => void;
-  onTogglePromptSelection: (id: string, selected: boolean) => void;
-  onToggleSelectAll: (selected: boolean) => void;
-  onDeleteSelectedPrompts: () => void;
-  onUpdatePrompt?: (id: string, newText: string) => void;
-  onRefreshRequired: () => void;
-=======
-  setSearchTerm: (value: string) => void;
-  categories: Category[];
-  onRatePrompt: (id: string, increment: boolean) => void;
-  onAddComment: (id: string, comment: string) => void;
-  onMovePrompt: (promptId: string, targetCategoryId: string) => void;
+  onEditPrompt: (id: string, newText: string) => Promise<void>;
+  onMovePrompt: (promptId: string, targetCategoryId: string) => Promise<void>;
   onTogglePromptSelection: (id: string, selected: boolean) => void;
   onToggleSelectAll: (categoryName: string, selected: boolean) => void;
-  onDeleteSelectedPrompts: (categoryName: string) => void;
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
+  onDeleteSelectedPrompts: (categoryName: string) => Promise<void>;
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
 }
 
 export const CategoryContent = ({
   category,
-  level,
-  searchTerm,
-  setSearchTerm,
   categories,
+  filteredPrompts,
+  hasSelectedPrompts,
   onRatePrompt,
   onAddComment,
+  onEditPrompt,
   onMovePrompt,
   onTogglePromptSelection,
   onToggleSelectAll,
   onDeleteSelectedPrompts,
-<<<<<<< HEAD
-  onUpdatePrompt,
-  onRefreshRequired,
+  searchTerm,
+  setSearchTerm
 }: CategoryContentProps) => {
-  // Função para gerar o ID sequencial
-  const generateUniqueId = (prompt: Prompt, allPromptsInCategory: Prompt[]) => {
-    let categoryName = 'PROMPT';
-    const structureComment = prompt.comments.find(c => c.startsWith('[') && c.endsWith(']'));
-      
-    if (structureComment) {
-      categoryName = structureComment.slice(1, -1);
-    } else if (prompt.category) {
-      categoryName = prompt.category;
-    }
-
-    const words = categoryName.toUpperCase().replace(/[^A-Z\s]/g, '').split(' ').filter(Boolean);
-    let categoryCode = '';
-
-    if (words.length >= 2) {
-      categoryCode = words[0].substring(0, 3) + words[1].substring(0, 3);
-    } else if (words.length === 1) {
-      categoryCode = words[0].substring(0, 6);
-    } else {
-      categoryCode = 'GEN';
-    }
-
-    // Filtra os prompts da mesma "subcategoria" para encontrar o índice sequencial
-    const promptsInSameSubcategory = allPromptsInCategory.filter(p => {
-      let pCategoryName = 'PROMPT';
-      const pStructureComment = p.comments.find(c => c.startsWith('[') && c.endsWith(']'));
-      if (pStructureComment) {
-        pCategoryName = pStructureComment.slice(1, -1);
-      } else if (p.category) {
-        pCategoryName = p.category;
-      }
-      return pCategoryName === categoryName;
-    });
-
-    const sequentialIndex = promptsInSameSubcategory.findIndex(p => p.id === prompt.id);
-    // Adiciona 1 para o índice não ser zero-based e formata
-    const promptNumber = String(sequentialIndex + 1).padStart(3, '0');
-
-    return `${categoryCode}-${promptNumber}`;
-  };
-  
-  // Atribui o uniqueId a cada prompt ANTES de filtrar ou ordenar
-  const promptsWithUniqueId = category.prompts.map(p => ({
-    ...p,
-    uniqueId: generateUniqueId(p, category.prompts)
-  }));
-
-  // Filtrar os prompts se houver termo de busca
-  const filteredPrompts = searchTerm
-    ? promptsWithUniqueId.filter(prompt => 
-        prompt.text.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        prompt.comments.some(comment => 
-          comment.toLowerCase().includes(searchTerm.toLowerCase())
-        ) ||
-        prompt.tags.some(tag => 
-          tag.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      )
-    : promptsWithUniqueId;
-
-  // Ordenar prompts primeiro por avaliação média (ratingAverage) e depois por número de cópias (copyCount) - do maior para o menor
-  const sortedPrompts = [...filteredPrompts].sort((a, b) => {
-    const ratingA = a.ratingAverage || 0;
-    const ratingB = b.ratingAverage || 0;
-    
-    // Se as avaliações forem diferentes, ordena por avaliação
-    if (ratingA !== ratingB) {
-      return ratingB - ratingA; // Maior para menor
-    }
-    
-    // Se as avaliações forem iguais, ordena por número de cópias
-    const copyA = a.copyCount || 0;
-    const copyB = b.copyCount || 0;
-    return copyB - copyA; // Maior para menor
-  });
-
-  // Função para lidar com atualizações de prompt incluindo traduções
-  const handleUpdatePrompt = (id: string, updates: any) => {
-    console.log('[CATEGORY] Atualizando prompt:', id, updates);
-    
-    // Se tiver uma função de atualização de texto e o update inclui texto
-    if (onUpdatePrompt && 'text' in updates) {
-      onUpdatePrompt(id, updates.text);
-    }
-    
-    // Para outras atualizações, como traduções, precisamos apenas atualizar o estado
-    if ('translatedText' in updates) {
-      console.log('[CATEGORY] Atualizando tradução do prompt:', id, updates.translatedText.substring(0, 30) + '...');
-      // O PromptCard já salvou a tradução no banco, só precisamos atualizar a UI
-      // Podemos fazer isso chamando o refresh se necessário
-      onRefreshRequired();
-    }
-  };
-
   return (
-    <div className="space-y-3 sm:space-y-4">
-      {level === 0 && (
-        <Input
-          type="text"
-          placeholder="Buscar prompts nesta categoria..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="mb-3 sm:mb-4"
-=======
-}: CategoryContentProps) => {
-  // Primeiro aplicamos a busca
-  const filteredPrompts = category.prompts.filter(prompt => 
-    prompt.text.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    prompt.comments.some(comment => 
-      comment.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  );
+    <div className="space-y-4">
+      <CategorySearch 
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        categoryName={category.name}
+      />
 
-  // Ordenamos os prompts por pontuação, do maior para o menor
-  const orderedPrompts = [...filteredPrompts]
-    .sort((a, b) => (b.rating || 0) - (a.rating || 0))
-    // Atribuímos o ranking a cada prompt após a ordenação
-    .map((prompt, index) => ({
-      ...prompt,
-      rank: index + 1
-    }));
+      <div className="flex gap-2 items-center">
+        <AdminGuard>
+          <AddCategory 
+            onAdd={async (name: string, parentId?: string) => {
+              // Implementation would be handled by parent component
+              return true;
+            }}
+            categories={categories}
+            mode="add"
+          />
+        </AdminGuard>
+      </div>
 
-  return (
-    <div className="space-y-6">
-      {level === 0 && (
-        <CategorySearch 
-          value={searchTerm} 
-          onChange={(value) => setSearchTerm(value)} 
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
+      {filteredPrompts.length > 0 && (
+        <CategoryActions
+          prompts={filteredPrompts}
+          onSelectAll={(selected) => onToggleSelectAll(category.name, selected)}
+          onDelete={() => onDeleteSelectedPrompts(category.name)}
+          onMove={onMovePrompt ? (targetId) => {
+            const selectedPrompts = filteredPrompts.filter(p => p.selected);
+            selectedPrompts.forEach(prompt => onMovePrompt(prompt.id, targetId));
+          } : undefined}
+          categories={categories}
+          currentCategoryId={category.id}
         />
       )}
 
-      <CategoryActions
-        prompts={category.prompts}
-<<<<<<< HEAD
-        onSelectAll={(checked) => onToggleSelectAll(checked)}
-        onDelete={() => onDeleteSelectedPrompts()}
-=======
-        onSelectAll={(checked) => onToggleSelectAll(category.name, checked)}
-        onDelete={() => onDeleteSelectedPrompts(category.name)}
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
-        onMove={(targetCategoryId) => {
-          const selectedPrompts = category.prompts.filter(p => p.selected);
-          selectedPrompts.forEach(prompt => onMovePrompt(prompt.id, targetCategoryId));
-        }}
-        categories={categories}
-        currentCategoryId={category.id}
-      />
-
-<<<<<<< HEAD
-      <div className="grid gap-3 sm:gap-6">
-        {sortedPrompts.map((prompt) => (
-=======
-      <div className="grid gap-6">
-        {orderedPrompts.map((prompt) => (
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
-          <PromptCard
-            key={prompt.id}
-            prompt={prompt}
-            onRate={onRatePrompt}
-            onAddComment={onAddComment}
-            onSelect={onTogglePromptSelection}
-            selected={prompt.selected || false}
-            categories={categories}
-            searchTerm={searchTerm}
-<<<<<<< HEAD
-            onPromptUpdate={onRefreshRequired}
-            onUpdatePrompt={handleUpdatePrompt}
-            onDeletePrompt={() => {}}
-            onMovePrompt={onMovePrompt}
-=======
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
-          />
-        ))}
+      <div className="grid gap-4 sm:gap-6">
+        {filteredPrompts.length === 0 ? (
+          <div className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg">
+            {searchTerm ? "Nenhum prompt encontrado com o termo pesquisado" : "Nenhum prompt nesta categoria ainda"}
+          </div>
+        ) : (
+          filteredPrompts.map((prompt) => (
+            <PromptCard
+              key={prompt.id}
+              prompt={prompt}
+              onRate={(increment) => onRatePrompt(prompt.id, increment)}
+              onAddComment={(comment) => onAddComment(prompt.id, comment)}
+              onEdit={(newText) => onEditPrompt(prompt.id, newText)}
+              onSelect={(selected) => onTogglePromptSelection(prompt.id, selected)}
+              onMove={onMovePrompt ? (targetId) => onMovePrompt(prompt.id, targetId) : undefined}
+              categories={categories}
+              currentCategoryId={category.id}
+            />
+          ))
+        )}
       </div>
-
-<<<<<<< HEAD
-      {sortedPrompts.length === 0 && (!category.subcategories || category.subcategories.length === 0) && (
-        <div className="text-center py-4 sm:py-6 text-gray-500 bg-gray-50/50 rounded-lg">
-=======
-      {orderedPrompts.length === 0 && (!category.subcategories || category.subcategories.length === 0) && (
-        <div className="text-center py-8 text-gray-500 bg-gray-50/50 rounded-lg backdrop-blur-sm">
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
-          {searchTerm ? "Nenhum prompt encontrado" : "Nenhum prompt nesta categoria ainda"}
-        </div>
-      )}
     </div>
   );
 };

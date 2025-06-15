@@ -1,109 +1,112 @@
-<<<<<<< HEAD
-=======
 
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
-import type { Category } from "@/types/prompt";
-import type { ImagePromptInsert } from "@/types/imagePrompt";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ImagePromptLayerEditor } from "./ImagePromptLayerEditor";
+import type { ImageCategory } from "@/types/imageCategory";
 
 interface ImagePromptFormProps {
-  categories: Category[];
-  onSubmit: (data: ImagePromptInsert) => Promise<void>;
+  categories: ImageCategory[];
+  onSubmit: (data: {
+    text: string;
+    categoryId: string;
+    tags: string[];
+    layers: any[];
+    style?: string;
+    aspectRatio?: string;
+  }) => Promise<void>;
   onCancel: () => void;
 }
 
-export const ImagePromptForm = ({ categories, onSubmit, onCancel }: ImagePromptFormProps) => {
-  const [title, setTitle] = useState('');
-<<<<<<< HEAD
-  const [promptText, setPromptText] = useState('');
-=======
-  const [body, setBody] = useState('');
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
-  const [categoryId, setCategoryId] = useState('');
+export const ImagePromptForm = ({
+  categories,
+  onSubmit,
+  onCancel
+}: ImagePromptFormProps) => {
+  const [text, setText] = useState("");
+  const [categoryId, setCategoryId] = useState("");
   const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState('');
-  const [score, setScore] = useState(3);
-  const [favorite, setFavorite] = useState(false);
-<<<<<<< HEAD
-  const [imageUrl, setImageUrl] = useState('');
-=======
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
-  const [loading, setLoading] = useState(false);
-
-  const handleAddTag = () => {
-    const tag = tagInput.trim();
-    if (tag && !tags.includes(tag)) {
-      setTags([...tags, tag]);
-      setTagInput('');
-    }
-  };
-
-  const handleRemoveTag = (index: number) => {
-    setTags(tags.filter((_, i) => i !== index));
-  };
+  const [layers, setLayers] = useState<any[]>([]);
+  const [style, setStyle] = useState("");
+  const [aspectRatio, setAspectRatio] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-<<<<<<< HEAD
-    if (!title.trim() || !promptText.trim() || !categoryId) return;
-=======
-    if (!title.trim() || !body.trim() || !categoryId) return;
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
+    if (!text.trim() || !categoryId) return;
 
-    setLoading(true);
+    setIsSubmitting(true);
     try {
       await onSubmit({
-        title: title.trim(),
-<<<<<<< HEAD
-        prompt_text: promptText.trim(),
-        category_id: categoryId,
+        text: text.trim(),
+        categoryId,
         tags,
-        score,
-        favorite,
-        image_url: imageUrl.trim() || undefined
-=======
-        body: body.trim(),
-        category_id: categoryId,
-        tags,
-        score,
-        favorite
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
+        layers,
+        style,
+        aspectRatio
       });
+      
+      // Reset form
+      setText("");
+      setCategoryId("");
+      setTags([]);
+      setLayers([]);
+      setStyle("");
+      setAspectRatio("");
+    } catch (error) {
+      console.error("Erro ao criar prompt de imagem:", error);
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
+
+  const getAllCategories = (cats: ImageCategory[], level = 0): ImageCategory[] => {
+    return cats.reduce((acc: ImageCategory[], category) => {
+      acc.push({ ...category, level });
+      if (category.subcategories) {
+        acc.push(...getAllCategories(category.subcategories, level + 1));
+      }
+      return acc;
+    }, []);
+  };
+
+  const allCategories = getAllCategories(categories);
 
   return (
     <Card className="p-6">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-2">Título</label>
-          <Input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Digite o título do prompt"
+          <Label htmlFor="text">Prompt de Imagem</Label>
+          <Textarea
+            id="text"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Descreva a imagem que deseja gerar..."
             required
+            className="min-h-[100px]"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">Categoria</label>
+          <Label htmlFor="category">Categoria</Label>
           <Select value={categoryId} onValueChange={setCategoryId} required>
             <SelectTrigger>
               <SelectValue placeholder="Selecione uma categoria" />
             </SelectTrigger>
             <SelectContent>
-              {categories.map((category) => (
+              {allCategories.map((category) => (
                 <SelectItem key={category.id} value={category.id}>
-                  {category.name}
+                  {"  ".repeat(category.level || 0)}{category.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -111,94 +114,47 @@ export const ImagePromptForm = ({ categories, onSubmit, onCancel }: ImagePromptF
         </div>
 
         <div>
-<<<<<<< HEAD
-          <label className="block text-sm font-medium mb-2">Prompt de Imagem</label>
-          <Textarea
-            value={promptText}
-            onChange={(e) => setPromptText(e.target.value)}
-            placeholder="Digite o prompt para geração de imagem"
-=======
-          <label className="block text-sm font-medium mb-2">Descrição/Prompt</label>
-          <Textarea
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            placeholder="Digite a descrição ou prompt para geração de imagem"
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
-            rows={4}
-            required
-          />
-        </div>
-
-        <div>
-<<<<<<< HEAD
-          <label className="block text-sm font-medium mb-2">URL da Imagem (opcional)</label>
+          <Label htmlFor="style">Estilo (opcional)</Label>
           <Input
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            placeholder="URL de uma imagem gerada com este prompt"
+            id="style"
+            value={style}
+            onChange={(e) => setStyle(e.target.value)}
+            placeholder="Ex: realista, cartoon, pintura a óleo..."
           />
         </div>
 
         <div>
-=======
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
-          <label className="block text-sm font-medium mb-2">Tags</label>
-          <div className="flex gap-2 mb-2">
-            <Input
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              placeholder="Digite uma tag"
-              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
-            />
-            <Button type="button" onClick={handleAddTag} variant="outline">
-              Adicionar
-            </Button>
-          </div>
-          {tags.length > 0 && (
-            <div className="flex flex-wrap gap-1">
-              {tags.map((tag, index) => (
-                <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                  {tag}
-                  <X
-                    className="h-3 w-3 cursor-pointer"
-                    onClick={() => handleRemoveTag(index)}
-                  />
-                </Badge>
-              ))}
-            </div>
-          )}
+          <Label htmlFor="aspectRatio">Proporção (opcional)</Label>
+          <Select value={aspectRatio} onValueChange={setAspectRatio}>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione uma proporção" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1:1">Quadrado (1:1)</SelectItem>
+              <SelectItem value="16:9">Paisagem (16:9)</SelectItem>
+              <SelectItem value="9:16">Retrato (9:16)</SelectItem>
+              <SelectItem value="4:3">Clássico (4:3)</SelectItem>
+              <SelectItem value="3:2">Fotografia (3:2)</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">Pontuação (0-5)</label>
-            <Input
-              type="number"
-              min="0"
-              max="5"
-              value={score}
-              onChange={(e) => setScore(parseInt(e.target.value) || 0)}
-            />
-          </div>
-          <div className="flex items-center gap-2 pt-8">
-            <input
-              type="checkbox"
-              id="favorite"
-              checked={favorite}
-              onChange={(e) => setFavorite(e.target.checked)}
-            />
-            <label htmlFor="favorite" className="text-sm font-medium">
-              Favorito
-            </label>
-          </div>
-        </div>
+        <ImagePromptLayerEditor
+          layers={layers}
+          onLayersChange={setLayers}
+        />
 
-        <div className="flex gap-2">
-          <Button type="submit" disabled={loading}>
-            {loading ? 'Salvando...' : 'Salvar'}
-          </Button>
-          <Button type="button" variant="outline" onClick={onCancel}>
+        <div className="flex justify-end gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            disabled={isSubmitting}
+          >
             Cancelar
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Criando..." : "Criar Prompt"}
           </Button>
         </div>
       </form>
