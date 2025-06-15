@@ -1,8 +1,13 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 import { useState, useEffect } from "react";
 import type { Category } from "@/types/prompt";
 import { useCategoryMutations } from "./category/useCategoryMutations";
 import { useCategoryFetcher } from "./category/useCategoryFetcher";
 
+<<<<<<< HEAD
 // Função para aplicar sobreposições do localStorage às categorias
 const applyLocalStorageOverrides = (categories: Category[]): Category[] => {
   try {
@@ -48,6 +53,8 @@ const applyLocalStorageOverrides = (categories: Category[]): Category[] => {
   }
 };
 
+=======
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 export const useCategories = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const { loading, loadError, loadCategories: fetchCategoriesData } = useCategoryFetcher();
@@ -56,9 +63,13 @@ export const useCategories = () => {
   const loadCategories = async () => {
     const loadedCategories = await fetchCategoriesData();
     if (loadedCategories) {
+<<<<<<< HEAD
       // Aplicar sobreposições do localStorage antes de atualizar o estado
       const categoriesWithOverrides = applyLocalStorageOverrides(loadedCategories);
       setCategories(categoriesWithOverrides);
+=======
+      setCategories(loadedCategories);
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
     }
   };
 

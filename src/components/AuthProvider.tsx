@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,9 +14,12 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+<<<<<<< HEAD
 // Lista de rotas protegidas que requerem autenticação
 const PROTECTED_ROUTES = ['/prompts', '/statistics', '/links', '/settings', '/text', '/image', '/workspace', '/lyrics', '/agents'];
 
+=======
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -28,11 +35,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+<<<<<<< HEAD
   // Verifica se a rota atual é protegida
   const isProtectedRoute = (path: string) => {
     return PROTECTED_ROUTES.some(route => path.startsWith(route));
   };
 
+=======
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
   useEffect(() => {
     const initializeAuth = async () => {
       try {
@@ -43,8 +53,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Redireciona para /prompts se estiver autenticado e em /auth ou /
         if (session?.user && (location.pathname === '/auth' || location.pathname === '/')) {
           navigate('/prompts');
+<<<<<<< HEAD
         } else if (!session?.user && isProtectedRoute(location.pathname)) {
           // Redireciona para /auth se tentar acessar qualquer rota protegida sem estar autenticado
+=======
+        } else if (!session?.user && location.pathname.startsWith('/prompts')) {
+          // Redireciona para /auth apenas se tentar acessar rotas protegidas
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
           navigate('/auth');
         }
       } catch (error) {
@@ -61,10 +76,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       setUser(session?.user ?? null);
       
+<<<<<<< HEAD
       // Redireciona para /prompts quando autenticado e está em /auth ou /
       if (session?.user && (location.pathname === '/auth' || location.pathname === '/')) {
         navigate('/prompts');
       } else if (!session?.user && isProtectedRoute(location.pathname)) {
+=======
+      // Redireciona para /prompts quando autenticado, exceto se já estiver lá
+      if (session?.user && location.pathname !== '/prompts') {
+        navigate('/prompts');
+      } else if (!session?.user && location.pathname.startsWith('/prompts')) {
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
         navigate('/auth');
       }
     });

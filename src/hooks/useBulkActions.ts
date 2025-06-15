@@ -22,6 +22,7 @@ export const useBulkActions = (categories: Category[], setCategories: (categorie
       const category = findCategoryById(categories, categoryId);
       if (!category) return;
 
+<<<<<<< HEAD
       // Filtrar e limpar as tags para garantir que sejam apenas strings válidas
       // e não incluir o campo simple_id para evitar erros de tipo
       const newPrompts = prompts.map(p => ({
@@ -78,6 +79,21 @@ export const useBulkActions = (categories: Category[], setCategories: (categorie
       if (insertedPrompts.length === 0) {
         throw new Error('Nenhum prompt foi inserido');
       }
+=======
+      const newPrompts = prompts.map(p => ({
+        text: p.text,
+        tags: p.tags,
+        category_id: categoryId,
+        rating: 0,
+      }));
+
+      const { data, error } = await supabase
+        .from('prompts')
+        .insert(newPrompts)
+        .select();
+
+      if (error) throw error;
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 
       const updateCategoriesRecursively = (cats: Category[]): Category[] => {
         return cats.map(c => {
@@ -86,7 +102,11 @@ export const useBulkActions = (categories: Category[], setCategories: (categorie
               ...c,
               prompts: [
                 ...c.prompts,
+<<<<<<< HEAD
                 ...insertedPrompts.map((p) => ({
+=======
+                ...data.map((p) => ({
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
                   id: p.id,
                   text: p.text,
                   category: c.name,
@@ -110,6 +130,7 @@ export const useBulkActions = (categories: Category[], setCategories: (categorie
       };
 
       setCategories(updateCategoriesRecursively(categories));
+<<<<<<< HEAD
       
       if (insertedPrompts.length === newPrompts.length) {
         toast.success(`${insertedPrompts.length} prompts importados com sucesso!`);
@@ -119,6 +140,12 @@ export const useBulkActions = (categories: Category[], setCategories: (categorie
     } catch (error) {
       console.error('Erro ao importar prompts:', error);
       toast.error(`Erro ao importar prompts: ${error.message || 'Erro desconhecido'}`);
+=======
+      toast.success('Prompts importados com sucesso!');
+    } catch (error) {
+      console.error('Erro ao importar prompts:', error);
+      toast.error('Erro ao importar prompts');
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
     }
   };
 

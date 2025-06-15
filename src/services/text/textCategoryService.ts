@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { supabase } from "@/integrations/supabase/client";
 import type { TextCategory } from "@/types/textCategory";
 
@@ -119,6 +120,36 @@ export const addTextCategory = async (name: string, parentId?: string) => {
     console.error('Erro ao adicionar categoria de texto:', err);
     throw err;
   }
+=======
+
+import { supabase } from "@/integrations/supabase/client";
+import type { TextCategory } from "@/types/textCategory";
+
+export const fetchTextCategories = async (): Promise<TextCategory[]> => {
+  const { data, error } = await (supabase as any)
+    .from('text_categories')
+    .select('*')
+    .order('name');
+
+  if (error) throw error;
+
+  return buildTextCategoryTree(data || []);
+};
+
+export const addTextCategory = async (name: string, parentId?: string) => {
+  const { data, error } = await (supabase as any)
+    .from('text_categories')
+    .insert({
+      name,
+      parent_id: parentId || null,
+      type: 'text'
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 };
 
 export const updateTextCategory = async (id: string, name: string, parentId?: string) => {
@@ -145,3 +176,19 @@ export const deleteTextCategory = async (id: string) => {
   if (error) throw error;
   return true;
 };
+<<<<<<< HEAD
+=======
+
+const buildTextCategoryTree = (categories: any[], parentId: string | null = null): TextCategory[] => {
+  return categories
+    .filter(category => category.parent_id === parentId)
+    .map(category => ({
+      id: category.id,
+      name: category.name,
+      parentId: category.parent_id,
+      type: 'text' as const,
+      created_at: category.created_at,
+      subcategories: buildTextCategoryTree(categories, category.id)
+    }));
+};
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611

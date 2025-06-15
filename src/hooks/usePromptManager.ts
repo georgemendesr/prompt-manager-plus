@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 import { useState, useEffect } from "react";
 import { useOptimizedData } from "./optimized/useOptimizedData";
 import { useBulkActions } from "./useBulkActions";
@@ -5,9 +9,13 @@ import { useSelection } from "./useSelection";
 import { useCategoryOperations } from "./category/useCategoryOperations";
 import { useCategories } from "./useCategories";
 import { usePrompts } from "./usePrompts";
+<<<<<<< HEAD
 import { useQueryClient } from "@tanstack/react-query";
 import type { Category } from "@/types/prompt";
 import { getPromptStats } from '@/services/rating/ratingService';
+=======
+import type { Category } from "@/types/prompt";
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 
 export interface PromptManager {
   categories: Category[];
@@ -28,6 +36,7 @@ export interface PromptManager {
   nextPage: () => void;
   previousPage: () => void;
   currentPage: number;
+<<<<<<< HEAD
   updateCategoryCache: (categoryId: string, updates: Partial<Category>) => void;
   setUseOptimized: (value: boolean) => void;
 }
@@ -37,6 +46,12 @@ export const usePromptManager = (): PromptManager => {
   const [useOptimized, setUseOptimized] = useState(true);
   const [fallbackActivated, setFallbackActivated] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+=======
+}
+
+export const usePromptManager = (): PromptManager => {
+  const [useOptimized, setUseOptimized] = useState(true);
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 
   // Try optimized data first
   const {
@@ -46,11 +61,18 @@ export const usePromptManager = (): PromptManager => {
     refetch: optimizedRefetch,
     ratePrompt: optimizedRatePrompt,
     addComment: optimizedAddComment,
+<<<<<<< HEAD
     invalidateData: optimizedInvalidateData,
     nextPage: optimizedNextPage,
     previousPage: optimizedPreviousPage,
     currentPage: optimizedCurrentPage,
     updateCategoryInCache
+=======
+    invalidateData,
+    nextPage: optimizedNextPage,
+    previousPage: optimizedPreviousPage,
+    currentPage: optimizedCurrentPage
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
   } = useOptimizedData(20, 0); // Increased limit and start from 0
 
   // Fallback to original hooks
@@ -67,6 +89,7 @@ export const usePromptManager = (): PromptManager => {
   const {
     ratePrompt: fallbackRatePrompt,
     addComment: fallbackAddComment,
+<<<<<<< HEAD
     movePrompt: fallbackMovePrompt
   } = usePrompts(fallbackCategories, setCategories);
 
@@ -108,6 +131,51 @@ export const usePromptManager = (): PromptManager => {
       updateCategoryInCache(categoryId, updates);
     }
   };
+=======
+    movePrompt
+  } = usePrompts(fallbackCategories, setCategories);
+
+  // Check if optimized data is working
+  useEffect(() => {
+    console.log('🔍 Verificando dados otimizados:', {
+      optimizedCategories: optimizedCategories.length,
+      optimizedError,
+      optimizedLoading,
+      useOptimized
+    });
+
+    // Se há erro ou não há dados após loading, use fallback
+    if (optimizedError || (!optimizedLoading && optimizedCategories.length === 0)) {
+      console.log('⚠️ Mudando para fallback devido a:', { optimizedError, categoriesLength: optimizedCategories.length });
+      setUseOptimized(false);
+      fallbackLoadCategories();
+    }
+  }, [optimizedCategories, optimizedError, optimizedLoading, fallbackLoadCategories]);
+
+  // Use optimized data if available and working, fallback otherwise
+  const categories = useOptimized && optimizedCategories.length > 0 ? optimizedCategories : fallbackCategories;
+  const loading = useOptimized ? optimizedLoading : fallbackLoading;
+  const loadError = useOptimized ? optimizedError : null;
+
+  console.log('📊 Estado atual do PromptManager:', {
+    useOptimized,
+    categoriesCount: categories.length,
+    loading,
+    loadError,
+    totalPrompts: categories.reduce((acc, cat) => acc + cat.prompts.length, 0)
+  });
+
+  // Existing hooks with current state
+  const {
+    bulkImportPrompts,
+    deleteSelectedPrompts
+  } = useBulkActions(categories, setCategories);
+
+  const {
+    togglePromptSelection,
+    toggleSelectAll
+  } = useSelection(categories, setCategories);
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 
   // Category operations with cache invalidation
   const {
@@ -118,6 +186,7 @@ export const usePromptManager = (): PromptManager => {
     originalAddCategory: fallbackAddCategory,
     originalEditCategory: fallbackEditCategory,
     originalDeleteCategory: fallbackDeleteCategory,
+<<<<<<< HEAD
     categories: currentCategories,
     updateCategoryCache,
     loadCategories: async () => {
@@ -161,10 +230,16 @@ export const usePromptManager = (): PromptManager => {
       
       if (useOptimized) {
         optimizedInvalidateData();
+=======
+    loadCategories: async () => {
+      if (useOptimized) {
+        invalidateData();
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
         await optimizedRefetch();
       } else {
         await fallbackLoadCategories();
       }
+<<<<<<< HEAD
       
       // Notificar que houve uma atualização
       window.dispatchEvent(new CustomEvent('categoryUpdate'));
@@ -361,6 +436,17 @@ export const usePromptManager = (): PromptManager => {
       }
     } catch (error) {
       console.error('[STAR] Erro ao avaliar prompt:', error);
+=======
+    }
+  });
+
+  // Optimized functions with fallback
+  const ratePrompt = async (promptId: string, increment: boolean) => {
+    if (useOptimized && optimizedCategories.length > 0) {
+      optimizedRatePrompt(promptId, increment);
+    } else {
+      await fallbackRatePrompt(promptId, increment);
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
     }
   };
 
@@ -372,6 +458,7 @@ export const usePromptManager = (): PromptManager => {
     }
   };
 
+<<<<<<< HEAD
   // NO duplicate movePrompt function - using fallbackMovePrompt directly - FIXED ✅
 
   const loadCategories = async () => {
@@ -406,6 +493,14 @@ export const usePromptManager = (): PromptManager => {
     // Notificar que categorias foram carregadas
     window.dispatchEvent(new CustomEvent('categoriesLoaded'));
     console.log(`✅ [OPT] Carregamento concluído: ${currentCategories.length} categorias`);
+=======
+  const loadCategories = async () => {
+    if (useOptimized) {
+      await optimizedRefetch();
+    } else {
+      await fallbackLoadCategories();
+    }
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
   };
 
   // Page navigation - only use optimized if working
@@ -458,6 +553,7 @@ export const usePromptManager = (): PromptManager => {
       
       collectPromptsRecursive(categories);
       
+<<<<<<< HEAD
       const csvContent = [
         ['Text', 'Category', 'Rating', 'Comments', 'Tags', 'Created At'].join(','),
         ...allPrompts.map(prompt => [
@@ -491,6 +587,23 @@ export const usePromptManager = (): PromptManager => {
     console.log("🔄 [OPT] Invalidando cache de dados");
     if (useOptimized) {
       optimizedInvalidateData();
+=======
+      const jsonData = JSON.stringify(allPrompts, null, 2);
+      const blob = new Blob([jsonData], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      const date = new Date().toISOString().split('T')[0];
+      link.download = `prompts-export-${date}.json`;
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Erro ao exportar prompts:', error);
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
     }
   };
 
@@ -504,7 +617,11 @@ export const usePromptManager = (): PromptManager => {
     deleteCategory: categoryDeleteCategory,
     ratePrompt,
     addComment,
+<<<<<<< HEAD
     movePrompt: fallbackMovePrompt,
+=======
+    movePrompt,
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
     bulkImportPrompts,
     deleteSelectedPrompts,
     togglePromptSelection,
@@ -512,8 +629,14 @@ export const usePromptManager = (): PromptManager => {
     exportPrompts,
     nextPage,
     previousPage,
+<<<<<<< HEAD
     currentPage,
     updateCategoryCache,
     setUseOptimized
   };
 };
+=======
+    currentPage
+  };
+};
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611

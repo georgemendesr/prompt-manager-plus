@@ -38,6 +38,7 @@ export type Database = {
           },
         ]
       }
+<<<<<<< HEAD
       text_categories: {
         Row: {
           id: string
@@ -90,6 +91,8 @@ export type Database = {
           },
         ]
       }
+=======
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
       cities: {
         Row: {
           country_id: number

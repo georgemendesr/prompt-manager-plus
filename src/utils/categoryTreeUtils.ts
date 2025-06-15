@@ -37,6 +37,7 @@ export const removeCategoryFromTree = (categories: Category[], id: string): Cate
     }
     return true;
   });
+<<<<<<< HEAD
 };
 
 /**
@@ -123,4 +124,6 @@ export const findCategoryById = (categories: Category[], id: string): Category |
   }
   
   return undefined;
+=======
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 };

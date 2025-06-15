@@ -1,7 +1,12 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 import { supabase } from "@/integrations/supabase/client";
 import type { ImageCategory } from "@/types/imageCategory";
 
 export const fetchImageCategories = async (): Promise<ImageCategory[]> => {
+<<<<<<< HEAD
   try {
     // Tentar primeiro usando o endpoint normal
     const { data, error } = await (supabase as any)
@@ -75,6 +80,31 @@ export const addImageCategory = async (name: string, parentId?: string) => {
     console.error('Erro ao adicionar categoria de imagem:', err);
     throw err;
   }
+=======
+  const { data, error } = await (supabase as any)
+    .from('image_categories')
+    .select('*')
+    .order('name');
+
+  if (error) throw error;
+
+  return buildImageCategoryTree(data || []);
+};
+
+export const addImageCategory = async (name: string, parentId?: string) => {
+  const { data, error } = await (supabase as any)
+    .from('image_categories')
+    .insert({
+      name,
+      parent_id: parentId || null,
+      type: 'image'
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 };
 
 export const updateImageCategory = async (id: string, name: string, parentId?: string) => {

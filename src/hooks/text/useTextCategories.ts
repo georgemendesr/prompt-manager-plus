@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -50,11 +51,35 @@ export const useTextCategories = () => {
     } catch (err) {
       console.error('Erro ao buscar categorias de texto:', err);
       toast.error('Erro ao carregar categorias de texto');
+=======
+
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { fetchTextCategories, addTextCategory, updateTextCategory, deleteTextCategory } from "@/services/text/textCategoryService";
+import type { TextCategory } from "@/types/textCategory";
+
+export const useTextCategories = () => {
+  const [categories, setCategories] = useState<TextCategory[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadCategories = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await fetchTextCategories();
+      setCategories(data);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar categorias de texto';
+      setError(errorMessage);
+      console.error('Erro ao carregar categorias de texto:', err);
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
     } finally {
       setLoading(false);
     }
   };
 
+<<<<<<< HEAD
   const buildCategoryTree = (flatCategories: any[]): Category[] => {
     const categoryMap = new Map();
     flatCategories.forEach(cat => {
@@ -186,5 +211,58 @@ export const useTextCategories = () => {
     editCategory,
     removeCategory,
     fetchCategories
+=======
+  const createCategory = async (name: string, parentId?: string): Promise<boolean> => {
+    try {
+      await addTextCategory(name, parentId);
+      await loadCategories();
+      toast.success('Categoria de texto criada com sucesso!');
+      return true;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao criar categoria de texto';
+      toast.error(errorMessage);
+      return false;
+    }
+  };
+
+  const editCategory = async (id: string, newName: string, newParentId?: string): Promise<boolean> => {
+    try {
+      await updateTextCategory(id, newName, newParentId);
+      await loadCategories();
+      toast.success('Categoria de texto atualizada com sucesso!');
+      return true;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao atualizar categoria de texto';
+      toast.error(errorMessage);
+      return false;
+    }
+  };
+
+  const removeCategory = async (id: string): Promise<boolean> => {
+    try {
+      await deleteTextCategory(id);
+      await loadCategories();
+      toast.success('Categoria de texto removida com sucesso!');
+      return true;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao remover categoria de texto';
+      toast.error(errorMessage);
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  return {
+    categories,
+    loading,
+    error,
+    loadCategories,
+    createCategory,
+    editCategory,
+    removeCategory
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
   };
 };

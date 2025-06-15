@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // Este arquivo serve como agregador de funcionalidades de serviço de categoria
 // para manter compatibilidade com código existente
 
@@ -111,6 +112,17 @@ export {
   updateCategoryInDb,
   getAllSubcategoriesIds,
   diagnoseCategories
+=======
+
+// This file serves as an aggregator of all category service functionality
+// to maintain backward compatibility with existing code
+
+export { 
+  fetchCategories,
+  addCategoryToDb,
+  updateCategoryInDb,
+  getAllSubcategoriesIds
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 } from './category/categoryFetchService';
 
 export {

@@ -20,7 +20,10 @@ interface DatabasePrompt {
     text: string;
     created_at: string;
   }> | null;
+<<<<<<< HEAD
   translated_text?: string | undefined; // Totalmente opcional
+=======
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 }
 
 // Função otimizada que faz uma única consulta com JOINs
@@ -29,6 +32,7 @@ export const fetchAllDataOptimized = async (
   offset: number = 0
 ) => {
   try {
+<<<<<<< HEAD
     console.info(`🔄 [OPT] Carregando dados otimizados... (limit: ${limit}, offset: ${offset})`);
     
     // Verificar se o banco está acessível primeiro
@@ -46,6 +50,9 @@ export const fetchAllDataOptimized = async (
       console.error('❌ [OPT] Banco de dados sem categorias');
       throw new Error('Banco de dados vazio - nenhuma categoria encontrada');
     }
+=======
+    console.log(`🔄 Carregando dados otimizados... (limit: ${limit}, offset: ${offset})`);
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
     
     // Query única para buscar categorias, prompts e comentários
     const [categoriesResult, promptsWithCommentsResult] = await Promise.all([
@@ -56,8 +63,11 @@ export const fetchAllDataOptimized = async (
         .order('created_at', { ascending: true }),
       
       // Buscar prompts ordenados por rating_average (média de estrelas)
+<<<<<<< HEAD
       // IMPORTANTE: Carregar TODOS os prompts, não apenas um subconjunto paginado
       // A paginação será feita posteriormente na interface, após a construção da árvore
+=======
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
       supabase
         .from('prompts')
         .select(`
@@ -74,6 +84,7 @@ export const fetchAllDataOptimized = async (
           simple_id,
           comments:comments(id, text, created_at)
         `)
+<<<<<<< HEAD
     ]);
 
     // Verificar se há categorias
@@ -123,15 +134,39 @@ export const fetchAllDataOptimized = async (
         return fetchAllDataOptimized(limit, 0);
       }
     }
+=======
+        .order('rating_average', { ascending: false, nullsFirst: false })
+        .order('rating_count', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false })
+    ]);
+
+    if (categoriesResult.error) {
+      console.error('❌ Erro ao carregar categorias:', categoriesResult.error);
+      throw new Error(`Erro ao carregar categorias: ${categoriesResult.error.message}`);
+    }
+    
+    if (promptsWithCommentsResult.error) {
+      console.error('❌ Erro ao carregar prompts:', promptsWithCommentsResult.error);
+      throw new Error(`Erro ao carregar prompts: ${promptsWithCommentsResult.error.message}`);
+    }
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 
     const categories: RawCategory[] = categoriesResult.data || [];
     const promptsWithComments = promptsWithCommentsResult.data || [];
 
+<<<<<<< HEAD
     console.info(`✅ [OPT] carregados ${categories.length} categorias, ${promptsWithComments.length} prompts`);
 
     return { categories, promptsWithComments };
   } catch (error) {
     console.error('❌ [OPT] erro', error);
+=======
+    console.log(`✅ Dados carregados: ${categories.length} categorias, ${promptsWithComments.length} prompts (ordenados por rating)`);
+
+    return { categories, promptsWithComments };
+  } catch (error) {
+    console.error('❌ Erro ao carregar dados otimizados:', error);
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
     
     if (error instanceof Error) {
       if (error.message.includes('fetch') || 
@@ -151,13 +186,18 @@ export const fetchAllDataOptimized = async (
 };
 
 // Função para gerar ID único para prompts no formato CAT-SUB-###
+<<<<<<< HEAD
 const generateUniquePromptId = async (prompt: DatabasePrompt, categoryName: string, subcategoryName: string | null, index: number): Promise<string> => {
+=======
+const generateUniquePromptId = (prompt: DatabasePrompt, categoryName: string, subcategoryName: string | null, index: number): string => {
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
   // Se já tem um simple_id salvo, usar ele
   if (prompt.simple_id) {
     return prompt.simple_id;
   }
   
   // Gerar novo ID baseado na categoria e subcategoria
+<<<<<<< HEAD
   const catCode = getCategoryCode(categoryName);
   const subCode = subcategoryName ? getUniqueSubcategoryCode(categoryName, subcategoryName) : 'GEN';
   
@@ -278,6 +318,19 @@ export const buildOptimizedCategoryTree = async (
   categories: RawCategory[],
   promptsWithComments: DatabasePrompt[]
 ): Promise<Category[]> => {
+=======
+  const catCode = categoryName.substring(0, 3).toUpperCase();
+  const subCode = subcategoryName ? subcategoryName.substring(0, 3).toUpperCase() : 'GEN';
+  const promptNumber = String(index + 1).padStart(3, '0');
+  return `${catCode}-${subCode}-${promptNumber}`;
+};
+
+// Função para construir a árvore de categorias com prompts
+export const buildOptimizedCategoryTree = (
+  categories: RawCategory[],
+  promptsWithComments: DatabasePrompt[]
+): Category[] => {
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
   console.log('🏗️ Construindo árvore de categorias...');
   
   // Agrupar prompts por categoria
@@ -290,12 +343,19 @@ export const buildOptimizedCategoryTree = async (
   });
 
   // Construir árvore recursivamente
+<<<<<<< HEAD
   const buildTree = async (parentId: string | null = null): Promise<Category[]> => {
     const categoriesAtLevel = categories.filter(cat => cat.parent_id === parentId);
     
     const result = [];
     
     for (const category of categoriesAtLevel) {
+=======
+  const buildTree = (parentId: string | null = null): Category[] => {
+    const categoriesAtLevel = categories.filter(cat => cat.parent_id === parentId);
+    
+    return categoriesAtLevel.map(category => {
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
       const categoryPrompts = promptsByCategory.get(category.id) || [];
       
       // Ordenar prompts por rating_average (maiores primeiro)
@@ -314,6 +374,7 @@ export const buildOptimizedCategoryTree = async (
       const subcategoryName = parentCategory ? category.name : null;
       const mainCategoryName = parentCategory ? parentCategory.name : category.name;
       
+<<<<<<< HEAD
       // Processar prompts
       const processedPrompts = [];
       for (let i = 0; i < sortedPrompts.length; i++) {
@@ -327,6 +388,13 @@ export const buildOptimizedCategoryTree = async (
         );
         
         processedPrompts.push({
+=======
+      const builtCategory = {
+        id: category.id,
+        name: category.name,
+        parentId: category.parent_id || undefined,
+        prompts: sortedPrompts.map((prompt, index) => ({
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
           id: prompt.id,
           text: prompt.text,
           category: category.name,
@@ -339,6 +407,7 @@ export const buildOptimizedCategoryTree = async (
           ratingAverage: prompt.rating_average || 0,
           ratingCount: prompt.rating_count || 0,
           copyCount: prompt.copy_count || 0,
+<<<<<<< HEAD
           uniqueId
         });
       }
@@ -358,6 +427,18 @@ export const buildOptimizedCategoryTree = async (
   };
 
   const result = await buildTree();
+=======
+          uniqueId: generateUniquePromptId(prompt, mainCategoryName, subcategoryName, index)
+        })),
+        subcategories: buildTree(category.id)
+      };
+
+      return builtCategory;
+    });
+  };
+
+  const result = buildTree();
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
   console.log('🌳 Árvore construída com ordenação por rating e IDs no formato CAT-SUB-###');
   
   return result;
@@ -443,6 +524,7 @@ export const addCommentOptimistic = async (promptId: string, commentText: string
     throw error;
   }
 };
+<<<<<<< HEAD
 
 // Função para verificar se a migração de IDs é necessária
 export const isIdMigrationNeeded = async (): Promise<boolean> => {
@@ -491,3 +573,5 @@ export const fetchOptimizedPrompts = async (categoryId: string, limit: number, o
     throw error;
   }
 };
+=======
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611

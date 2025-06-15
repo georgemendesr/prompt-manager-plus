@@ -23,6 +23,7 @@ export const BulkImport = ({ categories, onImport }: BulkImportProps) => {
   const [categoryId, setCategoryId] = useState("");
   const [tags, setTags] = useState("");
   const [open, setOpen] = useState(false);
+<<<<<<< HEAD
   const [error, setError] = useState("");
 
   // Função para limpar e validar tags
@@ -129,13 +130,40 @@ export const BulkImport = ({ categories, onImport }: BulkImportProps) => {
       onImport(promptsWithTags, categoryId);
       
       // Limpar o formulário
+=======
+
+  const handleImport = () => {
+    const lines = text
+      .split(/\n{1,}|```|\s{2,}/)
+      .map(t => t.trim())
+      .filter(t => t && !t.includes("```") && t.length > 0);
+
+    const prompts = lines.map(line => {
+      const [promptText, tagsPart] = line.split("|");
+      const tagsArr = tagsPart ? tagsPart.split(',').map(t => t.trim()).filter(Boolean) : [];
+      return { text: promptText.trim(), tags: tagsArr };
+    });
+
+    if (prompts.length && categoryId) {
+      // Merge tags from input with prompt line tags
+      const globalTags = tags.split(",").map(t => t.trim()).filter(t => t);
+      const promptsWithTags = prompts.map(({ text, tags }) => ({
+        text,
+        tags: Array.from(new Set([...tags, ...globalTags])),
+      }));
+
+      onImport(promptsWithTags, categoryId);
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
       setTags("");
       setText("");
       setCategoryId("");
       setOpen(false);
+<<<<<<< HEAD
     } catch (err) {
       console.error("Erro durante a importação:", err);
       setError(`Erro durante a importação: ${err.message}`);
+=======
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
     }
   };
 
@@ -154,11 +182,16 @@ export const BulkImport = ({ categories, onImport }: BulkImportProps) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
+<<<<<<< HEAD
         <Button variant="outline" className="flex items-center gap-2">
+=======
+        <Button className="gap-2">
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
           <Upload className="h-4 w-4" />
           Importar Prompts
         </Button>
       </DialogTrigger>
+<<<<<<< HEAD
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Importar Prompts</DialogTitle>
@@ -199,6 +232,42 @@ export const BulkImport = ({ categories, onImport }: BulkImportProps) => {
           <Button onClick={handleImport} disabled={!text || !categoryId}>
             Importar
           </Button>
+=======
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Importar Prompts</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 pt-4">
+          <Select value={categoryId} onValueChange={setCategoryId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione uma categoria" />
+            </SelectTrigger>
+            <SelectContent>
+              {allCategories.map((category) => (
+                <SelectItem key={category.id} value={category.id}>
+                  {category.parentId ? `↳ ${category.name}` : category.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Cole seus prompts aqui. Separe cada linha e opcionalmente adicione '| tag1, tag2'"
+            className="min-h-[200px] font-mono"
+          />
+          <Input
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            placeholder="Tags para todos os prompts (separadas por vírgula)"
+          />
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleImport}>Importar</Button>
+          </div>
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
         </div>
       </DialogContent>
     </Dialog>

@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,13 +21,20 @@ interface ImagePromptFormProps {
 
 export const ImagePromptForm = ({ categories, onSubmit, onCancel }: ImagePromptFormProps) => {
   const [title, setTitle] = useState('');
+<<<<<<< HEAD
   const [promptText, setPromptText] = useState('');
+=======
+  const [body, setBody] = useState('');
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
   const [categoryId, setCategoryId] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [score, setScore] = useState(3);
   const [favorite, setFavorite] = useState(false);
+<<<<<<< HEAD
   const [imageUrl, setImageUrl] = useState('');
+=======
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
   const [loading, setLoading] = useState(false);
 
   const handleAddTag = () => {
@@ -40,18 +51,30 @@ export const ImagePromptForm = ({ categories, onSubmit, onCancel }: ImagePromptF
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+<<<<<<< HEAD
     if (!title.trim() || !promptText.trim() || !categoryId) return;
+=======
+    if (!title.trim() || !body.trim() || !categoryId) return;
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 
     setLoading(true);
     try {
       await onSubmit({
         title: title.trim(),
+<<<<<<< HEAD
         prompt_text: promptText.trim(),
         category_id: categoryId,
         tags,
         score,
         favorite,
         image_url: imageUrl.trim() || undefined
+=======
+        body: body.trim(),
+        category_id: categoryId,
+        tags,
+        score,
+        favorite
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
       });
     } finally {
       setLoading(false);
@@ -88,17 +111,26 @@ export const ImagePromptForm = ({ categories, onSubmit, onCancel }: ImagePromptF
         </div>
 
         <div>
+<<<<<<< HEAD
           <label className="block text-sm font-medium mb-2">Prompt de Imagem</label>
           <Textarea
             value={promptText}
             onChange={(e) => setPromptText(e.target.value)}
             placeholder="Digite o prompt para geração de imagem"
+=======
+          <label className="block text-sm font-medium mb-2">Descrição/Prompt</label>
+          <Textarea
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            placeholder="Digite a descrição ou prompt para geração de imagem"
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
             rows={4}
             required
           />
         </div>
 
         <div>
+<<<<<<< HEAD
           <label className="block text-sm font-medium mb-2">URL da Imagem (opcional)</label>
           <Input
             value={imageUrl}
@@ -108,6 +140,8 @@ export const ImagePromptForm = ({ categories, onSubmit, onCancel }: ImagePromptF
         </div>
 
         <div>
+=======
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
           <label className="block text-sm font-medium mb-2">Tags</label>
           <div className="flex gap-2 mb-2">
             <Input

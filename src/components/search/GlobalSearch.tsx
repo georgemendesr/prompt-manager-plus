@@ -1,9 +1,16 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { useGlobalSearch } from "@/hooks/useGlobalSearch";
+<<<<<<< HEAD
 import { useEffect } from "react";
+=======
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 import type { Category } from "@/types/prompt";
 import type { TextPrompt } from "@/types/textPrompt";
 import type { ImagePrompt } from "@/types/imagePrompt";
@@ -23,17 +30,24 @@ export const GlobalSearch = ({
   searchTerm,
   setSearchTerm
 }: GlobalSearchProps) => {
+<<<<<<< HEAD
   const { results, totalResults, isSearching, search } = useGlobalSearch({
+=======
+  const { results, totalResults, isSearching } = useGlobalSearch({
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
     categories,
     textPrompts,
     imagePrompts
   });
 
+<<<<<<< HEAD
   // Usar useEffect para realizar a busca quando o termo de busca mudar
   useEffect(() => {
     search(searchTerm);
   }, [search, searchTerm]);
 
+=======
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
   const getTypeColor = (type: string) => {
     switch (type) {
       case 'music': return 'bg-blue-100 text-blue-800';

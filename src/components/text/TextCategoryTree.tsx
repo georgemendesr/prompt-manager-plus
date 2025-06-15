@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 import { useState, useEffect } from "react";
 import { ChevronDown, ChevronRight, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,7 +22,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AddCategory } from "@/components/AddCategory";
+<<<<<<< HEAD
 import { TextPromptDisplay } from "./TextPromptDisplay";
+=======
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 import type { TextCategory } from "@/types/textCategory";
 import type { TextPrompt } from "@/types/textPrompt";
 
@@ -54,6 +61,7 @@ export const TextCategoryTree = ({
   const categoryPrompts = textPrompts.filter(prompt => prompt.category_id === category.id);
   
   const currentSearchTerm = searchTerm || localSearchTerm;
+<<<<<<< HEAD
   const filteredPrompts = categoryPrompts.filter(prompt => {
     if (!currentSearchTerm) return true;
     
@@ -68,6 +76,14 @@ export const TextCategoryTree = ({
     
     return false;
   });
+=======
+  const filteredPrompts = categoryPrompts.filter(prompt =>
+    !currentSearchTerm || 
+    prompt.title.toLowerCase().includes(currentSearchTerm.toLowerCase()) ||
+    prompt.body.toLowerCase().includes(currentSearchTerm.toLowerCase()) ||
+    prompt.tags.some(tag => tag.toLowerCase().includes(currentSearchTerm.toLowerCase()))
+  );
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 
   useEffect(() => {
     setSelectedSubcategory(undefined);
@@ -156,7 +172,29 @@ export const TextCategoryTree = ({
             <div className="grid gap-4 mb-4">
               {filteredPrompts.map((prompt) => (
                 <Card key={prompt.id} className="p-4">
+<<<<<<< HEAD
                   <TextPromptDisplay prompt={prompt} />
+=======
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-medium">{prompt.title}</h4>
+                      {prompt.favorite && <span className="text-yellow-500">⭐</span>}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-500">⭐ {prompt.score}/5</span>
+                    </div>
+                  </div>
+                  <p className="text-gray-700 mb-3">{prompt.body}</p>
+                  {prompt.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {prompt.tags.map((tag, index) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
                 </Card>
               ))}
               

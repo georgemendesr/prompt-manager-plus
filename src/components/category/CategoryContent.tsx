@@ -1,14 +1,23 @@
+<<<<<<< HEAD
 import { CategorySearch } from "./CategorySearch";
 import { CategoryActions } from "@/components/CategoryActions";
 import { PromptCard } from "@/components/PromptCard";
 import { Input } from '@/components/ui/input';
 import type { Category, Prompt } from "@/types/prompt";
 import { toast } from "sonner";
+=======
+
+import { CategorySearch } from "./CategorySearch";
+import { CategoryActions } from "@/components/CategoryActions";
+import { PromptCard } from "@/components/PromptCard";
+import type { Category, Prompt } from "@/types/prompt";
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 
 interface CategoryContentProps {
   category: Category;
   level: number;
   searchTerm: string;
+<<<<<<< HEAD
   setSearchTerm: (term: string) => void;
   categories: Category[];
   onRatePrompt: (id: string, increment: boolean) => void;
@@ -19,6 +28,16 @@ interface CategoryContentProps {
   onDeleteSelectedPrompts: () => void;
   onUpdatePrompt?: (id: string, newText: string) => void;
   onRefreshRequired: () => void;
+=======
+  setSearchTerm: (value: string) => void;
+  categories: Category[];
+  onRatePrompt: (id: string, increment: boolean) => void;
+  onAddComment: (id: string, comment: string) => void;
+  onMovePrompt: (promptId: string, targetCategoryId: string) => void;
+  onTogglePromptSelection: (id: string, selected: boolean) => void;
+  onToggleSelectAll: (categoryName: string, selected: boolean) => void;
+  onDeleteSelectedPrompts: (categoryName: string) => void;
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 }
 
 export const CategoryContent = ({
@@ -33,6 +52,7 @@ export const CategoryContent = ({
   onTogglePromptSelection,
   onToggleSelectAll,
   onDeleteSelectedPrompts,
+<<<<<<< HEAD
   onUpdatePrompt,
   onRefreshRequired,
 }: CategoryContentProps) => {
@@ -139,13 +159,44 @@ export const CategoryContent = ({
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="mb-3 sm:mb-4"
+=======
+}: CategoryContentProps) => {
+  // Primeiro aplicamos a busca
+  const filteredPrompts = category.prompts.filter(prompt => 
+    prompt.text.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    prompt.comments.some(comment => 
+      comment.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  );
+
+  // Ordenamos os prompts por pontuação, do maior para o menor
+  const orderedPrompts = [...filteredPrompts]
+    .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+    // Atribuímos o ranking a cada prompt após a ordenação
+    .map((prompt, index) => ({
+      ...prompt,
+      rank: index + 1
+    }));
+
+  return (
+    <div className="space-y-6">
+      {level === 0 && (
+        <CategorySearch 
+          value={searchTerm} 
+          onChange={(value) => setSearchTerm(value)} 
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
         />
       )}
 
       <CategoryActions
         prompts={category.prompts}
+<<<<<<< HEAD
         onSelectAll={(checked) => onToggleSelectAll(checked)}
         onDelete={() => onDeleteSelectedPrompts()}
+=======
+        onSelectAll={(checked) => onToggleSelectAll(category.name, checked)}
+        onDelete={() => onDeleteSelectedPrompts(category.name)}
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
         onMove={(targetCategoryId) => {
           const selectedPrompts = category.prompts.filter(p => p.selected);
           selectedPrompts.forEach(prompt => onMovePrompt(prompt.id, targetCategoryId));
@@ -154,8 +205,13 @@ export const CategoryContent = ({
         currentCategoryId={category.id}
       />
 
+<<<<<<< HEAD
       <div className="grid gap-3 sm:gap-6">
         {sortedPrompts.map((prompt) => (
+=======
+      <div className="grid gap-6">
+        {orderedPrompts.map((prompt) => (
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
           <PromptCard
             key={prompt.id}
             prompt={prompt}
@@ -165,16 +221,24 @@ export const CategoryContent = ({
             selected={prompt.selected || false}
             categories={categories}
             searchTerm={searchTerm}
+<<<<<<< HEAD
             onPromptUpdate={onRefreshRequired}
             onUpdatePrompt={handleUpdatePrompt}
             onDeletePrompt={() => {}}
             onMovePrompt={onMovePrompt}
+=======
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
           />
         ))}
       </div>
 
+<<<<<<< HEAD
       {sortedPrompts.length === 0 && (!category.subcategories || category.subcategories.length === 0) && (
         <div className="text-center py-4 sm:py-6 text-gray-500 bg-gray-50/50 rounded-lg">
+=======
+      {orderedPrompts.length === 0 && (!category.subcategories || category.subcategories.length === 0) && (
+        <div className="text-center py-8 text-gray-500 bg-gray-50/50 rounded-lg backdrop-blur-sm">
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
           {searchTerm ? "Nenhum prompt encontrado" : "Nenhum prompt nesta categoria ainda"}
         </div>
       )}

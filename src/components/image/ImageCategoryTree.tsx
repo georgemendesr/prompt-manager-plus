@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 import { useState, useEffect } from "react";
 import { ChevronDown, ChevronRight, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,7 +24,10 @@ import {
 import { AddCategory } from "@/components/AddCategory";
 import type { ImageCategory } from "@/types/imageCategory";
 import type { ImagePrompt } from "@/types/imagePrompt";
+<<<<<<< HEAD
 import { ImageDisplay } from "./ImageDisplay";
+=======
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 
 interface ImageCategoryTreeProps {
   category: ImageCategory;
@@ -71,6 +78,7 @@ export const ImageCategoryTree = ({
     }
   }, [selectedSubcategory]);
 
+<<<<<<< HEAD
   // Renderiza os prompts filtrados da categoria atual
   const renderPrompts = () => {
     if (!filteredPrompts || filteredPrompts.length === 0) {
@@ -90,6 +98,8 @@ export const ImageCategoryTree = ({
     );
   };
 
+=======
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
   return (
     <div className="space-y-2">
       <div className={`
@@ -165,7 +175,39 @@ export const ImageCategoryTree = ({
             )}
 
             <div className="grid gap-4 mb-4">
+<<<<<<< HEAD
               {renderPrompts()}
+=======
+              {filteredPrompts.map((prompt) => (
+                <Card key={prompt.id} className="p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-medium">{prompt.title}</h4>
+                      {prompt.favorite && <span className="text-yellow-500">⭐</span>}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-500">⭐ {prompt.score}/5</span>
+                    </div>
+                  </div>
+                  <p className="text-gray-700 mb-3">{prompt.body}</p>
+                  {prompt.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {prompt.tags.map((tag, index) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </Card>
+              ))}
+              
+              {filteredPrompts.length === 0 && (
+                <div className="text-center py-8 text-gray-500 bg-gray-50/50 rounded-lg backdrop-blur-sm">
+                  {currentSearchTerm ? "Nenhum prompt encontrado" : "Nenhum prompt nesta categoria ainda"}
+                </div>
+              )}
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
             </div>
 
             {hasSubcategories && (

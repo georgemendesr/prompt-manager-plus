@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PromptsSection } from "@/components/prompts/PromptsSection";
 import { TextPromptsSection } from "@/components/text/TextPromptsSection";
@@ -9,8 +13,11 @@ import { GlobalSearch } from "@/components/search/GlobalSearch";
 import { Category } from "@/types/prompt";
 import type { TextPrompt } from "@/types/textPrompt";
 import type { ImagePrompt } from "@/types/imagePrompt";
+<<<<<<< HEAD
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
+=======
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 
 interface PromptsTabsProps {
   categories: Category[];
@@ -34,7 +41,10 @@ interface PromptsTabsProps {
   onNextPage: () => void;
   onPreviousPage: () => void;
   currentPage: number;
+<<<<<<< HEAD
   onRefreshRequired: () => void;
+=======
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 }
 
 export const PromptsTabs = ({
@@ -58,6 +68,7 @@ export const PromptsTabs = ({
   onExportPrompts,
   onNextPage,
   onPreviousPage,
+<<<<<<< HEAD
   currentPage,
   onRefreshRequired,
 }: PromptsTabsProps) => {
@@ -116,6 +127,10 @@ export const PromptsTabs = ({
     }
   };
   
+=======
+  currentPage
+}: PromptsTabsProps) => {
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
   return (
     <div className="space-y-4">
       <GlobalSearch 
@@ -126,6 +141,7 @@ export const PromptsTabs = ({
         setSearchTerm={setGlobalSearchTerm}
       />
       
+<<<<<<< HEAD
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="bg-white/60 backdrop-blur-sm mb-4 sm:mb-6 w-full flex">
           <TabsTrigger value="agents" className="flex-1 text-sm font-medium uppercase">Agentes</TabsTrigger>
@@ -135,11 +151,25 @@ export const PromptsTabs = ({
           <TabsTrigger value="workspace" className="flex-1 text-sm font-medium uppercase">Workspace</TabsTrigger>
           <TabsTrigger value="links" className="flex-1 text-sm font-medium uppercase">Links</TabsTrigger>
           <TabsTrigger value="lyrics" className="flex-1 text-sm font-medium uppercase">Letras</TabsTrigger>
+=======
+      <Tabs defaultValue="music" className="w-full">
+        <TabsList className="bg-white/60 backdrop-blur-sm mb-4 sm:mb-6 w-full flex">
+          <TabsTrigger value="music" className="flex-1">Música</TabsTrigger>
+          <TabsTrigger value="text" className="flex-1">Texto</TabsTrigger>
+          <TabsTrigger value="image" className="flex-1">Imagem</TabsTrigger>
+          <TabsTrigger value="workspace" className="flex-1">Workspace</TabsTrigger>
+          <TabsTrigger value="links" className="flex-1">Links</TabsTrigger>
+          <TabsTrigger value="lyrics" className="flex-1">Letras</TabsTrigger>
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
         </TabsList>
 
         <TabsContent value="music" className="mt-4 sm:mt-6">
           <PromptsSection 
+<<<<<<< HEAD
             categories={categories.filter(c => !c.parentId && c.name !== "Experts")}
+=======
+            categories={categories.filter(c => !c.parentId && (!categories.some(cat => cat.id === c.id && 'type' in cat)))}
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
             addCategory={onAddCategory}
             bulkImportPrompts={onBulkImportPrompts}
             ratePrompt={onRatePrompt}
@@ -158,7 +188,10 @@ export const PromptsTabs = ({
             onNextPage={onNextPage}
             onPreviousPage={onPreviousPage}
             currentPage={currentPage}
+<<<<<<< HEAD
             onRefreshRequired={onRefreshRequired}
+=======
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
           />
         </TabsContent>
 

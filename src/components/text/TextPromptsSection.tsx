@@ -1,8 +1,14 @@
+<<<<<<< HEAD
 import { useState, useEffect } from "react";
+=======
+
+import { useState } from "react";
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddCategory } from "@/components/AddCategory";
+<<<<<<< HEAD
 import { TextPromptLayerEditor } from "./TextPromptLayerEditor";
 import { TextCategoryTree } from "./TextCategoryTree";
 import { addTextPrompt, fetchTextPrompts, createTextPromptsTable } from "@/services/text/textPromptService";
@@ -11,6 +17,12 @@ import { toast } from "sonner";
 import { v4 as uuidv4 } from 'uuid';
 import type { TextPrompt, TextPromptInsert } from "@/types/textPrompt";
 import { addCategory, fetchCategories, updateCategory, deleteCategory } from "@/services/categoryService";
+=======
+import { TextPromptForm } from "./TextPromptForm";
+import { TextCategoryTree } from "./TextCategoryTree";
+import { useTextCategories } from "@/hooks/text/useTextCategories";
+import type { TextPrompt } from "@/types/textPrompt";
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 
 interface TextPromptsSectionProps {
   categories: any[];
@@ -18,6 +30,7 @@ interface TextPromptsSectionProps {
   searchTerm: string;
 }
 
+<<<<<<< HEAD
 // Lista de nomes de categorias que devem aparecer na aba de texto
 const TEXT_CATEGORY_NAMES = [
   "Super Prompts", "ChatGPT", "Gemini", "Claude", "Texto", 
@@ -194,6 +207,19 @@ export const TextPromptsSection = ({ categories, textPrompts: initialTextPrompts
       return false;
     }
   };
+=======
+export const TextPromptsSection = ({ textPrompts, searchTerm }: TextPromptsSectionProps) => {
+  const [showForm, setShowForm] = useState(false);
+  const { 
+    categories: textCategories, 
+    loading, 
+    createCategory,
+    editCategory,
+    removeCategory
+  } = useTextCategories();
+
+  const rootCategories = textCategories.filter(cat => !cat.parentId);
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -201,7 +227,11 @@ export const TextPromptsSection = ({ categories, textPrompts: initialTextPrompts
         <div className="flex flex-wrap gap-2">
           <AddCategory 
             onAdd={createCategory} 
+<<<<<<< HEAD
             categories={allCategories.map(cat => ({
+=======
+            categories={textCategories.map(cat => ({
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
               id: cat.id,
               name: cat.name,
               parentId: cat.parentId,
@@ -215,30 +245,55 @@ export const TextPromptsSection = ({ categories, textPrompts: initialTextPrompts
               })) || []
             }))} 
           />
+<<<<<<< HEAD
           <Button onClick={() => setShowForm(true)} className="flex items-center gap-2">
             <Plus className="h-4 w-4" />
             Novo Prompt de Texto
           </Button>
+=======
+          {textCategories.length > 0 && (
+            <Button onClick={() => setShowForm(true)} className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Novo Prompt de Texto
+            </Button>
+          )}
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
         </div>
       </div>
 
       {showForm && (
+<<<<<<< HEAD
         <TextPromptLayerEditor
           categories={allCategories.map(cat => ({
+=======
+        <TextPromptForm
+          categories={textCategories.map(cat => ({
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
             id: cat.id,
             name: cat.name,
             parentId: cat.parentId,
             prompts: [],
             subcategories: []
           }))}
+<<<<<<< HEAD
           onSubmit={handleAddPrompt}
+=======
+          onSubmit={async (data) => {
+            console.log('Criar prompt de texto:', data);
+            setShowForm(false);
+          }}
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
           onCancel={() => setShowForm(false)}
         />
       )}
 
       {loading ? (
         <div className="text-center py-8">Carregando categorias de texto...</div>
+<<<<<<< HEAD
       ) : !hasCategories ? (
+=======
+      ) : textCategories.length === 0 ? (
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
         <div className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg">
           Crie uma categoria para começar a adicionar prompts de texto
         </div>
@@ -266,7 +321,11 @@ export const TextPromptsSection = ({ categories, textPrompts: initialTextPrompts
             >
               <TextCategoryTree
                 category={category}
+<<<<<<< HEAD
                 categories={allCategories}
+=======
+                categories={textCategories}
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
                 textPrompts={textPrompts}
                 searchTerm={searchTerm}
                 onEditCategory={editCategory}

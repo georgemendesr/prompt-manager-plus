@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
@@ -246,16 +247,68 @@ export const useOptimizedData = (
     }
   }, [fetchedCategories]);
 
+=======
+
+
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { fetchAllDataOptimized, buildOptimizedCategoryTree, updatePromptRatingOptimistic, addCommentOptimistic } from '@/services/optimized/optimizedDataService';
+import type { Category } from '@/types/prompt';
+
+const QUERY_KEY = ['optimized-data'];
+
+export const useOptimizedData = (
+  initialLimit: number = 10,
+  initialOffset: number = 0
+) => {
+  const [limit] = useState(initialLimit);
+  const [offset, setOffset] = useState(initialOffset);
+  const queryClient = useQueryClient();
+
+  const currentQueryKey = [...QUERY_KEY, limit, offset];
+
+  // Query principal com fallback mais robusto
+  const {
+    data: categories = [],
+    isLoading,
+    error,
+    refetch
+  } = useQuery({
+    queryKey: currentQueryKey,
+    queryFn: async () => {
+      const { categories, promptsWithComments } = await fetchAllDataOptimized(limit, offset);
+      return buildOptimizedCategoryTree(categories, promptsWithComments);
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutos - reduzido
+    gcTime: 5 * 60 * 1000, // 5 minutos - reduzido
+    retry: (failureCount, error) => {
+      // Retry menos agressivo
+      return failureCount < 1;
+    },
+    retryDelay: 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: true
+  });
+
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
   // Mutation otimística para rating
   const ratingMutation = useMutation({
     mutationFn: ({ promptId, increment }: { promptId: string; increment: boolean }) =>
       updatePromptRatingOptimistic(promptId, increment),
     onMutate: async ({ promptId, increment }) => {
       // Cancel outgoing refetches
+<<<<<<< HEAD
       await queryClient.cancelQueries({ queryKey: QUERY_KEY });
 
       // Snapshot previous value
       const previousData = queryClient.getQueryData<Category[]>(QUERY_KEY);
+=======
+      await queryClient.cancelQueries({ queryKey: currentQueryKey });
+
+      // Snapshot previous value
+      const previousData = queryClient.getQueryData<Category[]>(currentQueryKey);
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 
       // Optimistically update
       if (previousData) {
@@ -264,6 +317,7 @@ export const useOptimizedData = (
             ...category,
             prompts: category.prompts.map(prompt =>
               prompt.id === promptId
+<<<<<<< HEAD
                 ? { 
                     ...prompt, 
                     // Incrementar rating (para sistemas antigos) e também ratingAverage/ratingCount
@@ -271,13 +325,20 @@ export const useOptimizedData = (
                     ratingAverage: prompt.ratingAverage || 0,
                     ratingCount: (prompt.ratingCount || 0) + 1
                   }
+=======
+                ? { ...prompt, rating: Math.max(0, prompt.rating + (increment ? 1 : -1)) }
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
                 : prompt
             ),
             subcategories: category.subcategories ? updatePromptInCategory(category.subcategories) : []
           }));
         };
 
+<<<<<<< HEAD
         queryClient.setQueryData(QUERY_KEY, updatePromptInCategory(previousData));
+=======
+        queryClient.setQueryData(currentQueryKey, updatePromptInCategory(previousData));
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
       }
 
       return { previousData };
@@ -285,16 +346,23 @@ export const useOptimizedData = (
     onError: (err, variables, context) => {
       // Rollback on error
       if (context?.previousData) {
+<<<<<<< HEAD
         queryClient.setQueryData(QUERY_KEY, context.previousData);
+=======
+        queryClient.setQueryData(currentQueryKey, context.previousData);
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
       }
       toast.error('Erro ao avaliar prompt');
     },
     onSuccess: () => {
       toast.success('Prompt avaliado!');
+<<<<<<< HEAD
       // Recarregar após avaliação bem-sucedida para atualizar os dados
       setTimeout(() => {
         refetch();
       }, 1000);
+=======
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
     }
   });
 
@@ -303,8 +371,13 @@ export const useOptimizedData = (
     mutationFn: ({ promptId, comment }: { promptId: string; comment: string }) =>
       addCommentOptimistic(promptId, comment),
     onMutate: async ({ promptId, comment }) => {
+<<<<<<< HEAD
       await queryClient.cancelQueries({ queryKey: QUERY_KEY });
       const previousData = queryClient.getQueryData<Category[]>(QUERY_KEY);
+=======
+      await queryClient.cancelQueries({ queryKey: currentQueryKey });
+      const previousData = queryClient.getQueryData<Category[]>(currentQueryKey);
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 
       if (previousData) {
         const updatePromptInCategory = (categories: Category[]): Category[] => {
@@ -325,14 +398,22 @@ export const useOptimizedData = (
           }));
         };
 
+<<<<<<< HEAD
         queryClient.setQueryData(QUERY_KEY, updatePromptInCategory(previousData));
+=======
+        queryClient.setQueryData(currentQueryKey, updatePromptInCategory(previousData));
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
       }
 
       return { previousData };
     },
     onError: (err, variables, context) => {
       if (context?.previousData) {
+<<<<<<< HEAD
         queryClient.setQueryData(QUERY_KEY, context.previousData);
+=======
+        queryClient.setQueryData(currentQueryKey, context.previousData);
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
       }
       toast.error('Erro ao adicionar comentário');
     },
@@ -341,6 +422,7 @@ export const useOptimizedData = (
     }
   });
 
+<<<<<<< HEAD
   // Função para atualizar uma categoria diretamente no cache
   const updateCategoryInCache = (categoryId: string, updates: Partial<Category>) => {
     // Obter dados atuais do cache
@@ -386,6 +468,8 @@ export const useOptimizedData = (
     console.log(`✅ Cache atualizado para categoria ${categoryId}:`, updates);
   };
 
+=======
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
   // Função para invalidar cache quando necessário
   const invalidateData = () => {
     queryClient.invalidateQueries({ queryKey: QUERY_KEY });
@@ -401,6 +485,7 @@ export const useOptimizedData = (
   };
 
   const nextPage = () => {
+<<<<<<< HEAD
     setCurrentPage(prev => prev + 1);
   };
 
@@ -411,12 +496,30 @@ export const useOptimizedData = (
   return {
     categories,
     loading,
+=======
+    setOffset(current => current + limit);
+  };
+
+  const previousPage = () => {
+    setOffset(current => Math.max(current - limit, 0));
+  };
+
+  // Corrigir o cálculo da página atual para começar em 1
+  const currentPage = Math.floor(offset / limit) + 1;
+
+  return {
+    categories,
+    loading: isLoading,
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
     error: error?.message || null,
     refetch,
     ratePrompt,
     addComment,
     invalidateData,
+<<<<<<< HEAD
     updateCategoryInCache,  // Nova função exposta
+=======
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
     nextPage,
     previousPage,
     currentPage,

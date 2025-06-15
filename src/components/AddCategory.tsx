@@ -1,5 +1,11 @@
+<<<<<<< HEAD
 import { useState, useMemo } from "react";
 import { Plus, AlertCircle } from "lucide-react";
+=======
+
+import { useState } from "react";
+import { Plus } from "lucide-react";
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,11 +21,16 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+<<<<<<< HEAD
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { Category } from "@/types/prompt";
 import { getAllDescendantIds, findCategoryById } from "@/utils/categoryTreeUtils";
+=======
+} from "@/components/ui/dialog";
+import type { Category } from "@/types/prompt";
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 
 type AddCategoryProps = {
   categories?: Category[];
@@ -42,6 +53,7 @@ export const AddCategory = ({
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(initialName);
   const [parentId, setParentId] = useState<string | undefined>(initialParentId);
+<<<<<<< HEAD
   const [validationError, setValidationError] = useState<string | null>(null);
 
   // Se estamos no modo de edição, precisamos saber qual categoria está sendo editada
@@ -96,6 +108,20 @@ export const AddCategory = ({
       setParentId(undefined);
       setValidationError(null);
       setOpen(false);
+=======
+
+  const handleSave = async () => {
+    if (name.trim()) {
+      const success = mode === "add" 
+        ? await onAdd?.(name, parentId === "root" ? undefined : parentId)
+        : await onEdit?.(name, parentId === "root" ? undefined : parentId);
+
+      if (success) {
+        setName("");
+        setParentId(undefined);
+        setOpen(false);
+      }
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
     }
   };
 
@@ -126,6 +152,7 @@ export const AddCategory = ({
           </Button>
         )}
       </DialogTrigger>
+<<<<<<< HEAD
       <DialogContent className="sm:max-w-[425px]" aria-describedby="dlg-desc">
         <DialogHeader>
           <DialogTitle>{mode === "add" ? "Nova Categoria" : "Editar Categoria"}</DialogTitle>
@@ -134,10 +161,16 @@ export const AddCategory = ({
               ? "Crie uma nova categoria para organizar seus prompts." 
               : "Edite as informações desta categoria."}
           </DialogDescription>
+=======
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>{mode === "add" ? "Nova Categoria" : "Editar Categoria"}</DialogTitle>
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
         </DialogHeader>
         <div className="space-y-4 pt-4">
           <Input
             value={name}
+<<<<<<< HEAD
             onChange={(e) => {
               setName(e.target.value);
               setValidationError(null);
@@ -148,6 +181,14 @@ export const AddCategory = ({
           <Select
             value={parentId}
             onValueChange={handleParentChange}
+=======
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Nome da categoria"
+          />
+          <Select
+            value={parentId}
+            onValueChange={setParentId}
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
           >
             <SelectTrigger>
               <SelectValue placeholder="Categoria pai (opcional)" />
@@ -155,6 +196,7 @@ export const AddCategory = ({
             <SelectContent>
               <SelectItem value="root">Nenhuma (categoria raiz)</SelectItem>
               {allCategories.map((category) => (
+<<<<<<< HEAD
                 <SelectItem 
                   key={category.id} 
                   value={category.id}
@@ -162,10 +204,15 @@ export const AddCategory = ({
                 >
                   {category.parentId ? `↳ ${category.name}` : category.name}
                   {mode === "edit" && invalidParentIds.includes(category.id) && " (não disponível)"}
+=======
+                <SelectItem key={category.id} value={category.id}>
+                  {category.parentId ? `↳ ${category.name}` : category.name}
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
+<<<<<<< HEAD
           
           {validationError && (
             <Alert variant="destructive">
@@ -174,6 +221,8 @@ export const AddCategory = ({
             </Alert>
           )}
           
+=======
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setOpen(false)}>
               Cancelar

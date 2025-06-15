@@ -7,11 +7,17 @@ import {
   fetchCategories, 
   fetchPrompts, 
   fetchComments,
+<<<<<<< HEAD
   forceDeleteCategoryById,
   diagnoseCategories
 } from "@/services/categoryService";
 import { buildCategoryTree } from "@/utils/categoryTreeUtils";
 import { supabase } from "@/services/base/supabaseService";
+=======
+  forceDeleteCategoryById
+} from "@/services/categoryService";
+import { buildCategoryTree } from "@/utils/categoryTreeUtils";
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 
 type SetCategoriesFunction = React.Dispatch<React.SetStateAction<Category[]>>;
 
@@ -76,6 +82,7 @@ export const useCategoryMutations = (
     try {
       console.log('Editando categoria:', { id, newName, newParentId });
       
+<<<<<<< HEAD
       // SOLUÇÃO EXTREMA: Atualizar apenas o estado local e armazenar em localStorage
       // Essa abordagem prioriza a experiência do usuário, mesmo quando há problemas no backend
       
@@ -152,6 +159,25 @@ export const useCategoryMutations = (
       return true;
     } catch (error) {
       console.error('Erro crítico ao editar categoria:', error);
+=======
+      const parentId = newParentId === "root" ? null : newParentId;
+      const { error } = await updateCategoryInDb(id, newName, parentId);
+
+      if (error) throw error;
+
+      const { data: updatedCategories, error: fetchError } = await fetchCategories();
+      if (fetchError) throw fetchError;
+
+      const categoryTree = buildCategoryTree(
+        (updatedCategories || []) as CategoryRecord[]
+      );
+      setCategories(categoryTree);
+      
+      toast.success('Categoria atualizada com sucesso!');
+      return true;
+    } catch (error) {
+      console.error('Erro ao editar categoria:', error);
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
       toast.error('Erro ao editar categoria');
       return false;
     }

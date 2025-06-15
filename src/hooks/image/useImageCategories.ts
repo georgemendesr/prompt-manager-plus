@@ -1,7 +1,12 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { fetchImageCategories, addImageCategory, updateImageCategory, deleteImageCategory } from "@/services/image/imageCategoryService";
 import type { ImageCategory } from "@/types/imageCategory";
+<<<<<<< HEAD
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -14,6 +19,11 @@ interface Category {
 
 export const useImageCategories = () => {
   const [categories, setCategories] = useState<Category[]>([]);
+=======
+
+export const useImageCategories = () => {
+  const [categories, setCategories] = useState<ImageCategory[]>([]);
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,6 +31,7 @@ export const useImageCategories = () => {
     try {
       setLoading(true);
       setError(null);
+<<<<<<< HEAD
       console.log('Buscando categorias de imagem do Supabase...');
       
       // Buscar todas as categorias - não existe coluna 'type'
@@ -46,6 +57,10 @@ export const useImageCategories = () => {
       // Construir árvore de categorias
       const categoriesWithSubs = buildCategoryTree(filteredData);
       setCategories(categoriesWithSubs);
+=======
+      const data = await fetchImageCategories();
+      setCategories(data);
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar categorias de imagem';
       setError(errorMessage);
@@ -55,6 +70,7 @@ export const useImageCategories = () => {
     }
   };
 
+<<<<<<< HEAD
   const buildCategoryTree = (flatCategories: any[]): Category[] => {
     const categoryMap = new Map();
     flatCategories.forEach(cat => {
@@ -176,6 +192,44 @@ export const useImageCategories = () => {
     } catch (err) {
       console.error('Erro ao remover categoria:', err);
       toast.error('Erro ao excluir categoria');
+=======
+  const createCategory = async (name: string, parentId?: string): Promise<boolean> => {
+    try {
+      await addImageCategory(name, parentId);
+      await loadCategories();
+      toast.success('Categoria de imagem criada com sucesso!');
+      return true;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao criar categoria de imagem';
+      toast.error(errorMessage);
+      return false;
+    }
+  };
+
+  const editCategory = async (id: string, newName: string, newParentId?: string): Promise<boolean> => {
+    try {
+      await updateImageCategory(id, newName, newParentId);
+      await loadCategories();
+      toast.success('Categoria de imagem atualizada com sucesso!');
+      return true;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao atualizar categoria de imagem';
+      toast.error(errorMessage);
+      return false;
+    }
+  };
+
+  const removeCategory = async (id: string): Promise<boolean> => {
+    try {
+      await deleteImageCategory(id);
+      await loadCategories();
+      toast.success('Categoria de imagem removida com sucesso!');
+      return true;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao remover categoria de imagem';
+      toast.error(errorMessage);
+      return false;
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
     }
   };
 

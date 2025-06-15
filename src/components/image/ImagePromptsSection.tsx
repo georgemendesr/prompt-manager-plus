@@ -1,8 +1,14 @@
+<<<<<<< HEAD
 import { useState, useEffect } from "react";
+=======
+
+import { useState } from "react";
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddCategory } from "@/components/AddCategory";
+<<<<<<< HEAD
 import { ImagePromptLayerEditor } from "./ImagePromptLayerEditor";
 import { ImageCategoryTree } from "./ImageCategoryTree";
 import { addImagePrompt, fetchImagePrompts } from "@/services/image/imagePromptService";
@@ -11,6 +17,12 @@ import { toast } from "sonner";
 import { v4 as uuidv4 } from 'uuid';
 import type { ImagePrompt, ImagePromptInsert } from "@/types/imagePrompt";
 import { addCategory, fetchCategories, updateCategory, deleteCategory } from "@/services/categoryService";
+=======
+import { ImagePromptForm } from "./ImagePromptForm";
+import { ImageCategoryTree } from "./ImageCategoryTree";
+import { useImageCategories } from "@/hooks/image/useImageCategories";
+import type { ImagePrompt } from "@/types/imagePrompt";
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 
 interface ImagePromptsSectionProps {
   categories: any[];
@@ -18,6 +30,7 @@ interface ImagePromptsSectionProps {
   searchTerm: string;
 }
 
+<<<<<<< HEAD
 // Lista de nomes de categorias que devem aparecer na aba de imagem
 const IMAGE_CATEGORY_NAMES = [
   "Imagem", "Midjourney", "DALL-E", "Stable Diffusion", "Leonardo", 
@@ -188,6 +201,19 @@ export const ImagePromptsSection = ({ categories, imagePrompts: initialImageProm
       return false;
     }
   };
+=======
+export const ImagePromptsSection = ({ imagePrompts, searchTerm }: ImagePromptsSectionProps) => {
+  const [showForm, setShowForm] = useState(false);
+  const { 
+    categories: imageCategories, 
+    loading, 
+    createCategory,
+    editCategory,
+    removeCategory
+  } = useImageCategories();
+
+  const rootCategories = imageCategories.filter(cat => !cat.parentId);
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -195,7 +221,11 @@ export const ImagePromptsSection = ({ categories, imagePrompts: initialImageProm
         <div className="flex flex-wrap gap-2">
           <AddCategory 
             onAdd={createCategory} 
+<<<<<<< HEAD
             categories={allCategories.map(cat => ({
+=======
+            categories={imageCategories.map(cat => ({
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
               id: cat.id,
               name: cat.name,
               parentId: cat.parentId,
@@ -209,30 +239,55 @@ export const ImagePromptsSection = ({ categories, imagePrompts: initialImageProm
               })) || []
             }))} 
           />
+<<<<<<< HEAD
           <Button onClick={() => setShowForm(true)} className="flex items-center gap-2">
             <Plus className="h-4 w-4" />
             Novo Prompt de Imagem
           </Button>
+=======
+          {imageCategories.length > 0 && (
+            <Button onClick={() => setShowForm(true)} className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Novo Prompt de Imagem
+            </Button>
+          )}
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
         </div>
       </div>
 
       {showForm && (
+<<<<<<< HEAD
         <ImagePromptLayerEditor
           categories={allCategories.map(cat => ({
+=======
+        <ImagePromptForm
+          categories={imageCategories.map(cat => ({
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
             id: cat.id,
             name: cat.name,
             parentId: cat.parentId,
             prompts: [],
             subcategories: []
           }))}
+<<<<<<< HEAD
           onSubmit={handleAddPrompt}
+=======
+          onSubmit={async (data) => {
+            console.log('Criar prompt de imagem:', data);
+            setShowForm(false);
+          }}
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
           onCancel={() => setShowForm(false)}
         />
       )}
 
       {loading ? (
         <div className="text-center py-8">Carregando categorias de imagem...</div>
+<<<<<<< HEAD
       ) : !hasCategories ? (
+=======
+      ) : imageCategories.length === 0 ? (
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
         <div className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg">
           Crie uma categoria para começar a adicionar prompts de imagem
         </div>
@@ -260,7 +315,11 @@ export const ImagePromptsSection = ({ categories, imagePrompts: initialImageProm
             >
               <ImageCategoryTree
                 category={category}
+<<<<<<< HEAD
                 categories={allCategories}
+=======
+                categories={imageCategories}
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
                 imagePrompts={imagePrompts}
                 searchTerm={searchTerm}
                 onEditCategory={editCategory}

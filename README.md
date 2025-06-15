@@ -97,6 +97,7 @@ After updating the database run the Supabase type generator to refresh local typ
 ```sh
 npx supabase gen types typescript --project-id <project_id> --schema public > src/integrations/supabase/types.ts
 ```
+<<<<<<< HEAD
 
 ## Chat com Assistente IA (Compositor Pedro Fonseca)
 
@@ -127,3 +128,5 @@ OPENAI_ASSISTANT_ID=asst_MLJYtP1ZjjWlwmeIeY9UTlQx
 O chat estará disponível via `/api/chat`.
 
 ---
+=======
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611

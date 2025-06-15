@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 import { supabase } from "../base/supabaseService";
 import type { RawCategory } from "@/types/rawCategory";
 
@@ -24,6 +28,7 @@ export const addCategoryToDb = async (name: string, parentId?: string) => {
 };
 
 export const updateCategoryInDb = async (id: string, name: string, parentId: string | null) => {
+<<<<<<< HEAD
   try {
     console.log('Iniciando atualização de categoria com valores:', { id, name, parentId });
     
@@ -98,6 +103,15 @@ export const updateCategoryInDb = async (id: string, name: string, parentId: str
     console.error('Erro crítico ao atualizar categoria:', error);
     return { data: null, error };
   }
+=======
+  return await supabase
+    .from('categories')
+    .update({ 
+      name: name.trim(),
+      parent_id: parentId
+    })
+    .eq('id', id);
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 };
 
 export const getAllSubcategoriesIds = async (categoryId: string): Promise<string[]> => {
@@ -122,6 +136,7 @@ export const getAllSubcategoriesIds = async (categoryId: string): Promise<string
     return [];
   }
 };
+<<<<<<< HEAD
 
 // Função de diagnóstico para examinar a estrutura da tabela
 export const diagnoseCategories = async () => {
@@ -176,3 +191,5 @@ export const diagnoseCategories = async () => {
     return false;
   }
 };
+=======
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611

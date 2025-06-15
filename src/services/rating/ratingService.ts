@@ -1,16 +1,26 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 import { supabase } from "@/integrations/supabase/client";
 
 export const addPromptRating = async (promptId: string, rating: number) => {
   try {
+<<<<<<< HEAD
     console.log(`[STAR] Adicionando avaliação ${rating} para prompt ${promptId}`);
     
     // Usando método direto sem RPC já que a função add_rating parece não estar disponível
     // 1. Primeiro, inserir a avaliação
     const { error: insertError } = await supabase
+=======
+    // Inserir nova avaliação
+    const { data, error } = await supabase
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
       .from('prompt_ratings')
       .insert({
         prompt_id: promptId,
         rating: rating,
+<<<<<<< HEAD
         user_id: null // Permitir avaliações anônimas
       });
     
@@ -61,12 +71,30 @@ export const addPromptRating = async (promptId: string, rating: number) => {
     };
   } catch (error) {
     console.error('[STAR] Erro ao adicionar avaliação:', error);
+=======
+        user_id: null // Para permitir avaliações anônimas
+      });
+    
+    if (error) throw error;
+
+    // Recalcular média usando função do banco
+    const { error: updateError } = await supabase.rpc('calculate_prompt_rating_average', {
+      prompt_uuid: promptId
+    });
+
+    if (updateError) throw updateError;
+
+    return { data, error: null };
+  } catch (error) {
+    console.error('Erro ao adicionar avaliação:', error);
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
     return { data: null, error };
   }
 };
 
 export const incrementCopyCount = async (promptId: string) => {
   try {
+<<<<<<< HEAD
     console.log(`[COPY] Incrementando cópia para prompt ${promptId}`);
     
     // 1. Primeiro, obter o valor atual do contador
@@ -105,6 +133,19 @@ export const incrementCopyCount = async (promptId: string) => {
   } catch (error) {
     console.error('[COPY] Erro ao incrementar contador:', error);
     return { error };
+=======
+    const { data, error } = await supabase.rpc('increment_copy_count', {
+      prompt_uuid: promptId
+    });
+    
+    if (error) throw error;
+    
+    console.log('✅ Contador de cópias incrementado com sucesso');
+    return { data, error: null };
+  } catch (error) {
+    console.error('Erro ao incrementar contador de cópias:', error);
+    return { data: null, error };
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
   }
 };
 
@@ -117,6 +158,7 @@ export const getPromptStats = async (promptId: string) => {
       .single();
     
     if (error) throw error;
+<<<<<<< HEAD
     
     return { 
       data, 
@@ -124,6 +166,11 @@ export const getPromptStats = async (promptId: string) => {
     };
   } catch (error) {
     console.error('[STATS] Erro ao buscar estatísticas:', error);
+=======
+    return { data, error: null };
+  } catch (error) {
+    console.error('Erro ao buscar estatísticas do prompt:', error);
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
     return { data: null, error };
   }
 };

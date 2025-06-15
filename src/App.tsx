@@ -1,9 +1,15 @@
+<<<<<<< HEAD
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+=======
+
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 import Index from "./pages/Index";
 import Prompts from "./pages/Prompts";
 import LinksPage from "./pages/Links";
 import Auth from "./pages/Auth";
+<<<<<<< HEAD
 import Settings from "./pages/Settings";
 import Statistics from "./pages/Statistics";
 import NotFound from "./pages/NotFound";
@@ -53,6 +59,12 @@ function MigrationHandler() {
 
   return null; // Não renderiza nada visualmente
 }
+=======
+import NotFound from "./pages/NotFound";
+import { AuthProvider } from "./components/AuthProvider";
+import { useAuth } from "./components/AuthProvider";
+import { Toaster } from "sonner";
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
@@ -68,9 +80,14 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+<<<<<<< HEAD
         <MigrationHandler />
         <Routes>
           <Route path="/" element={<Home />} />
+=======
+        <Routes>
+          <Route path="/" element={<Index />} />
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
           <Route path="/auth" element={<Auth />} />
           <Route
             path="/prompts"
@@ -88,6 +105,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+<<<<<<< HEAD
           <Route
             path="/settings"
             element={
@@ -152,6 +170,8 @@ function App() {
               </ProtectedRoute>
             }
           />
+=======
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Toaster position="top-right" />

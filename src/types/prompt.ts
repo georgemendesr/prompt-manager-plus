@@ -16,7 +16,10 @@ export type Prompt = {
   ratingCount?: number; // Total de avaliações
   copyCount?: number; // Total de cópias
   uniqueId?: string; // ID único para exibição
+<<<<<<< HEAD
   translatedText?: string | undefined; // Texto traduzido para exibição na interface - totalmente opcional
+=======
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 };
 
 export type Category = {

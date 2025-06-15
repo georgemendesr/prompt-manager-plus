@@ -17,7 +17,11 @@ export const useCategoryFetcher = () => {
       console.log('Iniciando carregamento de dados...');
       
       const [categoriesResult, promptsResult, commentsResult] = await Promise.all([
+<<<<<<< HEAD
         fetchCategories('text'),
+=======
+        fetchCategories(),
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
         fetchPrompts(),
         fetchComments()
       ]);

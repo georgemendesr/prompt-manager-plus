@@ -1,6 +1,12 @@
+<<<<<<< HEAD
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 // Para debounce de valores
+=======
+
+import { useState, useEffect } from 'react';
+
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 export const useDebounce = <T>(value: T, delay: number): T => {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
@@ -16,6 +22,7 @@ export const useDebounce = <T>(value: T, delay: number): T => {
 
   return debouncedValue;
 };
+<<<<<<< HEAD
 
 // Para debounce de funções
 export const useDebounceCallback = <T extends (...args: any[]) => any>(
@@ -60,3 +67,5 @@ export const useDebounceCallback = <T extends (...args: any[]) => any>(
 
   return debouncedCallback;
 };
+=======
+>>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
