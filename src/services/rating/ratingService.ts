@@ -1,151 +1,79 @@
-<<<<<<< HEAD
-=======
 
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
-export const addPromptRating = async (promptId: string, rating: number) => {
+export const ratePrompt = async (promptId: string, rating: number, userId?: string) => {
   try {
-<<<<<<< HEAD
-    console.log(`[STAR] Adicionando avaliação ${rating} para prompt ${promptId}`);
+    console.log(`🔄 Avaliando prompt ${promptId} com ${rating} estrelas`);
     
-    // Usando método direto sem RPC já que a função add_rating parece não estar disponível
-    // 1. Primeiro, inserir a avaliação
-    const { error: insertError } = await supabase
-=======
-    // Inserir nova avaliação
-    const { data, error } = await supabase
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
+    // Verificar se já existe uma avaliação do usuário
+    const { data: existingRating, error: fetchError } = await supabase
       .from('prompt_ratings')
-      .insert({
-        prompt_id: promptId,
-        rating: rating,
-<<<<<<< HEAD
-        user_id: null // Permitir avaliações anônimas
-      });
-    
-    if (insertError) {
-      console.error('[STAR] Erro ao inserir avaliação:', insertError);
-      throw insertError;
-    }
-    
-    // 2. Consultar todas as avaliações para este prompt
-    const { data: ratings, error: ratingsError } = await supabase
-      .from('prompt_ratings')
-      .select('rating')
-      .eq('prompt_id', promptId);
-    
-    if (ratingsError) {
-      console.error('[STAR] Erro ao buscar avaliações:', ratingsError);
-      throw ratingsError;
-    }
-    
-    // 3. Calcular a média e contagem
-    const count = ratings?.length || 0;
-    const sum = ratings?.reduce((acc, curr) => acc + curr.rating, 0) || 0;
-    const average = count > 0 ? sum / count : 0;
-    
-    console.log(`[STAR] Calculado: média ${average.toFixed(2)}, contagem ${count}`);
-    
-    // 4. Atualizar o prompt com os novos valores
-    const { data: updatedPrompt, error: updateError } = await supabase
-      .from('prompts')
-      .update({
-        rating_average: average,
-        rating_count: count
-      })
-      .eq('id', promptId)
-      .select('rating_average, rating_count')
+      .select('id')
+      .eq('prompt_id', promptId)
+      .eq('user_id', userId || 'anonymous')
       .single();
-    
-    if (updateError) {
-      console.error('[STAR] Erro ao atualizar prompt:', updateError);
-      throw updateError;
+
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      throw fetchError;
     }
-    
-    console.log('[STAR] Prompt atualizado com sucesso:', updatedPrompt);
-    
-    return { 
-      data: updatedPrompt, 
-      error: null 
-    };
+
+    if (existingRating) {
+      // Atualizar avaliação existente
+      const { error } = await supabase
+        .from('prompt_ratings')
+        .update({ rating })
+        .eq('id', existingRating.id);
+
+      if (error) throw error;
+    } else {
+      // Criar nova avaliação
+      const { error } = await supabase
+        .from('prompt_ratings')
+        .insert({
+          prompt_id: promptId,
+          user_id: userId || 'anonymous',
+          rating
+        });
+
+      if (error) throw error;
+    }
+
+    // Recalcular média usando a função do banco
+    const { error: calcError } = await supabase
+      .rpc('calculate_prompt_rating_average', { prompt_uuid: promptId });
+
+    if (calcError) {
+      console.error('Erro ao recalcular média:', calcError);
+      throw calcError;
+    }
+
+    toast.success('Avaliação salva com sucesso!');
+    return true;
   } catch (error) {
-    console.error('[STAR] Erro ao adicionar avaliação:', error);
-=======
-        user_id: null // Para permitir avaliações anônimas
-      });
-    
-    if (error) throw error;
-
-    // Recalcular média usando função do banco
-    const { error: updateError } = await supabase.rpc('calculate_prompt_rating_average', {
-      prompt_uuid: promptId
-    });
-
-    if (updateError) throw updateError;
-
-    return { data, error: null };
-  } catch (error) {
-    console.error('Erro ao adicionar avaliação:', error);
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
-    return { data: null, error };
+    console.error('Erro ao avaliar prompt:', error);
+    toast.error('Erro ao salvar avaliação');
+    throw error;
   }
 };
 
-export const incrementCopyCount = async (promptId: string) => {
+export const getUserRating = async (promptId: string, userId?: string): Promise<number | null> => {
   try {
-<<<<<<< HEAD
-    console.log(`[COPY] Incrementando cópia para prompt ${promptId}`);
-    
-    // 1. Primeiro, obter o valor atual do contador
-    const { data: currentData, error: getError } = await supabase
-      .from('prompts')
-      .select('copy_count')
-      .eq('id', promptId)
+    const { data, error } = await supabase
+      .from('prompt_ratings')
+      .select('rating')
+      .eq('prompt_id', promptId)
+      .eq('user_id', userId || 'anonymous')
       .single();
-    
-    if (getError) {
-      console.error('[COPY] Erro ao buscar contador atual:', getError);
-      throw getError;
+
+    if (error && error.code !== 'PGRST116') {
+      throw error;
     }
-    
-    // 2. Incrementar o contador usando o valor atual
-    const currentCount = currentData?.copy_count || 0;
-    const newCount = currentCount + 1;
-    
-    // 3. Atualizar o prompt com o novo contador
-    const { data, error: updateError } = await supabase
-      .from('prompts')
-      .update({
-        copy_count: newCount
-      })
-      .eq('id', promptId)
-      .select('copy_count')
-      .single();
-    
-    if (updateError) {
-      console.error('[COPY] Erro ao incrementar contador:', updateError);
-      throw updateError;
-    }
-    
-    console.log(`[COPY] Contador incrementado: ${currentCount} → ${data?.copy_count}`);
-    return { data, error: null };
+
+    return data?.rating || null;
   } catch (error) {
-    console.error('[COPY] Erro ao incrementar contador:', error);
-    return { error };
-=======
-    const { data, error } = await supabase.rpc('increment_copy_count', {
-      prompt_uuid: promptId
-    });
-    
-    if (error) throw error;
-    
-    console.log('✅ Contador de cópias incrementado com sucesso');
-    return { data, error: null };
-  } catch (error) {
-    console.error('Erro ao incrementar contador de cópias:', error);
-    return { data: null, error };
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
+    console.error('Erro ao buscar avaliação do usuário:', error);
+    return null;
   }
 };
 
@@ -156,21 +84,36 @@ export const getPromptStats = async (promptId: string) => {
       .select('rating_average, rating_count, copy_count')
       .eq('id', promptId)
       .single();
-    
+
     if (error) throw error;
-<<<<<<< HEAD
-    
-    return { 
-      data, 
-      error: null 
+
+    return {
+      average: data.rating_average || 0,
+      count: data.rating_count || 0,
+      copyCount: data.copy_count || 0
     };
   } catch (error) {
-    console.error('[STATS] Erro ao buscar estatísticas:', error);
-=======
-    return { data, error: null };
-  } catch (error) {
     console.error('Erro ao buscar estatísticas do prompt:', error);
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
-    return { data: null, error };
+    return { average: 0, count: 0, copyCount: 0 };
+  }
+};
+
+export const incrementCopyCount = async (promptId: string) => {
+  try {
+    console.log(`🔄 Incrementando contador de cópias para prompt ${promptId}`);
+    
+    const { error } = await supabase
+      .rpc('increment_copy_count', { prompt_uuid: promptId });
+
+    if (error) {
+      console.error('Erro ao incrementar contador:', error);
+      throw error;
+    }
+
+    console.log('✅ Contador incrementado com sucesso');
+    return true;
+  } catch (error) {
+    console.error('Erro ao incrementar contador de cópias:', error);
+    throw error;
   }
 };

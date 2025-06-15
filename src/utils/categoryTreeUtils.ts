@@ -1,129 +1,145 @@
-import type { Category } from "@/types/prompt";
-import type { RawCategory, CategoryRecord } from "@/types/category";
 
-export const buildCategoryTree = (
-  categories: CategoryRecord[],
-  parentId: string | null = null
-): Category[] => {
-  return categories
-    .filter(category => category.parent_id === parentId)
-    .map(category => ({
-      id: category.id,
-      name: category.name,
-      parentId: category.parent_id,
-      prompts: [],
-      subcategories: buildCategoryTree(categories, category.id)
-    }));
-};
+import type { Category } from '@/types/prompt';
 
-export const updateTreeWithPrompts = (newTree: Category[], oldCategories: Category[]): Category[] => {
-  return newTree.map(category => {
-    const oldCategory = oldCategories.find(c => c.id === category.id);
-    return {
-      ...category,
-      prompts: oldCategory?.prompts || [],
-      subcategories: category.subcategories ? 
-        updateTreeWithPrompts(category.subcategories, oldCategories.flatMap(c => c.subcategories || [])) : 
-        []
-    };
-  });
-};
-
-export const removeCategoryFromTree = (categories: Category[], id: string): Category[] => {
-  return categories.filter(category => {
-    if (category.id === id) return false;
-    if (category.subcategories?.length) {
-      category.subcategories = removeCategoryFromTree(category.subcategories, id);
-    }
-    return true;
-  });
-<<<<<<< HEAD
-};
-
-/**
- * Verifica se uma categoria é descendente de outra na hierarquia
- * Usada para prevenir ciclos quando uma categoria é editada
- * @param categories Lista completa de categorias
- * @param categoryId ID da categoria a ser verificada
- * @param potentialParentId ID da categoria que seria o novo pai
- * @returns true se a potentialParentId é descendente de categoryId (criaria ciclo)
- */
-export const wouldCreateCycle = (
-  categories: Category[],
-  categoryId: string,
-  potentialParentId: string
-): boolean => {
-  // Se tentando definir a si mesmo como pai
-  if (categoryId === potentialParentId) {
-    return true;
-  }
-
-  // Função recursiva para verificar descendentes
-  const isDescendant = (parentId: string, childId: string): boolean => {
-    // Procura em todas as categorias
-    for (const category of categories) {
-      if (category.id === parentId) {
-        // Verifica subcategorias diretas
-        if (category.subcategories?.some(sub => sub.id === childId)) {
-          return true;
-        }
-        // Verifica recursivamente nas subcategorias
-        if (category.subcategories?.some(sub => isDescendant(sub.id, childId))) {
-          return true;
-        }
-      }
-    }
-    return false;
-  };
-
-  // Verificar se o potencial pai é descendente da categoria atual
-  return isDescendant(categoryId, potentialParentId);
-};
-
-/**
- * Obtém todos os descendentes de uma categoria específica
- * @param categories Lista completa de categorias
- * @param categoryId ID da categoria 
- * @returns Array com IDs de todas as subcategorias (incluindo as aninhadas)
- */
-export const getAllDescendantIds = (categories: Category[], categoryId: string): string[] => {
-  const result: string[] = [];
-  
-  // Função recursiva para coletar descendentes
-  const collectDescendants = (id: string) => {
-    // Encontra a categoria pelo ID
-    const category = findCategoryById(categories, id);
-    if (!category) return;
-    
-    // Adiciona subcategorias
-    if (category.subcategories?.length) {
-      for (const sub of category.subcategories) {
-        result.push(sub.id);
-        collectDescendants(sub.id);
-      }
-    }
-  };
-  
-  collectDescendants(categoryId);
-  return result;
-};
-
-/**
- * Encontra uma categoria por ID em qualquer nível da árvore
- */
-export const findCategoryById = (categories: Category[], id: string): Category | undefined => {
+export const findCategoryById = (categories: Category[], id: string): Category | null => {
   for (const category of categories) {
     if (category.id === id) {
       return category;
     }
-    
-    if (category.subcategories?.length) {
+    if (category.subcategories) {
       const found = findCategoryById(category.subcategories, id);
       if (found) return found;
     }
   }
+  return null;
+};
+
+export const findCategoryByName = (categories: Category[], name: string): Category | null => {
+  for (const category of categories) {
+    if (category.name.toLowerCase() === name.toLowerCase()) {
+      return category;
+    }
+    if (category.subcategories) {
+      const found = findCategoryByName(category.subcategories, name);
+      if (found) return found;
+    }
+  }
+  return null;
+};
+
+export const getAllCategoryIds = (categories: Category[]): string[] => {
+  const ids: string[] = [];
   
-  return undefined;
-=======
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
+  const traverse = (cats: Category[]) => {
+    cats.forEach(cat => {
+      ids.push(cat.id);
+      if (cat.subcategories) {
+        traverse(cat.subcategories);
+      }
+    });
+  };
+  
+  traverse(categories);
+  return ids;
+};
+
+export const getCategoryPath = (categories: Category[], categoryId: string): string[] => {
+  const path: string[] = [];
+  
+  const findPath = (cats: Category[], targetId: string, currentPath: string[]): boolean => {
+    for (const cat of cats) {
+      const newPath = [...currentPath, cat.name];
+      
+      if (cat.id === targetId) {
+        path.push(...newPath);
+        return true;
+      }
+      
+      if (cat.subcategories && findPath(cat.subcategories, targetId, newPath)) {
+        return true;
+      }
+    }
+    return false;
+  };
+  
+  findPath(categories, categoryId, []);
+  return path;
+};
+
+export const flattenCategories = (categories: Category[]): Category[] => {
+  const flattened: Category[] = [];
+  
+  const traverse = (cats: Category[]) => {
+    cats.forEach(cat => {
+      // Create a copy without subcategories for the flattened array
+      const flatCat: Category = {
+        ...cat,
+        subcategories: undefined
+      };
+      flattened.push(flatCat);
+      
+      if (cat.subcategories) {
+        traverse(cat.subcategories);
+      }
+    });
+  };
+  
+  traverse(categories);
+  return flattened;
+};
+
+export const updateCategoryInTree = (
+  categories: Category[], 
+  categoryId: string, 
+  updater: (category: Category) => Category
+): Category[] => {
+  return categories.map(category => {
+    if (category.id === categoryId) {
+      return updater(category);
+    }
+    
+    if (category.subcategories) {
+      return {
+        ...category,
+        subcategories: updateCategoryInTree(category.subcategories, categoryId, updater)
+      };
+    }
+    
+    return category;
+  });
+};
+
+export const removeCategoryFromTree = (categories: Category[], categoryId: string): Category[] => {
+  return categories
+    .filter(category => category.id !== categoryId)
+    .map(category => ({
+      ...category,
+      subcategories: category.subcategories 
+        ? removeCategoryFromTree(category.subcategories, categoryId)
+        : undefined
+    }));
+};
+
+export const addCategoryToTree = (categories: Category[], newCategory: Category, parentId?: string): Category[] => {
+  if (!parentId) {
+    return [...categories, newCategory];
+  }
+  
+  return categories.map(category => {
+    if (category.id === parentId) {
+      return {
+        ...category,
+        subcategories: [...(category.subcategories || []), newCategory]
+      };
+    }
+    
+    if (category.subcategories) {
+      return {
+        ...category,
+        subcategories: addCategoryToTree(category.subcategories, newCategory, parentId)
+      };
+    }
+    
+    return category;
+  });
 };

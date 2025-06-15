@@ -1,45 +1,59 @@
-export type Prompt = {
+
+export interface Prompt {
   id: string;
   text: string;
   category: string;
-  rating: number; // Pontuação de votos (sistema antigo)
-  comments: string[];
+  rating: number;
   tags: string[];
-  createdAt: Date;
-  selected?: boolean;
-  isEditing?: boolean;
   backgroundColor?: string;
-  score?: number; // Nova propriedade para pontuação de votos
-  rank?: number; // Nova propriedade para posição no ranking
-  // Novas propriedades para o sistema de estrelas
-  ratingAverage?: number; // Média das avaliações por estrelas
-  ratingCount?: number; // Total de avaliações
-  copyCount?: number; // Total de cópias
-  uniqueId?: string; // ID único para exibição
-<<<<<<< HEAD
-  translatedText?: string | undefined; // Texto traduzido para exibição na interface - totalmente opcional
-=======
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
-};
+  comments: string[];
+  createdAt: Date;
+  selected: boolean;
+  ratingAverage: number;
+  ratingCount: number;
+  copyCount: number;
+  uniqueId: string;
+}
 
-export type Category = {
+export interface Category {
   id: string;
   name: string;
-  prompts: Prompt[];
   parentId?: string;
+  prompts: Prompt[];
   subcategories?: Category[];
-};
+}
 
-export type MusicStructure = {
-  id: string;
-  name: string;
-  description: string;
-  tags: string[];
-  effect: string;
-};
-
-export type WorkspaceItem = {
+export interface Comment {
   id: string;
   text: string;
-  createdAt: Date;
-};
+  createdAt: string;
+  promptId: string;
+}
+
+export interface PromptFormData {
+  text: string;
+  categoryId: string;
+  tags: string[];
+  backgroundColor?: string;
+}
+
+export interface CategoryFormData {
+  name: string;
+  parentId?: string;
+}
+
+export interface PromptStats {
+  totalPrompts: number;
+  totalCategories: number;
+  averageRating: number;
+  topCategories: Array<{
+    name: string;
+    count: number;
+  }>;
+}
+
+export interface SearchResult {
+  prompt: Prompt;
+  category: string;
+  matchType: 'text' | 'tag' | 'category';
+}
