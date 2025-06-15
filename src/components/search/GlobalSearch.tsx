@@ -1,16 +1,9 @@
-<<<<<<< HEAD
-=======
 
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { useGlobalSearch } from "@/hooks/useGlobalSearch";
-<<<<<<< HEAD
-import { useEffect } from "react";
-=======
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
+import { useState, useMemo } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import type { Category } from "@/types/prompt";
 import type { TextPrompt } from "@/types/textPrompt";
 import type { ImagePrompt } from "@/types/imagePrompt";
@@ -30,109 +23,136 @@ export const GlobalSearch = ({
   searchTerm,
   setSearchTerm
 }: GlobalSearchProps) => {
-<<<<<<< HEAD
-  const { results, totalResults, isSearching, search } = useGlobalSearch({
-=======
-  const { results, totalResults, isSearching } = useGlobalSearch({
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
-    categories,
-    textPrompts,
-    imagePrompts
-  });
+  const [isExpanded, setIsExpanded] = useState(false);
 
-<<<<<<< HEAD
-  // Usar useEffect para realizar a busca quando o termo de busca mudar
-  useEffect(() => {
-    search(searchTerm);
-  }, [search, searchTerm]);
+  const searchResults = useMemo(() => {
+    if (!searchTerm.trim()) return { prompts: [], textPrompts: [], imagePrompts: [] };
 
-=======
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'music': return 'bg-blue-100 text-blue-800';
-      case 'text': return 'bg-green-100 text-green-800';
-      case 'image': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
+    const term = searchTerm.toLowerCase();
+    
+    const musicPrompts = categories.flatMap(category => 
+      category.prompts.filter(prompt => 
+        prompt.text.toLowerCase().includes(term) ||
+        prompt.tags.some(tag => tag.toLowerCase().includes(term))
+      ).map(prompt => ({ ...prompt, categoryName: category.name, type: 'music' as const }))
+    );
+
+    const filteredTextPrompts = textPrompts.filter(prompt =>
+      prompt.text.toLowerCase().includes(term) ||
+      prompt.tags.some(tag => tag.toLowerCase().includes(term))
+    ).map(prompt => ({ ...prompt, type: 'text' as const }));
+
+    const filteredImagePrompts = imagePrompts.filter(prompt =>
+      prompt.text.toLowerCase().includes(term) ||
+      prompt.tags.some(tag => tag.toLowerCase().includes(term))
+    ).map(prompt => ({ ...prompt, type: 'image' as const }));
+
+    return {
+      prompts: musicPrompts,
+      textPrompts: filteredTextPrompts,
+      imagePrompts: filteredImagePrompts
+    };
+  }, [searchTerm, categories, textPrompts, imagePrompts]);
+
+  const totalResults = searchResults.prompts.length + 
+                     searchResults.textPrompts.length + 
+                     searchResults.imagePrompts.length;
+
+  const handleSearchClick = () => {
+    setIsExpanded(true);
+  };
+
+  const handleBlur = () => {
+    if (!searchTerm) {
+      setIsExpanded(false);
     }
   };
 
-  const getTypeLabel = (type: string) => {
-    switch (type) {
-      case 'music': return 'Música';
-      case 'text': return 'Texto';
-      case 'image': return 'Imagem';
-      default: return type;
-    }
-  };
+  if (!isExpanded) {
+    return (
+      <div className="mb-4">
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          onClick={handleSearchClick}
+        >
+          <Search className="h-4 w-4" />
+          Busca Global
+        </Button>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-4">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+    <div className="mb-6">
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
         <Input
+          type="text"
           placeholder="Buscar em todos os prompts..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
+          onBlur={handleBlur}
+          className="pl-10 w-full"
+          autoFocus
         />
       </div>
-
+      
       {searchTerm && (
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <p className="text-sm text-gray-600">
-              {isSearching ? 'Buscando...' : `${results.length} de ${totalResults} resultados`}
-            </p>
-          </div>
-
-          {results.length > 0 && (
-            <div className="grid gap-2 max-h-96 overflow-y-auto">
-              {results.slice(0, 20).map((result) => (
-                <Card key={`${result.type}-${result.id}`} className="p-3 hover:bg-gray-50">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Badge className={getTypeColor(result.type)}>
-                          {getTypeLabel(result.type)}
-                        </Badge>
-                        <span className="text-xs text-gray-500">{result.category}</span>
-                      </div>
-                      <h4 className="text-sm font-medium truncate">{result.title}</h4>
-                      <p className="text-xs text-gray-600 line-clamp-2 mt-1">
-                        {result.body}
-                      </p>
-                      {result.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {result.tags.slice(0, 3).map((tag, index) => (
-                            <Badge key={index} variant="outline" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
-                          {result.tags.length > 3 && (
-                            <Badge variant="outline" className="text-xs">
-                              +{result.tags.length - 3}
-                            </Badge>
-                          )}
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-sm text-gray-600 mb-2">
+              {totalResults} resultado{totalResults !== 1 ? 's' : ''} encontrado{totalResults !== 1 ? 's' : ''}
+            </div>
+            
+            {totalResults === 0 ? (
+              <p className="text-gray-500 italic">Nenhum prompt encontrado.</p>
+            ) : (
+              <div className="space-y-4">
+                {searchResults.prompts.length > 0 && (
+                  <div>
+                    <h4 className="font-medium text-sm mb-2 text-blue-600">Prompts de Música ({searchResults.prompts.length})</h4>
+                    <div className="space-y-2">
+                      {searchResults.prompts.slice(0, 5).map((prompt) => (
+                        <div key={prompt.id} className="p-2 bg-gray-50 rounded text-sm">
+                          <div className="font-medium">{prompt.categoryName}</div>
+                          <div className="text-gray-600 truncate">{prompt.text}</div>
                         </div>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      {result.favorite && <span className="text-yellow-500">⭐</span>}
-                      <span className="text-xs text-gray-500">⭐ {result.score}</span>
+                      ))}
                     </div>
                   </div>
-                </Card>
-              ))}
-            </div>
-          )}
+                )}
 
-          {results.length === 0 && !isSearching && (
-            <p className="text-sm text-gray-500 text-center py-4">
-              Nenhum resultado encontrado para "{searchTerm}"
-            </p>
-          )}
-        </div>
+                {searchResults.textPrompts.length > 0 && (
+                  <div>
+                    <h4 className="font-medium text-sm mb-2 text-green-600">Prompts de Texto ({searchResults.textPrompts.length})</h4>
+                    <div className="space-y-2">
+                      {searchResults.textPrompts.slice(0, 5).map((prompt) => (
+                        <div key={prompt.id} className="p-2 bg-gray-50 rounded text-sm">
+                          <div className="text-gray-600 truncate">{prompt.text}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {searchResults.imagePrompts.length > 0 && (
+                  <div>
+                    <h4 className="font-medium text-sm mb-2 text-purple-600">Prompts de Imagem ({searchResults.imagePrompts.length})</h4>
+                    <div className="space-y-2">
+                      {searchResults.imagePrompts.slice(0, 5).map((prompt) => (
+                        <div key={prompt.id} className="p-2 bg-gray-50 rounded text-sm">
+                          <div className="text-gray-600 truncate">{prompt.text}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       )}
     </div>
   );
