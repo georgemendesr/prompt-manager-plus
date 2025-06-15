@@ -105,7 +105,7 @@ npx supabase gen types typescript --project-id <project_id> --schema public > sr
 Crie um arquivo `.env` na raiz do projeto com:
 
 ```
-OPENAI_KEY=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
+OPENAI_KEY=your_openai_key_here
 OPENAI_ASSISTANT_ID=asst_MLJYtP1ZjjWlwmeIeY9UTlQx
 ```
 
