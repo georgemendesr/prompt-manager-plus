@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-=======
 
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 import { AddCategory } from "@/components/AddCategory";
 import { BulkImport } from "@/components/BulkImport";
 import { CategoryTree } from "@/components/CategoryTree";
@@ -39,10 +36,6 @@ interface PromptsSectionProps {
   onNextPage: () => void;
   onPreviousPage: () => void;
   currentPage: number;
-<<<<<<< HEAD
-  onRefreshRequired: () => void;
-=======
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 }
 
 export const PromptsSection = ({ 
@@ -64,12 +57,7 @@ export const PromptsSection = ({
   exportPrompts,
   onNextPage,
   onPreviousPage,
-<<<<<<< HEAD
-  currentPage,
-  onRefreshRequired,
-=======
   currentPage
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 }: PromptsSectionProps) => {
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -140,10 +128,6 @@ export const PromptsSection = ({
                   onDeleteCategory={deleteCategory}
                   searchTerm={searchTerm}
                   setSearchTerm={setSearchTerm}
-<<<<<<< HEAD
-                  onRefreshRequired={onRefreshRequired}
-=======
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
                 />
               </TabsContent>
             ))}

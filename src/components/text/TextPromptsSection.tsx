@@ -1,28 +1,13 @@
-<<<<<<< HEAD
-import { useState, useEffect } from "react";
-=======
 
 import { useState } from "react";
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddCategory } from "@/components/AddCategory";
-<<<<<<< HEAD
-import { TextPromptLayerEditor } from "./TextPromptLayerEditor";
-import { TextCategoryTree } from "./TextCategoryTree";
-import { addTextPrompt, fetchTextPrompts, createTextPromptsTable } from "@/services/text/textPromptService";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { v4 as uuidv4 } from 'uuid';
-import type { TextPrompt, TextPromptInsert } from "@/types/textPrompt";
-import { addCategory, fetchCategories, updateCategory, deleteCategory } from "@/services/categoryService";
-=======
 import { TextPromptForm } from "./TextPromptForm";
 import { TextCategoryTree } from "./TextCategoryTree";
 import { useTextCategories } from "@/hooks/text/useTextCategories";
 import type { TextPrompt } from "@/types/textPrompt";
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 
 interface TextPromptsSectionProps {
   categories: any[];
@@ -30,184 +15,6 @@ interface TextPromptsSectionProps {
   searchTerm: string;
 }
 
-<<<<<<< HEAD
-// Lista de nomes de categorias que devem aparecer na aba de texto
-const TEXT_CATEGORY_NAMES = [
-  "Super Prompts", "ChatGPT", "Gemini", "Claude", "Texto", 
-  "Escrita", "LLM", "AI", "Rewrite", "Experts", "GPT"
-];
-
-export const TextPromptsSection = ({ categories, textPrompts: initialTextPrompts, searchTerm }: TextPromptsSectionProps) => {
-  const [showForm, setShowForm] = useState(false);
-  const [textPrompts, setTextPrompts] = useState<TextPrompt[]>([]);
-  const [isLoadingPrompts, setIsLoadingPrompts] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [textCategories, setTextCategories] = useState<any[]>([]);
-  
-  useEffect(() => {
-    // Verificar e criar a tabela text_prompts se necessário
-    createTextPromptsTable().then(result => {
-      if (!result.success) {
-        toast.warning('A tabela text_prompts não existe no banco de dados', {
-          description: 'Consulte a documentação para criar as tabelas necessárias'
-        });
-      }
-    });
-    
-    loadTextPrompts();
-    loadTextCategories();
-  }, []);
-
-  const loadTextPrompts = async () => {
-    try {
-      setIsLoadingPrompts(true);
-      const prompts = await fetchTextPrompts();
-      setTextPrompts(prompts);
-    } catch (err) {
-      console.error('Erro ao carregar prompts de texto:', err);
-      toast.error('Erro ao carregar prompts de texto');
-    } finally {
-      setIsLoadingPrompts(false);
-    }
-  };
-
-  const loadTextCategories = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await fetchCategories('text');
-      
-      if (error) throw error;
-      
-      if (data) {
-        // Transformar em estrutura hierárquica
-        const hierarchicalData = buildCategoryTree(data);
-        setTextCategories(hierarchicalData);
-      }
-    } catch (err) {
-      console.error('Erro ao carregar categorias de texto:', err);
-      toast.error('Erro ao carregar categorias de texto');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Função para construir a árvore de categorias
-  const buildCategoryTree = (categories: any[], parentId: string | null = null): any[] => {
-    return categories
-      .filter(category => category.parent_id === parentId)
-      .map(category => ({
-        id: category.id,
-        name: category.name, // Não adicionar prefixo
-        parentId: category.parent_id,
-        type: 'text' as const,
-        created_at: category.created_at,
-        subcategories: buildCategoryTree(categories, category.id)
-      }));
-  };
-
-  const handleAddPrompt = async (data: TextPromptInsert) => {
-    try {
-      await addTextPrompt(data);
-      toast.success('Prompt de texto adicionado com sucesso');
-      loadTextPrompts(); // Recarregar prompts após adicionar
-      setShowForm(false);
-    } catch (err) {
-      console.error('Erro ao adicionar prompt:', err instanceof Object ? JSON.stringify(err, null, 2) : err);
-      toast.error('Erro ao adicionar prompt de texto. Verifique o console para detalhes.');
-    }
-  };
-
-  // Usamos as categorias de texto carregadas diretamente da tabela text_categories
-  const allCategories = textCategories;
-  
-  // Garantir que temos categorias para trabalhar
-  const hasCategories = allCategories && allCategories.length > 0;
-  
-  // Filtragem de categorias raiz para exibição na interface
-  const rootCategories = hasCategories 
-    ? allCategories.filter(cat => !cat.parentId)
-    : [];
-
-  // Funções de gerenciamento de categorias usando a nova API
-  const createCategory = async (name: string, parentId?: string) => {
-    try {
-      // Não prefixar mais o nome
-      const { data, error } = await addCategory('text', name, parentId);
-
-      if (error) throw error;
-      
-      toast.success('Categoria criada com sucesso');
-      // Recarregar categorias sem recarregar a página
-      loadTextCategories();
-      return true;
-    } catch (err) {
-      console.error('Erro ao criar categoria:', err);
-      toast.error('Erro ao criar categoria');
-      return false;
-    }
-  };
-
-  const editCategory = async (id: string, name: string, parentId?: string) => {
-    try {
-      const { error } = await updateCategory('text', id, name, parentId);
-
-      if (error) throw error;
-      
-      toast.success('Categoria atualizada');
-      // Recarregar categorias sem recarregar a página
-      loadTextCategories();
-      return true;
-    } catch (err) {
-      console.error('Erro ao editar categoria:', err);
-      toast.error('Erro ao atualizar categoria');
-      return false;
-    }
-  };
-
-  const removeCategory = async (id: string) => {
-    try {
-      // Verificar se há prompts usando esta categoria
-      const { count, error: countError } = await supabase
-        .from('text_prompts')
-        .select('*', { count: 'exact', head: true })
-        .eq('category_id', id);
-
-      if (countError) throw countError;
-
-      if (count && count > 0) {
-        toast.error(`Não é possível excluir: existem ${count} prompts nesta categoria`);
-        return false;
-      }
-
-      // Verificar se há subcategorias
-      const { data: subcategories, error: subError } = await supabase
-        .from('text_categories')
-        .select('*')
-        .eq('parent_id', id);
-
-      if (subError) throw subError;
-
-      if (subcategories && subcategories.length > 0) {
-        toast.error(`Não é possível excluir: esta categoria contém ${subcategories.length} subcategorias`);
-        return false;
-      }
-
-      // Excluir a categoria
-      const { error } = await deleteCategory('text', id);
-
-      if (error) throw error;
-      
-      toast.success('Categoria excluída');
-      // Recarregar categorias sem recarregar a página
-      loadTextCategories();
-      return true;
-    } catch (err) {
-      console.error('Erro ao remover categoria:', err);
-      toast.error('Erro ao excluir categoria');
-      return false;
-    }
-  };
-=======
 export const TextPromptsSection = ({ textPrompts, searchTerm }: TextPromptsSectionProps) => {
   const [showForm, setShowForm] = useState(false);
   const { 
@@ -219,7 +26,6 @@ export const TextPromptsSection = ({ textPrompts, searchTerm }: TextPromptsSecti
   } = useTextCategories();
 
   const rootCategories = textCategories.filter(cat => !cat.parentId);
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -227,11 +33,7 @@ export const TextPromptsSection = ({ textPrompts, searchTerm }: TextPromptsSecti
         <div className="flex flex-wrap gap-2">
           <AddCategory 
             onAdd={createCategory} 
-<<<<<<< HEAD
-            categories={allCategories.map(cat => ({
-=======
             categories={textCategories.map(cat => ({
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
               id: cat.id,
               name: cat.name,
               parentId: cat.parentId,
@@ -245,55 +47,35 @@ export const TextPromptsSection = ({ textPrompts, searchTerm }: TextPromptsSecti
               })) || []
             }))} 
           />
-<<<<<<< HEAD
-          <Button onClick={() => setShowForm(true)} className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Novo Prompt de Texto
-          </Button>
-=======
           {textCategories.length > 0 && (
             <Button onClick={() => setShowForm(true)} className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
               Novo Prompt de Texto
             </Button>
           )}
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
         </div>
       </div>
 
       {showForm && (
-<<<<<<< HEAD
-        <TextPromptLayerEditor
-          categories={allCategories.map(cat => ({
-=======
         <TextPromptForm
           categories={textCategories.map(cat => ({
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
             id: cat.id,
             name: cat.name,
             parentId: cat.parentId,
             prompts: [],
             subcategories: []
           }))}
-<<<<<<< HEAD
-          onSubmit={handleAddPrompt}
-=======
           onSubmit={async (data) => {
             console.log('Criar prompt de texto:', data);
             setShowForm(false);
           }}
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
           onCancel={() => setShowForm(false)}
         />
       )}
 
       {loading ? (
         <div className="text-center py-8">Carregando categorias de texto...</div>
-<<<<<<< HEAD
-      ) : !hasCategories ? (
-=======
       ) : textCategories.length === 0 ? (
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
         <div className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg">
           Crie uma categoria para começar a adicionar prompts de texto
         </div>
@@ -321,11 +103,7 @@ export const TextPromptsSection = ({ textPrompts, searchTerm }: TextPromptsSecti
             >
               <TextCategoryTree
                 category={category}
-<<<<<<< HEAD
-                categories={allCategories}
-=======
                 categories={textCategories}
->>>>>>> 86ac8cb2ed81b6df8a83b8c24ae4ef37e0735611
                 textPrompts={textPrompts}
                 searchTerm={searchTerm}
                 onEditCategory={editCategory}
