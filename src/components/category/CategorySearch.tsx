@@ -5,11 +5,12 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 
 interface CategorySearchProps {
-  value: string;
-  onChange: (value: string) => void;
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+  categoryName: string;
 }
 
-export const CategorySearch = ({ value, onChange }: CategorySearchProps) => {
+export const CategorySearch = ({ searchTerm, setSearchTerm, categoryName }: CategorySearchProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -21,11 +22,11 @@ export const CategorySearch = ({ value, onChange }: CategorySearchProps) => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    onChange(newValue);
+    setSearchTerm(newValue);
   };
 
   const handleBlur = () => {
-    if (!value) {
+    if (!searchTerm) {
       setIsExpanded(false);
     }
   };
@@ -39,7 +40,7 @@ export const CategorySearch = ({ value, onChange }: CategorySearchProps) => {
             ref={inputRef}
             type="text"
             placeholder="Buscar prompts..."
-            value={value}
+            value={searchTerm}
             onChange={handleChange}
             onBlur={handleBlur}
             className="pl-10 w-full transition-all duration-200 ease-in-out"
